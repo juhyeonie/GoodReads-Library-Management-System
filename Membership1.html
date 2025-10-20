@@ -1,0 +1,38 @@
+<html>
+    <head>
+        <title>Membership</title>
+        <link rel="stylesheet" href="membership1.css">
+    </head>
+    <body>
+        <header class="header">
+            <div class="logo">
+                <img src="logo.png" alt="Logo">
+            </div>
+            <button class="SigninButton" onclick="location.href='SignIn.html'">Sign In</button>
+        </header>
+
+         <div class="form-wrapper">
+        <p class="step-text">Step 1 of 3</p>
+        <h2 class="form-title">
+            Enter your email and create a password to<br>
+            start your membership.
+        </h2>
+        <p class="subtitle">Just a few more steps and you’re all set!</p>
+
+        <form>
+            <div class="input-group">
+                <input type="email" id="email" placeholder="" required>
+                <label for="email">Email</label>
+            </div>
+
+            <div class="input-group">
+                <input type="password" id="password" placeholder="" required>
+                <label for="password">Password</label>
+            </div>
+
+            <button class="next-btn" onclick="location.href='MembershipPlan.html'">Next</button>
+        </form>
+    </div>
+
+    </body>
+</html>

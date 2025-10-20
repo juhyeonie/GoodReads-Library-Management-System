@@ -1,0 +1,93 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Gordita", sans-serif;
+}
+
+body {
+  background: #f5f5f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.add-book-container {
+  background: #fff;
+  width: 500px;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.add-book-container h2 {
+  font-size: 22px;
+  color: #1b3c53;
+  margin: 30px 40px 15px;
+}
+
+.book-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 40px 20px;
+}
+
+.book-form input,
+.book-form textarea,
+.book-form select {
+  border: 1px solid #7a8a9b;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+  color: #333;
+}
+
+.book-form textarea {
+  resize: none;
+  height: 70px;
+}
+
+.book-form input::placeholder,
+.book-form textarea::placeholder {
+  color: #9a9a9a;
+}
+
+.form-footer {
+  background: linear-gradient(to right, #1b3c53, #908daf);
+  padding: 15px 40px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.form-footer button {
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 6px 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button.confirm {
+  background-color: #1b3c53;
+  color: white;
+}
+
+button.clear {
+  background-color: white;
+  color: #1b3c53;
+  border: 1px solid #1b3c53;
+}
+
+button.cancel {
+  background-color: #908daf;
+  color: white;
+}
+
+button:hover {
+  opacity: 0.9;
+}

@@ -1,6 +1,7 @@
 <html>
 <head>
     <title>Sign In</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="SignIn.css">
 </head>
 <body>
@@ -11,17 +12,29 @@
         </div>
     </header>
 
-    <div class="form-container">
-        <div class="signin-box">
+    <div class="Form-Container">
+        <div class="Signin-Box">
             <h1>Sign in</h1>
-            <input type="email" placeholder="Email">
-            <input type="password" placeholder="Password">
-            <button class="signin-btn">Sign in</button>
-            <p class="signup-text">
+
+            <div class="input-group">
+                <input type="email" id="email" placeholder="" required>
+                <label for="email">Email</label>
+            </div>
+
+            <div class="input-group">
+                <input type="password" id="password" placeholder="" required>
+                <label for="password">Password</label>
+            </div>
+
+            <button class="Signin-Btn">Sign in</button>
+            <p class="Signup-Text">
                 New to GoodReads? <a href="#">Sign up now.</a>
             </p>
         </div>
     </div>
+
+
+
 
 </body>
 </html>

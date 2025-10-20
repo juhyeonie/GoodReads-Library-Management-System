@@ -12,10 +12,10 @@
 }
 
 body {
-    font-family: Gordita;
+    font-family: Gordita, sans-serif;
     background: #f5f5f5;
     color: rgb(21, 43, 59);
-}       
+}
 
 .header {
     width: 100%;
@@ -26,16 +26,14 @@ body {
     background: linear-gradient(to right, #1b3c53, #908daf);
 }
 
-
-
-
-.logo img{
+.logo img {
     width: 200px;
     height: auto;
 }
 
-.SigninButton {
-    background: rgba(21, 43, 59);
+.SigninButton,
+.GetStartedButton {
+    background: #234c6a;
     color: white;
     border: 1px solid rgba(21, 43, 59);
     padding: 8px 18px;
@@ -43,43 +41,92 @@ body {
     cursor: pointer;
     font-size: 14px;
     font-weight: 500;
-    transition: 0.25;
+    transition: 0.25s;
 }
 
-.SigninButton:hover {
-    background: white;
-    color: rgba(21, 43, 59);
+.SigninButton:hover,
+.GetStartedButton:hover {
+    background: #123040;
+    color: #f5f5f5;
 }
 
 .label {
     text-align: center;
     margin-top: 120px;
+    padding: 0 15px;
 }
 
 .label h1 {
     font-size: 32px;
     font-weight: bold;
-    color: rgba(21, 43, 59);
 }
 
 .label p {
     font-size: 14px;
     margin-top: 15px;
-    color: rgba(21, 43, 59);
 }
 
-.GetStartedButton {
-    background: rgba(21, 43, 59);
-    color: white;
-    border: 1px solid rgba(21, 43, 59);
-    padding: 8px 18px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: 0.25;
+
+/* ✅ Responsive Adjustments */
+@media (max-width: 768px) {
+    .header {
+        padding: 15px 20px;
+    }
+
+    .logo img {
+        width: 150px;
+    }
+
+    .SigninButton {
+        padding: 6px 15px;
+        font-size: 13px;
+    }
+
+    .label {
+        margin-top: 80px;
+    }
+
+    .label h1 {
+        font-size: 24px;
+        line-height: 1.3;
+    }
+
+    .label p {
+        font-size: 13px;
+    }
+
+    .GetStartedButton {
+        font-size: 13px;
+        padding: 8px 16px;
+    }
 }
 
-.GetStartedButton:hover {
-    background: white;
-    color: rgba(21, 43, 59);
+@media (max-width: 480px) {
+    .header {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .logo img {
+        width: 120px;
+    }
+
+    .label {
+        margin-top: 60px;
+    }
+
+    .label h1 {
+        font-size: 20px;
+    }
+
+    .label p {
+        font-size: 12px;
+    }
+
+    .GetStartedButton,
+    .SigninButton {
+        width: 100%;
+        max-width: 200px;
+    }
 }

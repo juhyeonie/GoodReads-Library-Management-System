@@ -1,0 +1,118 @@
+@font-face {
+    font-family: 'Gordita';
+    src: url('fonts/Gordita.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Gordita', serif;
+}
+
+body {
+    background: #f5f5f7;
+}
+
+.header {
+    background: linear-gradient(to right, #465c77, #8a8fb3);
+    padding: 18px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo img {
+    width: 200px;
+    height: auto;
+}
+
+
+.SigninButton {
+    background: #0f2942;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.main-content {
+    margin: 80px auto 0;
+    width: 50%;
+}
+
+.step-text {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 10px;
+
+}
+
+.title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 25px;
+    color: rgba(21, 43, 59);
+}
+
+.payment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.input-field {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cfd3d6;
+    border-radius: 20px;
+    font-size: 14px;
+    color: #444;
+    background: white;
+}
+
+.terms-text {
+    font-size: 12px;
+    color: #000000;
+    margin-top: 5px;
+    line-height: 1.4;
+}
+
+.link {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.membership-btn {
+    margin-top: 10px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+    background: #123040;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.membership-btn:hover {
+    background: #0f2942;
+    color: #f5f5f5;
+}

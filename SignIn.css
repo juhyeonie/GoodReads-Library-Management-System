@@ -1,3 +1,10 @@
+@font-face {
+    font-family: 'Gordita';
+    src: url('fonts/Gordita.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -5,7 +12,7 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: Gordita;
     background: #f5f5f5
 }
 
@@ -22,42 +29,41 @@ body {
     height: auto;
 }
 
-/* Form Container */
-.form-container {
+.Form-Container {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 80vh;
 }
 
-/* Sign-in Box */
-.signin-box {
+.Signin-Box {
     background: white;
-    padding: 30px;
-    width: 320px;
+    padding: 50px;
+    width: 360px;
     border-radius: 10px;
     box-shadow: 0 0 8px rgb(0,0,0,0.1);
     border: 1px solid #d1d1d1;
 }
 
-.signin-box h1 {
+.Signin-Box h1 {
     margin-bottom: 15px;
-    font-size: 22px;
+    font-size: 25px;
     color: #1b3c53
 }
 
-.signin-box input {
+.Signin-Box input {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 12px;
+    padding: 12px;
+    margin-bottom: 5px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    border-color: rgb(21, 43, 59);
     font-size: 14px;
 }
 
-.signin-btn {
+.Signin-Btn {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     background: #1b3c53;
     color: white;
     border: none;
@@ -67,24 +73,100 @@ body {
     font-weight: bold;
 }
 
-.signin-btn:hover {
+.Signin-Btn:hover {
     background: #123040;
 }
 
-.signup-text {
+.Signup-Text {
     margin-top: 12px;
+    text-align: center;
     font-size: 13px;
     color: #1b3c53
 }
 
-.signup-text a {
+.Signup-Text a {
     color: #1b3c53;
     font-weight: bold;
     text-decoration: none;
     text-decoration: underline;
 }
 
-.signup-text a:hover {
+.Signup-Text a:hover {
     text-decoration: underline;
     color: #000000;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px 12px;
+    font-size: 14px;
+    border: 1px solid #234c6a;
+    border-radius: 5px;
+    outline: none;
+    font-family: Gordita;
+    transition: all 0.2s ease;
+}
+
+.input-group label {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #6f6f6f;
+    pointer-events: none;
+    transition: all 0.2s ease;
+}
+
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+    top: 0px;
+    font-size: 12px;
+    padding: 0 4px;
+    background: white;
+    color: #1b3c53;
+}
+
+@media (max-width: 480px) {
+    .header {
+        justify-content: center;
+        padding: 12px;
+    }
+
+    .logo img {
+        width: 130px;
+    }
+
+    .Form-Container {
+        height: auto;
+        padding: 30px 15px;
+    }
+
+    .Signin-Box {
+        width: 100%;
+        padding: 30px 20px;
+    }
+
+    .Signin-Box h1 {
+        font-size: 20px;
+    }
+
+    .input-group input {
+        font-size: 13px;
+        padding: 12px;
+    }
+
+    .Signin-Btn {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    .Signup-Text {
+        font-size: 12px;
+    }
 }

@@ -1,0 +1,124 @@
+@font-face {
+    font-family: 'Gordita';
+    src: url('fonts/Gordita.ttf') format('truetype');
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Gordita', sans-serif;
+    background: #f5f5f5;
+}
+
+.header {
+    width: 100%;
+    padding: 15px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(to right, #1b3c53, #908daf);
+}
+
+.logo img {
+    width: 200px;
+    height: auto;
+}
+
+.SigninButton {           
+
+    background: #1b3c53;
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.SigninButton:hover {
+    background: #123040;
+}
+
+.form-wrapper {
+    width: 50%;
+    margin: 80px auto 0;
+}
+
+.step-text {
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: #000000;
+}
+
+.form-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #123040;
+}
+
+.subtitle {
+    font-size: 14px;
+    margin-bottom: 25px;
+    color: #2a2b2b;
+}
+
+form {
+    width: 100%;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px 12px;
+    font-size: 14px;
+    border: 1px solid #234c6a;
+    border-radius: 5px;
+    outline: none;
+    font-family: Gordita;
+    transition: all 0.2s ease;
+}
+
+.input-group label {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #6f6f6f;
+    pointer-events: none;
+    transition: all 0.2s ease;
+}
+
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+    top: 0px;
+    font-size: 12px;
+    padding: 0 4px;
+    background: white;
+    color: #1b3c53;
+}
+
+.next-btn {
+    width: 100%;
+    padding: 14px;
+    background: #1b3c53;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.next-btn:hover {
+    background: #123040;
+}

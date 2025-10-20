@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GoodReads Admin Dashboard</title>
+  <link rel="stylesheet" href="BookAdmin-Dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="top-section">
+        <div class="logo">
+          <img src="logo.png" alt="GoodReads Logo" class="logo-img" />
+        </div>
+
+        <nav class="menu">
+          <!-- Dashboard link -->
+          <a href="BookAdmin-Dashboard.html" class="menu-item active">
+            <span class="icon">
+              <img src="dashboard.png" alt="Dashboard icon" />
+            </span>
+            <span class="text">Dashboard</span>
+          </a>
+
+          <!-- Book management link -->
+          <a href="BookAdmin-BookManagement.html" class="menu-item">
+            <span class="icon">
+              <img src="book.png" alt="Book Management icon" />
+            </span>
+            <span class="text">Book Management</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Logout -->
+      <div class="user">
+        <p>Book Admin1</p>
+        <a href="BookAdmin-Login.html" class="logout-icon" title="Logout">
+          <img src="logout.png" alt="Logout icon" />
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Cards -->
+      <section class="cards">
+        <div class="card">
+          <p>Total Books</p>
+          <p id="total-books">--</p>
+        </div>
+
+        <div class="card">
+          <p>Total Books per Category</p>
+          <canvas id="barChart" height="130"></canvas>
+        </div>
+      </section>
+
+      <!-- Charts Section -->
+      <section class="charts">
+        <div class="chart-card">
+          <h3>Book Distribution</h3>
+          <canvas id="pieChart" height="200"></canvas>
+        </div>
+      </section>
+
+      <!-- Table -->
+      <h4>Recently Added Books</h4>
+      <table id="books-table">
+        <thead>
+          <tr>
+            <th>Book ID</th>
+            <th>Book Name</th>
+            <th>Author</th>
+            <th>Category</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data from DB -->
+        </tbody>
+      </table>
+    </main>
+  </div>
+
+  <script src="BookAdmin-Dashboard.js"></script>
+</body>
+</html>

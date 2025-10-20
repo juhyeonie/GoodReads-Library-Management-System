@@ -1,0 +1,328 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Gordita", sans-serif;
+}
+
+body {
+  display: flex;
+  background-color: #f5f5f5;
+  overflow-x: hidden;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 300px;
+  height: 100vh;
+  background: linear-gradient(to bottom, #1b3c53, #908daf);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 15px;
+  position: fixed;
+  left: 0;
+  top: 0;
+}
+
+.top-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.logo-img {
+  width: 200px;
+  margin-bottom: 10px;
+}
+
+.menu {
+  width: 100%;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  margin: 5px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  text-decoration: none;
+  color: white;
+}
+
+.menu-item .icon img {
+  width: 22px;
+  height: 22px;
+  margin-right: 10px;
+}
+
+.menu-item.active,
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.user {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.user .logout-icon img {
+  width: 30px;
+  height: 30px;
+  vertical-align: middle;
+}
+
+/* Main */
+.main-content {
+  margin-left: 300px;
+  padding: 25px 40px;
+  width: calc(100% - 300px);
+  background: #f9fafb;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+/* Top Search Bar */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #1b3c53;
+  border-radius: 25px;
+  padding: 3px 12px;
+  width: 350px;
+  height: 36px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.search-container input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 14px;
+  height: 100%;
+  padding-left: 8px;
+  color: #333;
+}
+
+.search-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.search-btn img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+  transition: 0.2s;
+}
+
+.search-btn:hover img {
+  opacity: 1;
+}
+
+  
+
+select {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+/* Table */
+.table-section {
+  background: white;
+  border-radius: 8px;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #000;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #1b3c53;
+  color: white;
+  font-weight: 600;
+}
+
+button {
+  border: none;
+  border-radius: 4px;
+  padding: 5px 12px;
+  cursor: pointer;
+  color: white;
+  font-size: 13px;
+}
+
+button.edit {
+  background-color: #456882;
+  margin-right: 5px;
+}
+
+button.delete {
+  background-color: #456882;
+}
+
+.add-btn {
+  background-color: #456882;
+  margin-top: 10px;
+  float: right;
+  font-size: 14px;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* Modal Background */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  justify-content: center;
+  align-items: center;
+}
+
+/* Modal Box */
+.modal-box {
+  width: 480px;
+  border-radius: 5px;
+  background: white;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.modal-header {
+  background: linear-gradient(to right, #1b3c53, #908daf);
+  color: white;
+  padding: 15px 25px;
+}
+
+.modal-header h2 {
+  font-size: 20px;
+  margin: 0;
+}
+
+/* Body */
+.modal-body {
+  padding: 25px;
+  background: #fff;
+}
+
+.book-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.book-form input,
+.book-form textarea,
+.book-form select {
+  border: 1px solid #7a8a9b;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.book-form textarea {
+  resize: none;
+  height: 70px;
+}
+
+/* Footer */
+.modal-footer {
+  background: linear-gradient(to right, #1b3c53, #908daf);
+  padding: 12px 25px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-footer button {
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 6px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+button.confirm {
+  background-color: #1b3c53;
+  color: white;
+}
+
+button.clear {
+  background-color: white;
+  color: #1b3c53;
+  border: 1px solid #1b3c53;
+}
+
+button.cancel {
+  background-color: #908daf;
+  color: white;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
