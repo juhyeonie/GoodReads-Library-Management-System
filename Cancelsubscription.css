@@ -1,0 +1,81 @@
+@font-face {
+  font-family: 'Gordita';
+  src: url('fonts/Gordita.ttf') format('truetype');
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Gordita', sans-serif;
+}
+
+body {
+  background: #fff;
+  color: #1b3c53;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 250px 20px;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 600px;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1b3c53;
+  margin-bottom: 25px;
+}
+
+.cancel-box {
+  border: 1px solid #b5c2cf;
+  border-radius: 8px;
+  padding: 25px;
+  background: #fff;
+  margin-bottom: 25px;
+}
+
+.cancel-box p {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.back-btn,
+.confirm-btn {
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.back-btn {
+  background: #d9e1e9;
+  color: #1b3c53;
+}
+
+.confirm-btn {
+  background: #1b3c53;
+  color: white;
+}
+
+.back-btn:hover {
+  background: #c6d2dd;
+}
+
+.confirm-btn:hover {
+  background: #254b6d;
+}
