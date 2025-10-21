@@ -1,0 +1,154 @@
+/* --- GLOBAL STYLES --- */
+@font-face {
+    font-family: 'Gordita';
+    src: url('fonts/Gordita.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Gordita', 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+    background-color: #fff;
+    color: #0f2234;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to right, #253b5a, #7881a1);
+    padding: 10px 40px;
+    color: white;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.logo img {
+    width: 200px;
+}
+
+.nav-icons {
+    display: flex;
+    gap: 30px;
+}
+
+.nav-icons i {
+    width: 22px;
+    height: 22px;
+    color: white;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.nav-icons i:hover {
+    color: #cdd9f0;
+    transform: scale(1.1);
+}
+
+
+/* --- MAIN CONTENT --- */
+main {
+  padding: 40px 60px;
+}
+
+h2 {
+  font-size: 4rem;
+  color: #1a3c57;
+  margin-bottom: 20px;
+}
+
+/* --- SEARCH BAR & FILTER --- */
+.search-bar {
+  display: flex;
+  align-items: right;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.search-bar input {
+  width: 70%;
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+.search-bar button {
+  background-color: #1a3c57;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.search-bar button:hover {
+  background-color: #0f2c3f;
+}
+
+.search-bar select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+/* --- BOOK CARD --- */
+.book-card {
+  display: flex;
+  border: 1px solid #9cb0c3;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+  align-items: flex-start;
+}
+
+.book-cover {
+  width: 100px;
+  height: 140px;
+  background: #ddd;
+  border-radius: 5px;
+  flex-shrink: 0;
+  margin-right: 20px;
+}
+
+.book-details {
+  flex-grow: 1;
+}
+
+.book-details p {
+  margin: 3px 0;
+  font-size: 0.95rem;
+}
+
+.book-desc {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.view-btn {
+  color: #1a3c57;
+  font-weight: bold;
+  text-decoration: none;
+  margin-left: auto;
+}
+
+.view-btn:hover {
+  text-decoration: underline;
+}
+
+/* --- FOOTER SPACE --- */
+footer {
+  height: 60px;
+}

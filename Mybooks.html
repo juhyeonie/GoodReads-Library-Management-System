@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoodReads - My Books</title>
+  <link rel="stylesheet" href="Mybooks.css">
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+
+ </head>
+<body>
+    <header class="navbar">
+        <div class="logo">
+            <img src="logo.png" alt="GoodReads Logo">
+
+        </div>
+        <div class="nav-icons">
+            <i data-feather="home"></i>
+            <i data-feather="book-open"></i>
+            <i data-feather="settings"></i>
+            <i data-feather="log-out"></i>
+        </div>
+    </header>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <h2>My books</h2>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search your books...">
+      <button onclick="searchBooks()">Search</button>
+      <select id="filter">
+        <option value="all">All</option>
+        <option value="Educational">Educational</option>
+        <option value="Novel">Novel</option>
+        <option value="Graphic Novel">Graphic Novel</option>
+      </select>
+    </div>
+
+    <div id="bookList">
+      <!-- Example Book Cards -->
+      <div class="book-card">
+        <div class="book-cover"></div>
+        <div class="book-details">
+          <p><strong>Title:</strong> Sample Book Title</p>
+          <p><strong>Author:</strong> Jane Doe</p>
+          <p><strong>Category:</strong> Educational</p>
+          <p><strong>Genre:</strong> Adventure</p>
+          <p class="book-desc"><strong>Description:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+        </div>
+        <a href="#" class="view-btn">VIEW</a>
+      </div>
+
+      <div class="book-card">
+        <div class="book-cover"></div>
+        <div class="book-details">
+          <p><strong>Title:</strong> Another Book</p>
+          <p><strong>Author:</strong> John Smith</p>
+          <p><strong>Category:</strong> Novel</p>
+          <p><strong>Genre:</strong> Biography</p>
+          <p class="book-desc"><strong>Description:</strong> Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+        </div>
+        <a href="#" class="view-btn">VIEW</a>
+      </div>
+
+      <div class="book-card">
+        <div class="book-cover"></div>
+        <div class="book-details">
+          <p><strong>Title:</strong> Mystery Tales</p>
+          <p><strong>Author:</strong> Alex Lee</p>
+          <p><strong>Category:</strong> Graphic Novel</p>
+          <p><strong>Genre:</strong> Mystery</p>
+          <p class="book-desc"><strong>Description:</strong> Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        </div>
+        <a href="#" class="view-btn">VIEW</a>
+      </div>
+    </div>
+  </main>
+
+  <footer></footer>
+
+  <script src="Mybooks.js"></script>
+  <script>
+        // initialize feather icons
+        feather.replace();
+    </script>
+</body>
+</html>
