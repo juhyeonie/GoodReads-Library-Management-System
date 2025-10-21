@@ -1,0 +1,116 @@
+@font-face {
+  font-family: 'Gordita';
+  src: url('fonts/Gordita.ttf') format('truetype');
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Gordita', sans-serif;
+}
+
+body {
+  background-color: #fff;
+  color: #1b3c53;
+  padding: 250px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  max-width: 700px;
+}
+
+h1 {
+  font-size: 28px;
+  margin-bottom: 25px;
+  font-weight: 700;
+  color: #1b3c53;
+}
+
+.plan-box {
+  border: 1px solid #b5c2cf;
+  border-radius: 8px;
+  padding: 25px;
+  background: #fff;
+  margin-bottom: 25px;
+}
+
+.plan-section {
+  margin-bottom: 15px;
+}
+
+.label {
+  font-size: 15px;
+  color: #2f4a64;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.plan {
+  font-size: 16px;
+  color: #999;
+}
+
+.plan.current {
+  color: #999;
+}
+
+.plan.new {
+  color: #333;
+  font-weight: 500;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #c8d0d9;
+  margin: 15px 0;
+}
+
+.note {
+  font-size: 13px;
+  color: #444;
+  line-height: 1.5;
+  margin-bottom: 15px;
+}
+
+.note.small {
+  font-size: 12px;
+  color: #555;
+}
+
+.buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cancel-btn,
+.confirm-btn {
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.cancel-btn {
+  background: #d9e1e9;
+  color: #1b3c53;
+}
+
+.confirm-btn {
+  background: #1b3c53;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #c6d2dd;
+}
+
+.confirm-btn:hover {
+  background: #254b6d;
+}

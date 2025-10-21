@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoodReads | My Account</title>
+    <link rel="stylesheet" href="Setting.css">
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">
+            <img src="logo.png" alt="GoodReads Logo">
+
+        </div>
+        <div class="nav-icons">
+            <i data-feather="home"></i>
+            <i data-feather="book-open"></i>
+            <i data-feather="settings"></i>
+            <i data-feather="log-out"></i>
+        </div>
+    </header>
+
+    <main class="settings-container">
+        <h2>My account</h2>
+        <p class="subtitle">
+            Update your username or password anytime. You can also manage your subscription — 
+            upgrade, downgrade, renew, or cancel it whenever you need.
+        </p>
+
+        <div class="settings-content">
+            <div class="sidebar">
+                <button class="tab-btn active" data-tab="email">Email</button>
+                <button class="tab-btn" data-tab="password">Password</button>
+                <button class="tab-btn" data-tab="membership">Membership</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="tab-content">
+
+                <!-- EMAIL TAB -->
+                <div class="tab-panel" id="email">
+                    <input type="email" placeholder="Current email">
+                    <input type="email" placeholder="New email">
+                    <div class="buttons">
+                        <button class="confirm-btn">CONFIRM</button>
+                        <button class="cancel-btn">CANCEL</button>
+                    </div>
+                </div>
+
+                <!-- PASSWORD TAB -->
+                <div class="tab-panel hidden" id="password">
+                    <input type="password" placeholder="Current password">
+                    <input type="password" placeholder="New password">
+                    <input type="password" placeholder="Re-type new password">
+                    <div class="buttons">
+                        <button class="confirm-btn">CONFIRM</button>
+                        <button class="cancel-btn">CANCEL</button>
+                    </div>
+                </div>
+
+                <!-- MEMBERSHIP TAB -->
+                <div class="tab-panel hidden" id="membership">
+                    <div class="membership-box">
+                    <p class="plan-name">Basic plan - PHP 100.00</p>
+                    <p class="plan-desc">Access our collection of Educational Books.</p>
+                    <hr>
+
+                <button class="change-plan" onclick="window.location.href='Changeplan.html'">
+                <span>Change plan</span>
+                <span class="arrow">›</span>
+                </button>
+
+                <button class="cancel-membership">Cancel Membership</button>
+                </div>
+              </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="Setting.js"></script>
+    <script>
+        // initialize feather icons
+        feather.replace();
+    </script>
+</body>
+</html>

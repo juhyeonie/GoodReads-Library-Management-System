@@ -18,17 +18,22 @@ body {
 }
 
 .header {
-    width: 100%;
-    padding: 15px 30px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(to right, #1b3c53, #908daf);
+    background: linear-gradient(to right, #253b5a, #7881a1);
+    padding: 10px 40px;
+    color: white;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
 
 .logo img {
     width: 200px;
-    height: auto;
 }
 
 .SigninButton,
@@ -36,7 +41,7 @@ body {
     background: #234c6a;
     color: white;
     border: 1px solid rgba(21, 43, 59);
-    padding: 8px 18px;
+    padding: 10px 18px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
@@ -52,7 +57,7 @@ body {
 
 .label {
     text-align: center;
-    margin-top: 120px;
+    margin-top: 300px;
     padding: 0 15px;
 }
 

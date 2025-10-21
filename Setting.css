@@ -1,0 +1,230 @@
+@font-face {
+    font-family: 'Gordita';
+    src: url('fonts/Gordita.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Gordita', 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+    background-color: #fff;
+    color: #0f2234;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to right, #253b5a, #7881a1);
+    padding: 10px 40px;
+    color: white;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.logo img {
+    width: 200px;
+}
+
+.nav-icons {
+    display: flex;
+    gap: 30px;
+}
+
+.nav-icons i {
+    width: 22px;
+    height: 22px;
+    color: white;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.nav-icons i:hover {
+    color: #cdd9f0;
+    transform: scale(1.1);
+}
+
+/* Main content */
+.settings-container {
+    max-width: 900px;
+    margin: 200px auto;
+    padding: 20px;
+}
+
+.settings-container h2 {
+    font-size: 50px;
+    font-weight: 700;
+    color: #13334c;
+}
+
+.subtitle {
+    margin-top: 8px;
+    font-size: 15px;
+    color: #333;
+}
+
+.settings-content {
+    display: flex;
+    margin-top: 30px;
+    gap: 30px;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    border: 1px solid #13334c;
+    background: none;
+    color: #13334c;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+}
+
+.tab-btn.active {
+    background: #13334c;
+    color: white;
+}
+
+.divider {
+    width: 1px;
+    background-color: #ccc;
+}
+
+/* Tab panels */
+.tab-content {
+    flex: 1;
+}
+
+.tab-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.tab-panel.hidden {
+    display: none;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #13334c;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+/* Buttons */
+.buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.confirm-btn, .cancel-btn, .cancel-membership {
+    background: #13334c;
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.cancel-btn {
+    background: #13334c;
+}
+
+.confirm-btn:hover, .cancel-membership:hover, .cancel-btn:hover{
+    background: #1e4767;
+}
+
+.membership-box {
+    border: 1px solid #002b45;
+    border-radius: 10px;
+    padding: 25px;
+    width: 100%;
+}
+
+.plan-name {
+    font-weight: 600;
+    color: #b3b3b3;
+    font-size: 15px;
+    margin-bottom: 5px;
+}
+
+.plan-desc {
+    color: #000;
+    font-size: 15px;
+    margin-bottom: 10px;
+}
+
+.membership-box hr {
+    border: none;
+    border-top: 1px solid #000;
+    margin: 10px 0 15px;
+}
+
+/* Gray "Change Plan" button */
+.change-plan {
+    width: 100%;
+    background-color: #e6e6e6;
+    border: 1px solid #bcbcbc;
+    border-radius: 8px;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+    color: #000;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.change-plan:hover {
+    background-color: #dcdcdc;
+}
+
+/* Arrow style */
+.change-plan .arrow {
+    font-size: 20px;
+    font-weight: 400;
+}
+
+/* Dark cancel button */
+.cancel-membership {
+    margin-top: 15px;
+    width: 100%;
+    background-color: #0b2b45;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.cancel-membership:hover {
+    background-color: #174a6e;
+}
+

@@ -1,64 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Page</title>
-    <link rel="stylesheet" href="PaymentMethod.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Payment — GoodReads</title>
+  <link rel="stylesheet" href="PaymentMethod.css" />
 </head>
 <body>
+  <header class="header">
+    <div class="logo">
+      <img src="logo.png" alt="GoodReads logo" />
+    </div>
+  </header>
 
-    <header class="header">
-        <div class="logo">
-            <img src="logo.png" alt="Logo">
+  <main class="layout">
+    <section class="left">
+      <p class="step-text">Step 3 of 3</p>
+      <h2 class="title">Choose how to pay</h2>
+
+      <form class="payment-form" id="paymentForm" onsubmit="return false;">
+        <label class="label">Selected Plan</label>
+        <input type="text" id="selected-plan" class="input-field" readonly placeholder="Selected plan">
+
+        <label class="label">Payment method</label>
+        <div class="select-wrap">
+          <select id="payment-method" class="input-field">
+            <option value="" disabled selected>Payment method</option>
+            <option>Credit Card</option>
+            <option>GCash</option>
+            <option>Maya</option>
+            <option>PayPal</option>
+            <option>Cash</option>
+          </select>
         </div>
-        <button class="SigninButton" onclick="location.href='SignIn.html'">Sign In</button>
-    </header>
 
-    <main class="main-content">
-        <p class="step-text">Step 3 of 3</p>
-        <h2 class="title">Choose how to pay</h2>
+        <p class="terms-text">
+          By checking the box below, you agree to our
+          <span class="link">Terms of Use</span> and <span class="link">Privacy Policy</span>,
+          and confirm that you are at least 18 years old. This is a simulated payment. Your subscription
+          will automatically continue based on your selected plan until you cancel or let it expire.
+        </p>
 
-        <form class="payment-form">
-            <div class="method">
-    <label>Selected Plan</label>
-    <input type="text" id="selected-plan" class="input-field" readonly>
-</div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="agree">
+          <label for="agree">I agree.</label>
+        </div>
 
-            <select class="input-field">
-                <option selected disabled>Payment method</option>
-                <option>Credit Card</option>
-                <option>GCash</option>
-                <option>Maya</option>
-                <option>PayPal</option>
-            </select>
+        <div class="form-actions">
+          <button id="startBtn" class="membership-btn" disabled>Start your membership</button>
+        </div>
+      </form>
+    </section>
 
-            <p class="terms-text">
-                By checking the box below, you agree to our 
-                <span class="link">Terms of Use</span> and <span class="link">Privacy Policy</span>, 
-                and confirm that you are at least 18 years old. This is a simulated payment. Your subscription 
-                will automatically continue based on your selected plan until you cancel or let it expire.
-            </p>
+    <aside class="right">
+      <div id="receiptCard" class="receipt-card empty">
+        <div class="receipt-inner" id="receiptInner">
+          <p class="placeholder">Receipt will appear here after you complete payment.</p>
+        </div>
+        <div class="receipt-actions">
+          <button id="printBtn" class="small-btn" disabled>Print</button>
+          <button id="newBtn" class="small-btn light" disabled>Continue</button>
+        </div>
+      </div>
+    </aside>
+  </main>
 
-            <div class="checkbox-container">
-                <input type="checkbox" id="agree">
-                <label for="agree">I agree.</label>
-            </div>
-
-            <button type="button" class="membership-btn" onclick="location.href='BookAdmin-Dashboard.html'">Start your membership</button>
-
-        </form>
-    </main>
-
+  <script src="PaymentMethod.js"></script>
 </body>
 </html>
-
-<script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const selectedPlan = urlParams.get('plan');
-
-    if (selectedPlan) {
-        document.getElementById('selected-plan').value = selectedPlan;
-    }
-</script>
-

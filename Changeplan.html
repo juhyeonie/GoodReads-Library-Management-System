@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Change Plan</title>
+  <link rel="stylesheet" href="Changeplan.css" />
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+
+  <header class="header">
+    <div class="logo">
+      <img src="logo.png" alt="GoodReads Logo">
+    </div>
+     <div class="nav-icons">
+            <i data-feather="home"></i>
+            <i data-feather="book-open"></i>
+            <i data-feather="settings"></i>
+            <i data-feather="log-out"></i>
+    </div>
+  </header>
+
+  <main class="main-content">
+   <div class="plans">
+      <div class="plan-card">
+        <div class="plan-header">Basic - Current plan</div>
+        <div class="plan-body">
+          <p class="price-label">Monthly price</p>
+          <p class="price">PHP 100.00</p>
+          <hr>
+          <p class="details">Access our collection of Educational Books.</p>
+        </div>
+      </div>
+
+       <div class="plan-card">
+        <div class="plan-header">Standard</div>
+        <div class="plan-body">
+          <p class="price-label">Monthly price</p>
+          <p class="price">PHP 150.00</p>
+          <hr>
+          <p class="details">Access Educational Books and Novels.</p>
+        </div>
+      </div>
+
+      <div class="plan-card">
+        <div class="plan-header">Premium</div>
+        <div class="plan-body">
+          <p class="price-label">Monthly price</p>
+          <p class="price">PHP 250.00</p>
+          <hr>
+          <p class="details">Access Educational Books, Novels, and Graphic Novels.</p>
+        </div>
+      </div>
+    </div>
+  <button class="continue-btn">Continue</button>
+  </main>
+  <script src="Setting.js"></script>
+    <script>
+        // initialize feather icons
+        feather.replace();
+    </script>
+
+</body>
+</html>
