@@ -1,40 +1,47 @@
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Sign In</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="SignIn.css">
+  <meta charset="utf-8" />
+  <title>Sign In</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="SignIn.css">
 </head>
 <body>
 
-    <header class="header">
-        <div class="logo">
-            <img src="logo.png" alt="GoodReads">
-        </div>
-    </header>
-
-    <div class="Form-Container">
-        <div class="Signin-Box">
-            <h1>Sign in</h1>
-
-            <div class="input-group">
-                <input type="email" id="email" placeholder="" required>
-                <label for="email">Email</label>
-            </div>
-
-            <div class="input-group">
-                <input type="password" id="password" placeholder="" required>
-                <label for="password">Password</label>
-            </div>
-
-            <button class="Signin-Btn">Sign in</button>
-            <p class="Signup-Text">
-                New to GoodReads? <a href="#">Sign up now.</a>
-            </p>
-        </div>
+  <header class="header">
+    <div class="logo">
+      <!-- adjust path if logo is in Media/ or root -->
+      <img src="logo.png" alt="GoodReads" style="height:48px;">
     </div>
+  </header>
 
+  <div class="Form-Container">
+    <div class="Signin-Box">
+      <h1>Sign in</h1>
 
+      <form id="signinForm" novalidate>
+        <div class="input-group">
+          <input type="email" name="email" id="email" placeholder="" required>
+          <label for="email">Email</label>
+          <div class="error" id="err-email" style="display:none;color:#c33;font-size:0.9rem"></div>
+        </div>
 
+        <div class="input-group">
+          <input type="password" name="password" id="password" placeholder="" required>
+          <label for="password">Password</label>
+          <div class="error" id="err-password" style="display:none;color:#c33;font-size:0.9rem"></div>
+        </div>
 
+        <button type="submit" class="Signin-Btn">Sign in</button>
+        <div id="server-msg" style="color:#c33; margin-top:0.5rem; display:none"></div>
+
+        <p class="Signup-Text">
+          New to GoodReads? <a href="#">Sign up now.</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <script src="Validate-SignIn.js"></script>
 </body>
 </html>
