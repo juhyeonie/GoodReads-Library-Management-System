@@ -1,88 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GoodReads Admin Dashboard</title>
+
   <link rel="stylesheet" href="BookAdmin-Dashboard.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <div class="container">
+  <!-- Mobile Menu Toggle -->
+  <button class="menu-toggle" id="menuToggle" aria-expanded="true" aria-controls="sidebar">☰</button>
+
+  <div class="app">
     <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="top-section">
+    <aside id="sidebar" class="sidebar" role="navigation" aria-label="Main sidebar">
+      <div class="sidebar-top">
         <div class="logo">
           <img src="logo.png" alt="GoodReads Logo" class="logo-img" />
         </div>
 
-        <nav class="menu">
-          <!-- Dashboard link -->
+        <!-- Collapse (desktop) button -->
+        <button id="collapseBtn" class="collapse-btn" aria-pressed="false" title="Collapse sidebar">
+          ⇤
+        </button>
+
+        <nav class="menu" aria-label="Primary">
           <a href="BookAdmin-Dashboard.html" class="menu-item active">
-            <span class="icon">
-              <img src="dashboard.png" alt="Dashboard icon" />
-            </span>
+            <span class="icon"><img src="dashboard.png" alt="" /></span>
             <span class="text">Dashboard</span>
           </a>
 
-          <!-- Book management link -->
           <a href="BookAdmin-BookManagement.html" class="menu-item">
-            <span class="icon">
-              <img src="book.png" alt="Book Management icon" />
-            </span>
+            <span class="icon"><img src="book.png" alt="" /></span>
             <span class="text">Book Management</span>
           </a>
         </nav>
       </div>
 
-      <!-- Logout -->
-      <div class="user">
-        <p>Book Admin1</p>
-        <a href="BookAdmin-Login.html" class="logout-icon" title="Logout">
-          <img src="logout.png" alt="Logout icon" />
-        </a>
+      <div class="sidebar-bottom">
+        <div class="user">
+          <p class="username">Book Admin1</p>
+          <a href="BookAdmin-Login.html" class="logout-icon" title="Logout">
+            <img src="logout.png" alt="Logout icon" />
+          </a>
+        </div>
       </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="main-content">
-      <!-- Top Cards -->
+    <main class="main-content" id="mainContent">
       <section class="cards">
-        <div class="card">
-          <p>Total Books</p>
-          <p id="total-books">--</p>
+        <div class="card small">
+          <div class="card-title">Total Books</div>
+          <h2 id="total-books">—</h2>
         </div>
 
-        <div class="card">
-          <p>Total Books per Category</p>
-          <canvas id="barChart" height="130"></canvas>
+        <div class="card large">
+          <div class="card-title">Total Books per Category</div>
+          <div class="chart-wrap">
+            <canvas id="barChart" aria-label="Books per category chart" role="img"></canvas>
+          </div>
         </div>
       </section>
 
-      <!-- Charts Section -->
       <section class="charts">
-        <div class="chart-card">
+        <div class="chart-card small-chart">
           <h3>Book Distribution</h3>
-          <canvas id="pieChart" height="200"></canvas>
+          <div class="chart-wrap">
+            <canvas id="pieChart" aria-label="Book distribution chart" role="img"></canvas>
+          </div>
         </div>
       </section>
 
-      <!-- Table -->
-      <h4>Recently Added Books</h4>
-      <table id="books-table">
-        <thead>
-          <tr>
-            <th>Book ID</th>
-            <th>Book Name</th>
-            <th>Author</th>
-            <th>Category</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Data from DB -->
-        </tbody>
-      </table>
+      <section class="table-section">
+        <h3>Recently added books</h3>
+        <div class="table-container">
+          <table id="books-table" aria-describedby="recently-added">
+            <thead>
+              <tr>
+                <th>Book ID</th>
+                <th>Book Name</th>
+                <th>Author</th>
+                <th>Category</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- JS will inject rows -->
+            </tbody>
+          </table>
+        </div>
+      </section>
     </main>
   </div>
 

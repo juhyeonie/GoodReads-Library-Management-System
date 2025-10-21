@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GoodReads | Dashboard Management</title>
+  <link rel="stylesheet" href="UserAdmin-Dashboard.css" />
+</head>
+
+<body>
+  <button id="menuToggle" class="menu-toggle" aria-controls="sidebar" aria-expanded="false">⇤</button>
+
+  <div class="app">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar" role="navigation" aria-label="Main sidebar">
+      <div class="sidebar-top">
+        <div class="logo">
+          <img src="logo.png" alt="GoodReads Logo" class="logo-img" />
+        </div>
+
+        <button id="collapseBtn" class="collapse-btn" aria-pressed="false" title="Collapse sidebar">⇤</button>
+
+        <nav class="menu" aria-label="Primary navigation">
+          <a href="UserAdmin-Dashboard.html" class="menu-item active">
+            <span class="icon"><img src="dashboard.png" alt="" /></span>
+            <span class="text">Dashboard</span>
+          </a>
+
+          <a href="UserAdmin-User.html" class="menu-item">
+            <span class="icon"><img src="user.png" alt="" /></span>
+            <span class="text">User Management</span>
+          </a>
+
+          <a href="UserAdmin-Admin.html" class="menu-item">
+            <span class="icon"><img src="user.png" alt="" /></span>
+            <span class="text">Admin Management</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user">
+          <p class="username">User Admin1</p>
+          <a href="StartPage.html" class="logout-icon" title="Logout"><img src="logout.png" alt="Logout" /></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main id="mainContent" class="main-content" role="main">
+      <div class="top-bar">
+        <h1>Dashboard</h1>
+
+        <!-- Stats cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-title">Total Admins</span>
+              <span class="stat-icon">👨‍💼</span>
+            </div>
+            <div class="stat-value" id="totalAdmins">0</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-title">Total Admins</span>
+              <span class="stat-icon">🔧</span>
+            </div>
+            <div class="stat-value" id="totalAdmins2">0</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-title">Total Active Users</span>
+              <span class="stat-icon">⏰</span>
+            </div>
+            <div class="stat-value" id="activeUsers">0</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-title">Total Inactive Users</span>
+              <span class="stat-icon">⏸️</span>
+            </div>
+            <div class="stat-value" id="inactiveUsers">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h2 class="section-title">New users</h2>
+      </div>
+
+      <section class="table-section">
+        <table id="usersTable">
+          <thead>
+            <tr>
+              <th>Receipt no.</th>
+              <th>Email</th>
+              <th>Password</th>
+              <th>Actions button</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Data will be populated here -->
+          </tbody>
+        </table>
+      </section>
+
+      <div class="section-header">
+        <h2 class="section-title">Graphs</h2>
+      </div>
+    </main>
+  </div>
+
+  <!-- Edit User Modal -->
+  <div id="editUserModal" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="editModalTitle">
+    <div class="modal-box" role="document">
+      <div class="modal-topbar"></div>
+
+      <div class="modal-body">
+        <h2 id="editModalTitle" class="modal-title">Edit user details</h2>
+
+        <form id="editUserForm" class="user-form" autocomplete="off">
+          <label class="field">
+            <input name="email" type="email" placeholder="Email" required />
+          </label>
+          <label class="field">
+            <input name="password" type="password" placeholder="Password" required />
+          </label>
+        </form>
+      </div>
+
+      <div class="modal-bottombar">
+        <div class="modal-actions">
+          <button id="confirmEdit" class="btn confirm">Confirm</button>
+          <button id="closeEditModal" class="btn cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="UserAdmin-Dashboard.js"></script>
+</body>
+</html>
