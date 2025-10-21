@@ -1,0 +1,68 @@
+@font-face {
+  font-family: 'Gordita';
+  src: url('fonts/Gordita.ttf') format('truetype');
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Gordita', sans-serif;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f8f8f8;
+  min-height: 100vh;
+}
+
+.receipt-container {
+  background: white;
+  border: 2px solid black;
+  width: 420px;
+  padding: 35px;
+  text-align: left;
+}
+
+h2 {
+  text-align: center;
+  margin: 15px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.divider,
+.top-line,
+.bottom-line {
+  border: none;
+  border-top: 2px dashed black;
+  margin: 10px 0;
+}
+
+.section {
+  margin: 15px 0;
+  line-height: 1.7;
+}
+
+.section p {
+  font-size: 15px;
+}
+
+.section span {
+  font-weight: 500;
+}
+
+.note {
+  font-size: 14px;
+  text-align: center;
+  margin: 15px 0;
+}
+
+.footer-note {
+  text-align: center;
+  font-size: 13px;
+  margin-top: 10px;
+  color: #333;
+}
