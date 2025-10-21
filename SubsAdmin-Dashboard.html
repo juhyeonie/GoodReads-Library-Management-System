@@ -1,0 +1,100 @@
+<!-- ...existing code... -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GoodReads — Subscriptions Admin</title>
+  <link rel="stylesheet" href="SubsAdmin-Dashboard.css" />
+</head>
+<body>
+  <!-- Mobile menu toggle -->
+  <button id="menuToggle" class="menu-toggle" aria-controls="sidebar" aria-expanded="false">☰</button>
+
+  <div class="app">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar" role="navigation" aria-label="Main sidebar">
+      <div class="sidebar-top">
+        <div class="logo">
+          <img src="logo.png" alt="GoodReads Logo" class="logo-img" />
+        </div>
+
+        <!-- Desktop collapse button -->
+        <button id="collapseBtn" class="collapse-btn" aria-pressed="false" title="Collapse sidebar">⇤</button>
+
+        <nav class="menu" aria-label="Primary navigation">
+          <a href="SubsAdmin-Dashboard.html" class="menu-item active">
+            <span class="icon"><img src="dashboard.png" alt="" /></span>
+            <span class="text">Dashboard</span>
+          </a>
+
+          <a href="SubsAdmin-Subscriptions.html" class="menu-item">
+            <span class="icon"><img src="subscription.png" alt="" /></span>
+            <span class="text">Subscriptions</span>
+          </a>
+
+          <a href="SubsAdmin-UserSubscription.html" class="menu-item">
+            <span class="icon"><img src="user.png" alt="" /></span>
+            <span class="text">Users Subscription</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user">
+          <p class="username">Subs Admin1</p>
+          <a href="StartPage.html" class="logout-icon" title="Logout"><img src="logout.png" alt="Logout" /></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main id="main" class="main" role="main">
+      <header class="page-header">
+        <div class="cards-row" id="cardsRow" aria-live="polite">
+          <div class="card">
+            <div class="card-title">Total Active Subscription</div>
+            <div class="card-meta" id="card-total">—</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Top Subscribed Plan</div>
+            <div class="card-meta" id="card-top">—</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Expired Subscription Plan</div>
+            <div class="card-meta" id="card-expired">—</div>
+          </div>
+        </div>
+      </header>
+
+      <section class="table-section">
+        <h2 class="section-title">Recently subscribed</h2>
+
+        <div class="table-wrap" id="tableWrap">
+          <table id="subsTable" class="subs-table" aria-describedby="recently-subscribed">
+            <thead>
+              <tr>
+                <th>Receipt no.</th>
+                <th>Email</th>
+                <th>Plan</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- JS injected rows -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="SubsAdmin-Dashboard.js"></script>
+</body>
+</html>
+<!-- ...existing code... -->

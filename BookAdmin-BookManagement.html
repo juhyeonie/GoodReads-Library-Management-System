@@ -1,91 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GoodReads | Book Management</title>
+
+  <!-- CSS -->
   <link rel="stylesheet" href="BookAdmin-BookManagement.css" />
 </head>
 
-<!-- Add Book Modal -->
-<div id="addBookModal" class="modal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <h2>Add a new book</h2>
-    </div>
 
-    <div class="modal-body">
-      <form class="book-form">
-        <input type="text" placeholder="Book Name" required />
-        <input type="text" placeholder="Author" required />
-        <textarea placeholder="Description"></textarea>
-        <input type="text" placeholder="Genre" />
-        <select required>
-          <option value="" disabled selected>Category</option>
-          <option value="educational">Educational</option>
-          <option value="novel">Novel</option>
-          <option value="graphic">Graphic Novel</option>
-        </select>
-        <input type="text" placeholder="Cover Image Path" />
-        <input type="file" />
-      </form>
-    </div>
-
-    <div class="modal-footer">
-      <button class="confirm">CONFIRM</button>
-      <button class="clear">CLEAR</button>
-      <button class="cancel" id="closeModal">CANCEL</button>
-    </div>
-  </div>
-</div>
 
 <body>
-  <div class="container">
+
+  <!-- Mobile menu toggle -->
+  <button id="menuToggle" class="menu-toggle" aria-controls="sidebar" aria-expanded="false">☰</button>
+
+  <div class="app">
     <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="top-section">
+    <aside id="sidebar" class="sidebar" role="navigation" aria-label="Main sidebar">
+      <div class="sidebar-top">
         <div class="logo">
           <img src="logo.png" alt="GoodReads Logo" class="logo-img" />
         </div>
 
-        <nav class="menu">
-          <!-- DASHBOARD LINK -->
+        <!-- Desktop collapse button -->
+        <button id="collapseBtn" class="collapse-btn" aria-pressed="false" title="Collapse sidebar">⇤</button>
+
+        <nav class="menu" aria-label="Primary navigation">
           <a href="BookAdmin-Dashboard.html" class="menu-item">
-            <span class="icon">
-              <img src="dashboard.png" alt="Dashboard icon" />
-            </span>
+            <span class="icon"><img src="dashboard.png" alt="" /></span>
             <span class="text">Dashboard</span>
           </a>
 
-          <!-- BOOK MANAGEMENT LINK -->
+         
           <a href="BookAdmin-BookManagement.html" class="menu-item active">
-            <span class="icon">
-              <img src="book.png" alt="Book Management icon" />
-            </span>
+            <span class="icon"><img src="book.png" alt="" /></span>
             <span class="text">Book Management</span>
           </a>
         </nav>
       </div>
 
-      <!-- LOGOUT LINK -->
-      <div class="user">
-        <p>Book Admin1</p>
-        <a href="index.html" class="logout-icon" title="Logout">
-          <img src="logout.png" alt="Logout icon" />
-        </a>
+      <div class="sidebar-bottom">
+        <div class="user">
+          <p class="username">Book Admin1</p>
+          <a href="StartPage.html" class="logout-icon" title="Logout"><img src="logout.png" alt="Logout" /></a>
+        </div>
       </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="main-content">
+    <!-- Main content -->
+    <main id="mainContent" class="main-content" role="main">
       <div class="top-bar">
-        <div class="search-container">
-          <input type="text" placeholder="Search books..." id="searchInput" />
-          <button class="search-btn">
-            <img src="search.png" alt="Search Icon" />
-          </button>
+        <h1>Book Management</h1>
+        
+        <div class="search-container" role="search">
+          <input id="searchInput" type="text" placeholder="Search books..." />
+          <button class="search-btn" aria-label="Search"><img src="search.png" alt="Search" /></button>
         </div>
-        <select id="filterCategory">
+
+        <select id="filterCategory" aria-label="Filter by category">
           <option value="all">All</option>
           <option value="educational">Educational</option>
           <option value="novel">Novel</option>
@@ -93,28 +67,102 @@
         </select>
       </div>
 
-      <!-- Table Section -->
-      <section class="table-section">
-        <table id="booksTable">
+      <section class="table-section" aria-labelledby="recent-heading">
+        <h3 id="recent-heading" class="sr-only">Recently added books</h3>
+        <table id="booksTable" aria-describedby="recent-heading">
           <thead>
             <tr>
               <th>Book ID</th>
               <th>Book Name</th>
               <th>Author</th>
               <th>Category</th>
-              <th>Actions button</th>
+              <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
-            <!-- Dynamic rows from database will be inserted here -->
-          </tbody>
+          <tbody><!-- injected by JS --></tbody>
         </table>
 
-        <button class="add-btn" id="openModalBtn">Add new book</button>
+        <button id="openModalBtn" class="add-btn">Add new book</button>
       </section>
     </main>
   </div>
 
+  <!-- ...existing code... -->
+  <!-- Modal -->
+  <div id="addBookModal" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle">
+    <div class="modal-box" role="document">
+      <div class="modal-topbar"></div>
+
+      <div class="modal-body">
+        <h2 id="modalTitle" class="modal-title">Add a new book</h2>
+
+        <form id="bookForm" class="book-form">
+          <label class="field"><input name="name" type="text" placeholder="Book Name" required /></label>
+          <label class="field"><input name="author" type="text" placeholder="Author" required /></label>
+          <label class="field"><textarea name="description" placeholder="Description"></textarea></label>
+          <label class="field"><input name="genre" type="text" placeholder="Genre" /></label>
+          <label class="field">
+            <select name="category" required>
+              <option value="" disabled selected>Category</option>
+              <option value="educational">Educational</option>
+              <option value="novel">Novel</option>
+              <option value="graphic">Graphic Novel</option>
+            </select>
+          </label>
+          <label class="field"><input name="coverPath" type="text" placeholder="Cover Image Path" /></label>
+          <label class="field"><input name="coverFile" type="file" accept="image/*" /></label>
+        </form>
+      </div>
+
+      <div class="modal-bottombar">
+        <div class="modal-actions">
+          <button id="confirmAdd" class="btn confirm">CONFIRM</button>
+          <button id="clearForm" class="btn clear" type="button">CLEAR</button>
+          <button id="closeModal" class="btn cancel" type="button">CANCEL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- ...existing code... -->
+
+<!-- ...existing code... -->
+  <!-- Edit Book Modal (same design as Add New Book) -->
+  <div id="editBookModal" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="editModalTitle">
+    <div class="modal-box" role="document">
+      <div class="modal-topbar"></div>
+
+      <div class="modal-body">
+        <h2 id="editModalTitle" class="modal-title">Edit book details</h2>
+
+        <form id="editBookForm" class="book-form" autocomplete="off">
+          <label class="field"><input name="name" type="text" placeholder="Book Name" required /></label>
+          <label class="field"><input name="author" type="text" placeholder="Author" required /></label>
+          <label class="field"><textarea name="description" placeholder="Description"></textarea></label>
+          <label class="field"><input name="genre" type="text" placeholder="Genre" /></label>
+          <label class="field">
+            <select name="category" required>
+              <option value="" disabled>Category</option>
+              <option value="educational">Educational</option>
+              <option value="novel">Novel</option>
+              <option value="graphic">Graphic Novel</option>
+            </select>
+          </label>
+          <label class="field"><input name="coverPath" type="text" placeholder="Cover Image Path" /></label>
+          <label class="field"><input name="coverFile" type="file" accept="image/*" /></label>
+        </form>
+      </div>
+
+      <div class="modal-bottombar">
+        <div class="modal-actions">
+          <button id="confirmEditBook" class="btn confirm">CONFIRM</button>
+          <button id="clearEditForm" class="btn clear" type="button">CLEAR</button>
+          <button id="closeEditModal" class="btn cancel" type="button">CANCEL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- ...existing code... -->
+  <!-- JS -->
   <script src="BookAdmin-BookManagement.js"></script>
 </body>
 </html>

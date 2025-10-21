@@ -1,0 +1,129 @@
+<!-- ...existing code... -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GoodReads | Subscription Plans</title>
+  <link rel="stylesheet" href="SubsAdmin-Subscription.css" />
+</head>
+<body>
+  <!-- Mobile menu toggle -->
+  <button id="menuToggle" class="menu-toggle" aria-controls="sidebar" aria-expanded="false">☰</button>
+
+  <div class="app">
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="sidebar" role="navigation" aria-label="Main sidebar">
+      <div class="sidebar-top">
+        <div class="logo">
+          <img src="logo.png" alt="GoodReads Logo" class="logo-img" />
+        </div>
+
+        <!-- Desktop collapse button -->
+        <button id="collapseBtn" class="collapse-btn" aria-pressed="false" title="Collapse sidebar">⇤</button>
+
+        <nav class="menu" aria-label="Primary navigation">
+          <a href="SubsAdmin-Dashboard.html" class="menu-item">
+            <span class="icon"><img src="dashboard.png" alt="" /></span>
+            <span class="text">Dashboard</span>
+          </a>
+
+          <a href="SubsAdmin-Subscription.html" class="menu-item active">
+            <span class="icon"><img src="subscription.png" alt="" /></span>
+            <span class="text">Subscription</span>
+          </a>
+
+          <a href="SubsAdmin-UserSubscription.html" class="menu-item">
+            <span class="icon"><img src="user.png" alt="" /></span>
+            <span class="text">User Subscription</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user">
+          <p class="username">Subscription Admin1</p>
+          <a href="StartPage.html" class="logout-icon" title="Logout"><img src="logout.png" alt="Logout" /></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main id="mainContent" class="main-content">
+      <header class="topbar">
+        <h1>Subscription Plans</h1>
+      </header>
+
+      <section class="plans">
+        <div class="plan-card">
+          <div class="plan-header">Basic</div>
+          <div class="plan-body">
+            <p class="price-label">Monthly price</p>
+            <p class="price">PHP 100.00</p>
+            <hr />
+            <p class="details">Access our collection of Educational Books.</p>
+            <button class="edit-btn">Edit plan</button>
+          </div>
+        </div>
+
+        <div class="plan-card">
+          <div class="plan-header">Standard</div>
+          <div class="plan-body">
+            <p class="price-label">Monthly price</p>
+            <p class="price">PHP 150.00</p>
+            <hr />
+            <p class="details">Access Educational Books and Novels.</p>
+            <button class="edit-btn">Edit plan</button>
+          </div>
+        </div>
+
+        <div class="plan-card">
+          <div class="plan-header">Premium</div>
+          <div class="plan-body">
+            <p class="price-label">Monthly price</p>
+            <p class="price">PHP 250.00</p>
+            <hr />
+            <p class="details">Access Educational Books, Novels, and Graphic Novels.</p>
+            <button class="edit-btn">Edit plan</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal: edit plan -->
+  <div id="editPlanModal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="editPlanTitle">
+    <div class="modal-box" role="document">
+      <div class="modal-topbar"></div>
+
+      <div class="modal-body">
+        <h2 id="editPlanTitle" class="modal-title">Edit plan details</h2>
+
+        <form id="editPlanForm" class="edit-plan-form" autocomplete="off">
+          <label class="field">
+            <input id="planNameInput" name="name" type="text" placeholder="Plan name" />
+          </label>
+
+          <label class="field">
+            <input id="priceInput" name="price" type="text" placeholder="Price" />
+          </label>
+
+          <label class="field">
+            <textarea id="descInput" name="description" placeholder="Description" rows="3"></textarea>
+          </label>
+        </form>
+      </div>
+
+      <div class="modal-bottombar">
+        <div class="modal-actions">
+          <button id="confirmEdit" class="btn confirm">CONFIRM</button>
+          <button id="cancelEdit" class="btn cancel">CANCEL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="SubsAdmin-Subscription.js"></script>
+</body>
+</html>
+<!-- ...existing code... -->
