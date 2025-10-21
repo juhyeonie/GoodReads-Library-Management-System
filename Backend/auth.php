@@ -41,32 +41,20 @@ try {
     }
 
     // Plain text password check (since your DB uses plain text)
-    if ($password !== $user['Password']) {
-        http_response_code(401);
-        echo json_encode(['success' => false, 'message' => 'Invalid email or password.']);
-        exit;
-    }
 
-    if ($user['Status'] !== 'Active') {
-        http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'Account is not active.']);
-        exit;
-    }
+   // after $user is fetched
+$stored = $user['Password'];
 
-    session_start();
-    $_SESSION['AccountID'] = $user['AccountID'];
-    $_SESSION['Email'] = $user['Email'];
-    $_SESSION['Role'] = $user['Role'];
-
-    echo json_encode([
-        'success' => true,
-        'message' => 'Login successful',
-        'role' => $user['Role'],
-        'status'  => $user['Status'],
-        'account_id' => $user['AccountID']
-    ]);
-} catch (Exception $e) {
-    error_log('Auth error: ' . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Server error']);
+// If password_verify works (passwords hashed with password_hash)
+if (password_verify($password, $stored)) {
+    $ok = true;
+} else {
+    // fallback: check plain text (for legacy accounts)
+    $ok = ($password === $stored);
 }
+
+if (!$ok) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'message' => 'Invalid email or password.']);
+    exit;
+}s
