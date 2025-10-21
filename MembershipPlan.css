@@ -18,18 +18,25 @@ body {
 }
 
 /* HEADER */
-.header {
-  background: linear-gradient(to right, #1b3c53, #908daf);
-  padding: 15px 35px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.header { 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to right, #253b5a, #7881a1);
+    padding: 10px 40px;
+    color: white;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
 
 .logo img {
-  width: 180px;
-  height: auto;
+    width: 200px;
 }
+
 
 .signin-btn {
   background: #1b3c53;
