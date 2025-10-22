@@ -195,21 +195,21 @@ const books = [
     genre: "Educational",
     cover: "Media/Covers/karl.jpg",
     description: "A comprehensive illustrated compilation of influential works on economics and society.",
-    pdfUrl: "Media/Educational/KARLMARX.pdf"
+    pdfUrl: "Media/Education/KARLMARX.pdf"
   },
   {
     title: "Rich Dad Poor Dad",
     genre: "Educational",
     cover: "Media/Covers/rich.png",
     description: "A personal-finance classic contrasting two mindsets about money, investing, and wealth-building.",
-    pdfUrl: "Media/Educational/RICHDADDY.pdf"
+    pdfUrl: "Media/Education/RICHDADDY.pdf"
   },
   {
     title: "Slow Productivity: The Lost Art of Accomplishment Without Burnout",
     genre: "Educational",
     cover: "Media/Covers/slow.jpg",
     description: "Guidance on doing meaningful work by prioritizing focus, rest, and sustainable productivity.",
-    pdfUrl: "Media/Educational/SLOWPRODUCTIVITY.pdf"
+    pdfUrl: "Media/Education/SLOWPRODUCTIVITY.pdf"
   }
 ];
 
@@ -276,4 +276,42 @@ closeModalBtn.addEventListener("click", () => {
 
 
 // ====== Initialize ======
+// ====== Initialize ======
 loadBooks();
+
+// mark the active nav link based on current URL (works for local pages)
+(function markActiveNav() {
+  const navLinks = document.querySelectorAll('.nav-icons a');
+  const current = window.location.pathname.split('/').pop() || 'homepage.html'; // fallback
+  navLinks.forEach(a => {
+    const href = a.getAttribute('href')?.split('/').pop();
+    if (href && href === current) {
+      a.classList.add('active');
+      a.setAttribute('aria-current', 'page');
+    } else {
+      a.classList.remove('active');
+      a.removeAttribute('aria-current');
+    }
+  });
+})();
+
+// Re-run feather.replace AFTER we possibly added the .active class and after DOM modifications.
+// This ensures the generated <svg> icons are replaced *after* JS changes so they inherit styles correctly.
+if (window.feather && typeof feather.replace === 'function') {
+  feather.replace();
+}
+
+// Guard Add to My Books button so it doesn't throw when no book selected
+const addBookBtnLocal = document.getElementById('addBookBtn');
+if (addBookBtnLocal) {
+  addBookBtnLocal.addEventListener('click', () => {
+    if (!selectedBook) {
+      alert('No book selected.');
+      return;
+    }
+    alert(`${selectedBook.title} has been added to your My Books!`);
+    document.getElementById('bookPreviewModal').style.display = 'none';
+    selectedBook = null;
+  });
+}
+
