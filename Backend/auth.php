@@ -1,5 +1,5 @@
 <?php
-// Backend/auth.php
+// Backend/auth.php - Fixed version with complete session data
 header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-require_once __DIR__ . '/config.php';  // config.php must create a $pdo PDO instance
+require_once __DIR__ . '/config.php';
 
 $email = isset($_POST['email']) ? trim($_POST['email']) : '';
 $password = isset($_POST['password']) ? $_POST['password'] : '';
@@ -29,8 +29,8 @@ if (!empty($errors)) {
 }
 
 try {
-    // prepare and execute
-    $stmt = $pdo->prepare('SELECT AccountID, Email, Password, Role, Status FROM ACCOUNT WHERE Email = ? LIMIT 1');
+    // Fetch complete user data including subscription info
+    $stmt = $pdo->prepare('SELECT AccountID, Email, Password, Role, Status, Plan, SubsStarted, SubsEnd FROM ACCOUNT WHERE Email = ? LIMIT 1');
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -43,11 +43,11 @@ try {
     $stored = $user['Password'];
     $ok = false;
 
-    // If stored password is hashed with password_hash
+    // Verify password
     if (password_verify($password, $stored)) {
         $ok = true;
     } else {
-        // fallback: plain-text comparison for legacy accounts
+        // Fallback for plain-text passwords (legacy)
         if ($password === $stored) {
             $ok = true;
         }
@@ -59,22 +59,36 @@ try {
         exit;
     }
 
-    // Successful login: start session and return success (do NOT return password)
+    // Check subscription status
+    $today = date('Y-m-d');
+    $subsEnd = $user['SubsEnd'];
+    $status = $user['Status'];
+
+    // Auto-expire if subscription ended
+    if ($subsEnd && $subsEnd < $today && $status !== 'Expired') {
+        $updateStmt = $pdo->prepare('UPDATE ACCOUNT SET Status = ? WHERE AccountID = ?');
+        $updateStmt->execute(['Expired', $user['AccountID']]);
+        $status = 'Expired';
+    }
+
+    // Start session
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
-    // regenerate session id for security
     session_regenerate_id(true);
 
-    // store minimal user info in session
+    // Store complete user info in session
     $_SESSION['user'] = [
         'AccountID' => $user['AccountID'],
         'Email'     => $user['Email'],
         'Role'      => $user['Role'],
-        'Status'    => $user['Status']
+        'Status'    => $status,
+        'Plan'      => $user['Plan'],
+        'SubsStarted' => $user['SubsStarted'],
+        'SubsEnd'   => $user['SubsEnd']
     ];
 
-    // Respond with user info (omit sensitive fields)
+    // Return user data (excluding password)
     echo json_encode([
         'success' => true,
         'message' => 'Authenticated successfully.',
@@ -82,12 +96,15 @@ try {
             'AccountID' => $user['AccountID'],
             'Email'     => $user['Email'],
             'Role'      => $user['Role'],
-            'Status'    => $user['Status']
+            'Status'    => $status,
+            'Plan'      => $user['Plan'],
+            'SubsStarted' => $user['SubsStarted'],
+            'SubsEnd'   => $user['SubsEnd']
         ]
     ]);
     exit;
 } catch (PDOException $e) {
-    // Don't leak DB errors to clients in production. Log it server-side instead.
+    error_log('Auth error: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Server error.']);
     exit;

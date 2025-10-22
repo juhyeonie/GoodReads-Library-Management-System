@@ -288,3 +288,72 @@ h1 {
   cursor: pointer;
   color: #333;
 }
+
+/* Locked book card styles */
+.book-card.locked {
+  cursor: not-allowed;
+  position: relative;
+}
+
+.book-card.locked .book-card-inner {
+  position: relative;
+}
+
+.book-card.locked img {
+  filter: grayscale(50%) brightness(0.7);
+  opacity: 0.6;
+}
+
+.lock-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background 0.3s ease;
+}
+
+.book-card.locked:hover .lock-overlay {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.lock-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  animation: lockPulse 2s ease-in-out infinite;
+}
+
+@keyframes lockPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+.lock-text {
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+}
+
+/* Upgrade notification badge */
+.upgrade-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

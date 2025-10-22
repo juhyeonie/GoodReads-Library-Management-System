@@ -1,19 +1,7 @@
-// Validate-SignIn.js
+// Validate-SignIn.js - Fixed with complete auth flow
 console.log('Validate-SignIn.js loaded');
 
 document.addEventListener('DOMContentLoaded', () => {
-  // quick visual test (optional; remove when done)
-  const el = document.createElement('div');
-  el.id = 'js-loaded-test';
-  el.textContent = 'JS loaded ✔';
-  el.style.position = 'fixed';
-  el.style.bottom = '6px';
-  el.style.right = '6px';
-  el.style.background = '#0f0';
-  el.style.padding = '2px 6px';
-  el.style.fontSize = '12px';
-  document.body.appendChild(el);
-
   const form = document.getElementById('signinForm');
   const email = document.getElementById('email');
   const password = document.getElementById('password');
@@ -72,16 +60,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // ✅ New logic: handle account status first
-      const status = (json.status || '').toString().toLowerCase();
+      // Store user data in localStorage for client-side access
+      if (json.user) {
+        localStorage.setItem('userData', JSON.stringify(json.user));
+      }
+
+      // Handle account status
+      const status = (json.user.Status || '').toString().toLowerCase();
       if (status === 'cancelled' || status === 'expired') {
-        // redirect to membership plan page
+        alert('Your subscription has expired. Please renew to continue.');
         window.location.href = 'MembershipPlan.html';
         return;
       }
 
-      // Otherwise redirect by role
-      const role = (json.role || '').toString().toLowerCase();
+      // Redirect by role
+      const role = (json.user.Role || '').toString().toLowerCase();
       if (role === 'admin') {
         window.location.href = 'BookAdmin-Dashboard.html';
       } else {
@@ -94,4 +87,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
-
