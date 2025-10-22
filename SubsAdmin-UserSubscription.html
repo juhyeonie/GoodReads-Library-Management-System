@@ -1,14 +1,13 @@
-<!-- ...existing code... -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GoodReads | User Subscriptions</title>
   <!-- reuse the SubsAdmin subscription CSS which contains sidebar & modal styles -->
-  <link rel="stylesheet" href="SubsAdmin-Subscription.css" />
+  <link rel="stylesheet" href="SubsAdmin-UserSubscription.css" />
   <style>
-    /* small page-specific tweaks */
+    /* small page-specific tweaks (you can move these into a file) */
     .table-wrap { background:#fff; border-radius:6px; padding:12px; border:1px solid rgba(0,0,0,.06); overflow:auto; }
     .users-table { width:100%; border-collapse:collapse; min-width:900px; }
     .users-table th, .users-table td { border:1px solid #c9c9c9; padding:8px 10px; text-align:left; }
@@ -16,6 +15,30 @@
     .action-btn { background:#456882; color:#fff; border:0; border-radius:6px; padding:6px 10px; cursor:pointer; font-weight:700; margin-right:6px; }
     .filters { display:flex; gap:12px; align-items:center; margin-bottom:12px; }
     @media (max-width:800px){ .users-table{ min-width:700px } }
+
+    /* match selects to input style inside modal */
+    .edit-plan-form select,
+    .edit-plan-form input {
+      width: 100%;
+      border: 1px solid #cdd6db;
+      padding: 11px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #222;
+      background: #fff;
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, #666 50%), linear-gradient(135deg, #666 50%, transparent 50%), linear-gradient(to right, #ddd, #ddd);
+      background-position: calc(100% - 18px) calc(1em + 2px), calc(100% - 13px) calc(1em + 2px), 100% 0;
+      background-size: 6px 6px, 6px 6px, 1px 1.5em;
+      background-repeat: no-repeat;
+    }
+    /* ensure mobile shows native arrow nicely */
+    @media (max-width:420px){
+      .edit-plan-form select { background-image: none; }
+    }
   </style>
 </head>
 <body>
@@ -49,13 +72,11 @@
     </aside>
 
     <main id="mainContent" class="main-content" role="main">
-      <header class="topbar">
+      <div class="topbar">
         <h1>User Subscriptions</h1>
-      </header>
 
-      <section class="table-section">
-        <div class="filters">
-          <!-- moved search image inside the search container to match BookManagement -->
+        <div class="search-panel">
+          <!-- search -->
           <div class="userSearch" role="search">
             <input id="userSearch" type="search" placeholder="Search by email or plan..." />
             <button class="search-btn" aria-label="Search"><img src="search.png" alt="Search" /></button>
@@ -65,51 +86,52 @@
             <option value="all">All</option>
             <option value="active">Active</option>
             <option value="expired">Expired</option>
+            <option value="cancelled">Cancelled</option>
           </select>
         </div>
+      </div>
 
-        <div class="table-wrap">
-          <table id="usersTable" class="users-table" aria-describedby="users-heading">
-            <thead>
-              <tr>
-                <th>Receipt no.</th>
-                <th>Email</th>
-                <th>Plan</th>
-                <th>Amount</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td data-col="receipt">1000</td>
-                <td data-col="email">jane@example.com</td>
-                <td data-col="plan">Pro</td>
-                <td data-col="amount">$50</td>
-                <td data-col="date">2025-10-01</td>
-                <td data-col="status">Active</td>
-                <td>
-                  <button class="action-btn view-btn">View</button>
-                  <button class="action-btn edit-btn">Edit</button>
-                </td>
-              </tr>
-              <tr>
-                <td data-col="receipt">1001</td>
-                <td data-col="email">tom@example.com</td>
-                <td data-col="plan">Basic</td>
-                <td data-col="amount">$0</td>
-                <td data-col="date">2025-09-28</td>
-                <td data-col="status">Expired</td>
-                <td>
-                  <button class="action-btn view-btn">View</button>
-                  <button class="action-btn edit-btn">Edit</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <div class="table-wrap">
+        <table id="usersTable" class="users-table" aria-describedby="users-heading">
+          <thead>
+            <tr>
+              <th>Receipt no.</th>
+              <th>Email</th>
+              <th>Plan</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td data-col="receipt">1000</td>
+              <td data-col="email">jane@example.com</td>
+              <td data-col="plan">Pro</td>
+              <td data-col="amount">$50</td>
+              <td data-col="date">2025-10-01</td>
+              <td data-col="status">Active</td>
+              <td>
+                <button class="action-btn view-btn">View</button>
+                <button class="action-btn edit-btn">Edit</button>
+              </td>
+            </tr>
+            <tr>
+              <td data-col="receipt">1001</td>
+              <td data-col="email">tom@example.com</td>
+              <td data-col="plan">Basic</td>
+              <td data-col="amount">$0</td>
+              <td data-col="date">2025-09-28</td>
+              <td data-col="status">Expired</td>
+              <td>
+                <button class="action-btn view-btn">View</button>
+                <button class="action-btn edit-btn">Edit</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </main>
   </div>
 
@@ -122,10 +144,39 @@
         <h2 id="editUserTitle" class="modal-title">Edit user details</h2>
 
         <form id="editUserForm" class="edit-plan-form" autocomplete="off">
-          <label class="field"><input id="userEmail" name="email" type="email" placeholder="Email" /></label>
-          <label class="field"><input id="userPlan" name="plan" type="text" placeholder="Plan" /></label>
-          <label class="field"><input id="userAmount" name="amount" type="text" placeholder="Amount" /></label>
-          <label class="field"><input id="userStatus" name="status" type="text" placeholder="Status" /></label>
+          <label class="field">
+            <input id="userEmail" name="email" type="email" placeholder="Email" />
+          </label>
+
+          <!-- Plan select -->
+          <label class="field">
+            <select id="userPlan" name="plan" required>
+              <option value="" disabled selected>Choose plan</option>
+              <option value="Basic">Basic</option>
+              <option value="Standard">Standard</option>
+              <option value="Premium">Premium</option>
+            </select>
+          </label>
+
+          <!-- Amount select -->
+          <label class="field">
+            <select id="userAmount" name="amount" required>
+              <option value="" disabled selected>Choose amount</option>
+              <option value="100">100</option>
+              <option value="150">150</option>
+              <option value="250">250</option>
+            </select>
+          </label>
+
+          <!-- Status select -->
+          <label class="field">
+            <select id="userStatus" name="status" required>
+              <option value="" disabled selected>Choose status</option>
+              <option value="Active">Active</option>
+              <option value="Expired">Expired</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </label>
         </form>
       </div>
 
@@ -141,149 +192,3 @@
   <script src="SubsAdmin-UserSubscription.js"></script>
 </body>
 </html>
-<!-- ...existing code... -->
-```// filepath: c:\Users\crystala\GOODREADS\SubsAdmin-UserSubscription.html
-<!-- ...existing code... -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GoodReads | User Subscriptions</title>
-  <!-- reuse the SubsAdmin subscription CSS which contains sidebar & modal styles -->
-  <link rel="stylesheet" href="SubsAdmin-Subscription.css" />
-  <style>
-    /* small page-specific tweaks */
-    .table-wrap { background:#fff; border-radius:6px; padding:12px; border:1px solid rgba(0,0,0,.06); overflow:auto; }
-    .users-table { width:100%; border-collapse:collapse; min-width:900px; }
-    .users-table th, .users-table td { border:1px solid #c9c9c9; padding:8px 10px; text-align:left; }
-    .users-table th { background:#1b3c53; color:#fff; font-weight:700; }
-    .action-btn { background:#456882; color:#fff; border:0; border-radius:6px; padding:6px 10px; cursor:pointer; font-weight:700; margin-right:6px; }
-    .filters { display:flex; gap:12px; align-items:center; margin-bottom:12px; }
-    @media (max-width:800px){ .users-table{ min-width:700px } }
-  </style>
-</head>
-<body>
-  <button id="menuToggle" class="menu-toggle" aria-controls="sidebar" aria-expanded="false">☰</button>
-
-  <div class="app">
-    <aside id="sidebar" class="sidebar" role="navigation" aria-label="Main sidebar">
-      <div class="sidebar-top">
-        <div class="logo"><img src="logo.png" alt="GoodReads Logo" class="logo-img" /></div>
-        <button id="collapseBtn" class="collapse-btn" aria-pressed="false" title="Collapse sidebar">⇤</button>
-
-        <nav class="menu" aria-label="Primary navigation">
-          <a href="SubsAdmin-Dashboard.html" class="menu-item">
-            <span class="icon"><img src="dashboard.png" alt="" /></span><span class="text">Dashboard</span>
-          </a>
-          <a href="SubsAdmin-Subscription.html" class="menu-item">
-            <span class="icon"><img src="subscription.png" alt="" /></span><span class="text">Subscription</span>
-          </a>
-          <a href="SubsAdmin-UserSubscription.html" class="menu-item active">
-            <span class="icon"><img src="user.png" alt="" /></span><span class="text">User Subscription</span>
-          </a>
-        </nav>
-      </div>
-
-      <div class="sidebar-bottom">
-        <div class="user">
-          <p class="username">Subscription Admin1</p>
-          <a href="StartPage.html" class="logout-icon" title="Logout"><img src="logout.png" alt="Logout" /></a>
-        </div>
-      </div>
-    </aside>
-
-    <main id="mainContent" class="main-content" role="main">
-      <header class="topbar">
-        <h1>User subscriptions</h1>
-      </header>
-
-      <section class="table-section">
-        <div class="filters">
-          <!-- moved search image inside the search container to match BookManagement -->
-          <div class="userSearch" role="search">
-            <input id="userSearch" type="search" placeholder="Search by email or plan..." />
-            <button class="search-btn" aria-label="Search"><img src="search.png" alt="Search" /></button>
-          </div>
-
-          <select id="statusFilter" aria-label="Filter status">
-            <option value="all">All</option>
-            <option value="active">Active</option>
-            <option value="expired">Expired</option>
-          </select>
-        </div>
-
-        <div class="table-wrap">
-          <table id="usersTable" class="users-table" aria-describedby="users-heading">
-            <thead>
-              <tr>
-                <th>Receipt no.</th>
-                <th>Email</th>
-                <th>Plan</th>
-                <th>Amount</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td data-col="receipt">1000</td>
-                <td data-col="email">jane@example.com</td>
-                <td data-col="plan">Pro</td>
-                <td data-col="amount">$50</td>
-                <td data-col="date">2025-10-01</td>
-                <td data-col="status">Active</td>
-                <td>
-                  <button class="action-btn view-btn">View</button>
-                  <button class="action-btn edit-btn">Edit</button>
-                </td>
-              </tr>
-              <tr>
-                <td data-col="receipt">1001</td>
-                <td data-col="email">tom@example.com</td>
-                <td data-col="plan">Basic</td>
-                <td data-col="amount">$0</td>
-                <td data-col="date">2025-09-28</td>
-                <td data-col="status">Expired</td>
-                <td>
-                  <button class="action-btn view-btn">View</button>
-                  <button class="action-btn edit-btn">Edit</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <!-- Edit user modal (same styled modal used on Subscription page) -->
-  <div id="editUserModal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="editUserTitle">
-    <div class="modal-box" role="document">
-      <div class="modal-topbar"></div>
-
-      <div class="modal-body">
-        <h2 id="editUserTitle" class="modal-title">Edit user details</h2>
-
-        <form id="editUserForm" class="edit-plan-form" autocomplete="off">
-          <label class="field"><input id="userEmail" name="email" type="email" placeholder="Email" /></label>
-          <label class="field"><input id="userPlan" name="plan" type="text" placeholder="Plan" /></label>
-          <label class="field"><input id="userAmount" name="amount" type="text" placeholder="Amount" /></label>
-          <label class="field"><input id="userStatus" name="status" type="text" placeholder="Status" /></label>
-        </form>
-      </div>
-
-      <div class="modal-bottombar">
-        <div class="modal-actions">
-          <button id="confirmUserEdit" class="btn confirm">CONFIRM</button>
-          <button id="cancelUserEdit" class="btn cancel">CANCEL</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="SubsAdmin-UserSubscription.js"></script>
-</body>
-</html>
-<!-- ...existing code... -->

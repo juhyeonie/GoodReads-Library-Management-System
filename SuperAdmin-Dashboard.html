@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GoodReads | Dashboard</title>
+  <link rel="stylesheet" href="SuperAdmin-Dashboard.css">
+</head>
+<body>
+
+  <!-- Mobile menu toggle -->
+  <button id="menuToggle" class="menu-toggle" aria-controls="sidebar" aria-expanded="false">☰</button>
+
+  <div class="app">
+    <!-- Sidebar (keeps same structure & classes as your other pages) -->
+    <aside id="sidebar" class="sidebar" role="navigation" aria-label="Main sidebar">
+      <div class="sidebar-top">
+        <div class="logo">
+          <img src="logo.png" alt="GoodReads Logo" class="logo-img" />
+        </div>
+
+        <!-- Desktop collapse button -->
+        <button id="collapseBtn" class="collapse-btn" aria-pressed="false" title="Collapse sidebar">⇤</button>
+
+        <nav class="menu" aria-label="Primary navigation">
+          <a href="SuperAdmin-Dashboard.html" class="menu-item active">
+            <span class="icon"><img src="dashboard.png" alt="" /></span>
+            <span class="text">Dashboard</span>
+          </a>
+
+          <a href="SuperAdmin-Admin.html" class="menu-item">
+            <span class="icon"><img src="admin.png" alt="" /></span>
+            <span class="text">Admin Management</span>
+          </a>
+
+          <a href="SuperAdmin-User.html" class="menu-item">
+            <span class="icon"><img src="user.png" alt="" /></span>
+            <span class="text">User Management</span>
+          </a>
+
+          <a href="SuperAdmin-BookManagement.html" class="menu-item">
+            <span class="icon"><img src="book.png" alt="" /></span>
+            <span class="text">Book Management</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user">
+          <p class="username">Super Admin1</p>
+          <a href="StartPage.html" class="logout-icon" title="Logout"><img src="logout.png" alt="Logout" /></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main id="mainContent" class="main-content" role="main">
+      <div class="top-bar">
+        <h1>Dashboard</h1>
+      </div>
+
+      <!-- Stats -->
+      <section class="stats-section" aria-label="High level stats">
+        <div class="stats-grid">
+          <div class="stat-card" id="card-total-users" role="article" aria-label="Total users">
+            <div class="stat-header">
+              <div class="stat-title">Total User</div>
+              <div class="stat-icon">👥</div>
+            </div>
+            <div class="stat-value" id="value-total-users">—</div>
+          </div>
+
+          <div class="stat-card" id="card-active-subscriptions" role="article" aria-label="Total active subscription">
+            <div class="stat-header">
+              <div class="stat-title">Total Active Subscription</div>
+              <div class="stat-icon">🔁</div>
+            </div>
+            <div class="stat-value" id="value-active-subscriptions">—</div>
+          </div>
+
+          <div class="stat-card" id="card-total-books" role="article" aria-label="Total books">
+            <div class="stat-header">
+              <div class="stat-title">Total Books</div>
+              <div class="stat-icon">📚</div>
+            </div>
+            <div class="stat-value" id="value-total-books">—</div>
+          </div>
+
+          <div class="stat-card tall" id="card-activity-log" role="article" aria-label="Admin's activity log">
+            <div class="stat-header">
+              <div class="stat-title">Admin's Activity Log</div>
+              <div class="stat-icon">📝</div>
+            </div>
+
+            <div class="activity-list" id="activityList" aria-live="polite">
+              <!-- activity items injected by JavaScript -->
+              <div class="empty-note">No activity yet</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="graphs-label">Graphs</div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="SuperAdmin-Dashboard.js"></script>
+</body>
+</html>

@@ -118,7 +118,7 @@ tbody tr td:first-child { width:120px; }
 .pill.delete { background:#2f4f5d; }
 
 .add-user {
-  display:inline-block; padding:8px 14px; border-radius:8px; background:#123b4f; color:#fff; border:none; cursor:pointer; font-weight:700;
+   padding:8px 14px; border-radius:8px; background:#123b4f; color:#fff; border:none; cursor:pointer; font-weight:700;
   float: right;
    margin-top:12px;
 }

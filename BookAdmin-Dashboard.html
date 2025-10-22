@@ -41,9 +41,7 @@
       <div class="sidebar-bottom">
         <div class="user">
           <p class="username">Book Admin1</p>
-          <a href="BookAdmin-Login.html" class="logout-icon" title="Logout">
-            <img src="logout.png" alt="Logout icon" />
-          </a>
+          <a href="StartPage.html" class="logout-icon" title="Logout"><img src="logout.png" alt="Logout" /></a>
         </div>
       </div>
     </aside>
@@ -94,6 +92,43 @@
       </section>
     </main>
   </div>
+
+  <!-- Edit Book Modal (same design as Add New Book) -->
+  <div id="editBookModal" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="editModalTitle">
+    <div class="modal-box" role="document">
+      <div class="modal-topbar"></div>
+
+      <div class="modal-body">
+        <h2 id="editModalTitle" class="modal-title">Edit book details</h2>
+
+        <form id="editBookForm" class="book-form" autocomplete="off">
+          <label class="field"><input name="name" type="text" placeholder="Book Name" required /></label>
+          <label class="field"><input name="author" type="text" placeholder="Author" required /></label>
+          <label class="field"><textarea name="description" placeholder="Description"></textarea></label>
+          <label class="field"><input name="genre" type="text" placeholder="Genre" /></label>
+          <label class="field">
+            <select name="category" required>
+              <option value="" disabled>Category</option>
+              <option value="educational">Educational</option>
+              <option value="novel">Novel</option>
+              <option value="graphic">Graphic Novel</option>
+            </select>
+          </label>
+          <label class="field"><input name="coverPath" type="text" placeholder="Cover Image Path" /></label>
+          <label class="field"><input name="coverFile" type="file" accept="image/*" /></label>
+        </form>
+      </div>
+
+      <div class="modal-bottombar">
+        <div class="modal-actions">
+          <button id="confirmEditBook" class="btn confirm">CONFIRM</button>
+          <button id="clearEditForm" class="btn clear" type="button">CLEAR</button>
+          <button id="closeEditModal" class="btn cancel" type="button">CANCEL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- ...existing code... -->
 
   <script src="BookAdmin-Dashboard.js"></script>
 </body>
