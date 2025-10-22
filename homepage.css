@@ -44,6 +44,15 @@ body {
     width: 200px;
 }
 
+/* Space out nav icons evenly */
+.nav-icons {
+  display: flex;
+  gap: 30px; /* same as MyBooks page */
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px; /* optional slight right margin */
+}
+
 /* --- Navbar icons: improved + stronger svg target --- */
 .nav-icons a {
   position: relative;
@@ -57,6 +66,7 @@ body {
   border-radius: 8px;
   transition: transform 0.22s ease, background-color 0.22s ease, color 0.22s ease;
   outline: none;
+  
 }
 
 /* ensure the generated svg stroke follows the anchor color */

@@ -17,50 +17,106 @@ body {
     color: #0f2234;
 }
 
+
 /* Navbar */
 .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: linear-gradient(to right, #253b5a, #7881a1);
-    padding: 10px 40px;
-    color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to right, #253b5a, #7881a1);
+  padding: 10px 50px;
+  color: white;
 }
 
 .logo {
-    display: flex;
-    align-items: center;
-    gap: 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .logo img {
-    width: 200px;
+  width: 200px;
 }
 
+/* Navbar icons */
 .nav-icons {
-    display: flex;
-    gap: 30px;
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  justify-content: center;
 }
 
-.nav-icons i {
-    width: 22px;
-    height: 22px;
-    color: white;
-    transition: 0.3s;
-    cursor: pointer;
+.nav-icons a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-decoration: none;
+  font-size: 24px;
+  padding: 8px;
+  border-radius: 8px;
+  transition: transform 0.22s ease, background-color 0.22s ease, color 0.22s ease;
+  outline: none;
 }
 
-.nav-icons i:hover {
-    color: #cdd9f0;
-    transform: scale(1.1);
+.nav-icons a svg,
+.nav-icons a svg * {
+  stroke: currentColor !important;
+  fill: none !important;
+  transition: stroke 0.22s ease, transform 0.22s ease;
 }
+
+.nav-icons a:hover,
+.nav-icons a:focus-visible {
+  background-color: rgba(255,255,255,0.12);
+  color: #ffcc00;
+  transform: translateY(-2px) scale(1.04);
+}
+
+.nav-icons a.active {
+  background-color: rgba(255,255,255,0.14);
+  color: #ffcc00;
+  transform: none;
+}
+
+.nav-icons a::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 20%;
+  width: 60%;
+  height: 2px;
+  background-color: #ffcc00;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.nav-icons a:hover::after,
+.nav-icons a.active::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.nav-icons a.logout:hover {
+  color: #ff6b6b;
+  background-color: rgba(255,107,107,0.08);
+}
+
+/* logout button stands out (danger) */
+.nav-icons a.logout:hover {
+  color: #ff6b6b;
+  background-color: rgba(255,107,107,0.08);
+}
+
 
 /* Main content */
 .settings-container {
-    max-width: 900px;
-    margin: 200px auto;
-    padding: 20px;
+  max-width: 900px;
+  margin: 120px auto 80px; /* smaller top margin */
+  padding: 20px;
 }
+
 
 .settings-container h2 {
     font-size: 50px;
@@ -226,5 +282,27 @@ input, select {
 
 .cancel-membership:hover {
     background-color: #174a6e;
+}
+
+/* Button micro-interactions to match homepage */
+.tab-btn, .confirm-btn, .cancel-btn, .change-plan, .cancel-membership {
+  transition: transform 0.14s ease, box-shadow 0.14s ease, background-color 0.18s ease;
+}
+
+.tab-btn:hover, .confirm-btn:hover, .cancel-btn:hover, .change-plan:hover, .cancel-membership:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+}
+
+/* Make confirm/cancel visually distinct (confirm solid, cancel outlined) */
+.confirm-btn {
+  background: #13334c;
+  border: none;
+  color: #fff;
+}
+.cancel-btn {
+  background: transparent;
+  color: #13334c;
+  border: 1px solid #13334c;
 }
 

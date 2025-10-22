@@ -1,5 +1,5 @@
 // ====== Book Data ======
-const books = [
+window.books = [
 
   {
     title: "The Lightning Thief",
@@ -263,10 +263,42 @@ window.addEventListener("click", e => {
   if (e.target === modal) modal.style.display = "none";
 });
 
+// ✅ When "Add to My Books" is clicked, save book data to localStorage
 addBookBtn.addEventListener("click", () => {
-  alert(`${selectedBook.title} has been added to your My Books!`);
+  if (!selectedBook) {
+    alert("No book selected.");
+    return;
+  }
+
+  // Read existing list (or empty array)
+  const myBooks = JSON.parse(localStorage.getItem("myBooks") || "[]");
+
+  // Avoid duplicates by title
+  const exists = myBooks.some(b => b.title === selectedBook.title);
+  if (exists) {
+    alert(`"${selectedBook.title}" is already in My Books.`);
+    modal.style.display = "none";
+    return;
+  }
+
+  // ✅ Add cover path along with the rest of the info
+  myBooks.push({
+    title: selectedBook.title,
+    author: selectedBook.author || "Unknown",
+    category: selectedBook.genre || "Uncategorized",
+    description: selectedBook.description || "",
+    pdfUrl: selectedBook.pdfUrl || "#",
+    cover: selectedBook.cover || "Media/Covers/default.jpg"  // 🔹 added
+  });
+
+  // Save back
+  localStorage.setItem("myBooks", JSON.stringify(myBooks));
+
+  alert(`✅ "${selectedBook.title}" has been added to My Books!`);
   modal.style.display = "none";
 });
+
+
 const closeModalBtn = document.getElementById("closeModal");
 
 closeModalBtn.addEventListener("click", () => {
@@ -299,19 +331,5 @@ loadBooks();
 // This ensures the generated <svg> icons are replaced *after* JS changes so they inherit styles correctly.
 if (window.feather && typeof feather.replace === 'function') {
   feather.replace();
-}
-
-// Guard Add to My Books button so it doesn't throw when no book selected
-const addBookBtnLocal = document.getElementById('addBookBtn');
-if (addBookBtnLocal) {
-  addBookBtnLocal.addEventListener('click', () => {
-    if (!selectedBook) {
-      alert('No book selected.');
-      return;
-    }
-    alert(`${selectedBook.title} has been added to your My Books!`);
-    document.getElementById('bookPreviewModal').style.display = 'none';
-    selectedBook = null;
-  });
 }
 
