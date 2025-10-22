@@ -29,7 +29,7 @@ const books = [
     description: "A fast-paced Percy Jackson adventure involving traps, monsters, and a race to stop a dangerous invasion.",
     pdfUrl: "Media/Books/PJ4.pdf"
   },
-{
+  {
     title: "The Last Olympian",
     genre: "Book Recommendation",
     cover: "Media/Covers/PJ5.jpg",
@@ -213,7 +213,6 @@ const books = [
   }
 ];
 
-
 // ====== DOM Elements ======
 const grids = {
   recommendationGrid: "Book Recommendation",
@@ -227,6 +226,31 @@ const closeModal = document.getElementById("closeModal");
 const addBookBtn = document.getElementById("addBookBtn");
 let selectedBook = null;
 
+// ====== 🧠 PLAN VALIDATION ======
+let userPlan = sessionStorage.getItem("user_plan") || localStorage.getItem("user_plan");
+
+if (!userPlan) {
+  userPlan = "Basic"; // default for demo
+  sessionStorage.setItem("user_plan", userPlan);
+}
+
+userPlan = userPlan.trim().toLowerCase();
+console.log("📘 Current plan:", userPlan);
+
+const allowedGenres = {
+  basic: ["educational"],
+  standard: ["educational", "novel"],
+  premium: ["educational", "novel", "graphic novel"]
+};
+
+function requiredPlan(genre) {
+  const g = genre.toLowerCase();
+  if (g === "educational") return "Basic";
+  if (g === "novel") return "Standard";
+  if (g === "graphic novel") return "Premium";
+  return "Premium";
+}
+
 // ====== Render Books ======
 function loadBooks() {
   Object.entries(grids).forEach(([gridId, category]) => {
@@ -238,7 +262,24 @@ function loadBooks() {
         const card = document.createElement("div");
         card.classList.add("book-card");
         card.innerHTML = `<img src="${book.cover}" alt="${book.title}">`;
-        card.addEventListener("click", () => openPreview(book));
+
+        const genre = book.genre.toLowerCase();
+        const isAllowed = allowedGenres[userPlan]?.includes(genre);
+
+        if (!isAllowed) {
+          card.style.filter = "grayscale(100%) brightness(0.6)";
+          card.style.cursor = "not-allowed";
+          card.title = `Upgrade to ${requiredPlan(book.genre)} to access this book.`;
+
+          card.addEventListener("click", () => {
+            alert(
+              `⚠️ "${book.title}" is not available in your current plan (${userPlan.toUpperCase()}).\n\nUpgrade to ${requiredPlan(book.genre)} to unlock this genre!`
+            );
+          });
+        } else {
+          card.addEventListener("click", () => openPreview(book));
+        }
+
         grid.appendChild(card);
       });
   });
@@ -267,51 +308,31 @@ addBookBtn.addEventListener("click", () => {
   alert(`${selectedBook.title} has been added to your My Books!`);
   modal.style.display = "none";
 });
-const closeModalBtn = document.getElementById("closeModal");
 
+const closeModalBtn = document.getElementById("closeModal");
 closeModalBtn.addEventListener("click", () => {
   modal.style.display = "none";
   selectedBook = null;
 });
 
-
-// ====== Initialize ======
 // ====== Initialize ======
 loadBooks();
 
-// mark the active nav link based on current URL (works for local pages)
 (function markActiveNav() {
-  const navLinks = document.querySelectorAll('.nav-icons a');
-  const current = window.location.pathname.split('/').pop() || 'homepage.html'; // fallback
+  const navLinks = document.querySelectorAll(".nav-icons a");
+  const current = window.location.pathname.split("/").pop() || "homepage.html";
   navLinks.forEach(a => {
-    const href = a.getAttribute('href')?.split('/').pop();
+    const href = a.getAttribute("href")?.split("/").pop();
     if (href && href === current) {
-      a.classList.add('active');
-      a.setAttribute('aria-current', 'page');
+      a.classList.add("active");
+      a.setAttribute("aria-current", "page");
     } else {
-      a.classList.remove('active');
-      a.removeAttribute('aria-current');
+      a.classList.remove("active");
+      a.removeAttribute("aria-current");
     }
   });
 })();
 
-// Re-run feather.replace AFTER we possibly added the .active class and after DOM modifications.
-// This ensures the generated <svg> icons are replaced *after* JS changes so they inherit styles correctly.
-if (window.feather && typeof feather.replace === 'function') {
+if (window.feather && typeof feather.replace === "function") {
   feather.replace();
 }
-
-// Guard Add to My Books button so it doesn't throw when no book selected
-const addBookBtnLocal = document.getElementById('addBookBtn');
-if (addBookBtnLocal) {
-  addBookBtnLocal.addEventListener('click', () => {
-    if (!selectedBook) {
-      alert('No book selected.');
-      return;
-    }
-    alert(`${selectedBook.title} has been added to your My Books!`);
-    document.getElementById('bookPreviewModal').style.display = 'none';
-    selectedBook = null;
-  });
-}
-
