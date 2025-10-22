@@ -278,3 +278,73 @@ h1 {
   cursor: pointer;
   color: #333;
 }
+/* ===== Warning Modal Style ===== */
+.modal-content.warning {
+  background: #fefefe;
+  border-radius: 10px;
+  width: 350px;
+  padding: 25px;
+  text-align: center;
+  margin: 15% auto;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  animation: fadeInScale 0.3s ease;
+  color: #203a43;
+}
+
+.warning-icon {
+  color: #f5a623;
+  width: 45px;
+  height: 45px;
+  margin-bottom: 10px;
+}
+
+#warningTitle {
+  font-size: 22px;
+  font-weight: bold;
+  color: #203a43;
+  margin-bottom: 10px;
+}
+
+#warningMessage {
+  font-size: 15px;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.upgrade-text {
+  font-size: 14px;
+  color: #f5a623;
+  margin-bottom: 20px;
+}
+
+.ok-btn {
+  background-color: #253b5a;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.ok-btn:hover {
+  background-color: #3a567c;
+}
+
+@keyframes fadeInScale {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ⚠️ Warning Modal Enhancements */
+#warningModal .modal-content h2 {
+  color: #c0392b;
+  
+}
+
+#warningModal .view-btn {
+  background-color: #c0392b;
+  color: white;
+}

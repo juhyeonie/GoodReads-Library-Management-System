@@ -272,10 +272,21 @@ function loadBooks() {
           card.title = `Upgrade to ${requiredPlan(book.genre)} to access this book.`;
 
           card.addEventListener("click", () => {
-            alert(
-              `⚠️ "${book.title}" is not available in your current plan (${userPlan.toUpperCase()}).\n\nUpgrade to ${requiredPlan(book.genre)} to unlock this genre!`
-            );
-          });
+            const warningModal = document.getElementById("warningModal");
+            const warningMessage = document.getElementById("warningMessage");
+            const closeWarning = document.getElementById("closeWarning");
+            const okBtn = document.getElementById("warningOkBtn");
+
+             warningMessage.textContent = `"${book.title}" is not available in your current plan (${userPlan.toUpperCase()}). Upgrade to ${requiredPlan(book.genre)} to unlock this genre!`;
+             warningModal.style.display = "block";
+
+            const close = () => (warningModal.style.display = "none");
+            closeWarning.onclick = close;
+            okBtn.onclick = close;
+            window.onclick = e => {
+    if (e.target === warningModal) close();
+  };
+});
         } else {
           card.addEventListener("click", () => openPreview(book));
         }
@@ -336,3 +347,4 @@ loadBooks();
 if (window.feather && typeof feather.replace === "function") {
   feather.replace();
 }
+
