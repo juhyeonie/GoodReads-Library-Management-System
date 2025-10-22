@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-require_once __DIR__ . '/config.php';  // <-- use your existing config.php
+require_once __DIR__ . '/config.php';  // config.php must create a $pdo PDO instance
 
 $email = isset($_POST['email']) ? trim($_POST['email']) : '';
 $password = isset($_POST['password']) ? $_POST['password'] : '';
@@ -29,10 +29,10 @@ if (!empty($errors)) {
 }
 
 try {
-    // your config already defines $pdo
+    // prepare and execute
     $stmt = $pdo->prepare('SELECT AccountID, Email, Password, Role, Status FROM ACCOUNT WHERE Email = ? LIMIT 1');
     $stmt->execute([$email]);
-    $user = $stmt->fetch();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
         http_response_code(401);
@@ -40,21 +40,55 @@ try {
         exit;
     }
 
-    // Plain text password check (since your DB uses plain text)
+    $stored = $user['Password'];
+    $ok = false;
 
-   // after $user is fetched
-$stored = $user['Password'];
+    // If stored password is hashed with password_hash
+    if (password_verify($password, $stored)) {
+        $ok = true;
+    } else {
+        // fallback: plain-text comparison for legacy accounts
+        if ($password === $stored) {
+            $ok = true;
+        }
+    }
 
-// If password_verify works (passwords hashed with password_hash)
-if (password_verify($password, $stored)) {
-    $ok = true;
-} else {
-    // fallback: check plain text (for legacy accounts)
-    $ok = ($password === $stored);
-}
+    if (!$ok) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Invalid email or password.']);
+        exit;
+    }
 
-if (!$ok) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Invalid email or password.']);
+    // Successful login: start session and return success (do NOT return password)
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    // regenerate session id for security
+    session_regenerate_id(true);
+
+    // store minimal user info in session
+    $_SESSION['user'] = [
+        'AccountID' => $user['AccountID'],
+        'Email'     => $user['Email'],
+        'Role'      => $user['Role'],
+        'Status'    => $user['Status']
+    ];
+
+    // Respond with user info (omit sensitive fields)
+    echo json_encode([
+        'success' => true,
+        'message' => 'Authenticated successfully.',
+        'user' => [
+            'AccountID' => $user['AccountID'],
+            'Email'     => $user['Email'],
+            'Role'      => $user['Role'],
+            'Status'    => $user['Status']
+        ]
+    ]);
     exit;
-}s
+} catch (PDOException $e) {
+    // Don't leak DB errors to clients in production. Log it server-side instead.
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Server error.']);
+    exit;
+}

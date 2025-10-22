@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (role === 'admin') {
         window.location.href = 'BookAdmin-Dashboard.html';
       } else {
-        window.location.href = 'temp/index.html';
+        window.location.href = 'homepage.html';
       }
 
     } catch (err) {
