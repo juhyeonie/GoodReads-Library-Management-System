@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // quick visual test (optional; remove when done)
   const el = document.createElement('div');
   el.id = 'js-loaded-test';
-  el.textContent = 'JS loaded ✔';
+  el.textContent = 'JS loaded ✓';
   el.style.position = 'fixed';
   el.style.bottom = '6px';
   el.style.right = '6px';
@@ -72,16 +72,36 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // ✅ New logic: handle account status first
-      const status = (json.status || '').toString().toLowerCase();
+      // ✅ Store user data in sessionStorage for homepage
+      if (json.user) {
+        sessionStorage.setItem('user_logged_in', 'true');
+        sessionStorage.setItem('user_email', json.user.Email);
+        sessionStorage.setItem('user_plan', json.user.Plan);
+        sessionStorage.setItem('user_role', json.user.Role);
+        sessionStorage.setItem('user_status', json.user.Status);
+        sessionStorage.setItem('user_account_id', json.user.AccountID);
+        
+        // Store subscription end date if available
+        if (json.user.SubsEnd) {
+          sessionStorage.setItem('user_subs_end', json.user.SubsEnd);
+        }
+        
+        // Check if subscription is expired
+        if (json.user.isExpired) {
+          sessionStorage.setItem('user_subs_expired', 'true');
+        }
+      }
+
+      // ✅ Handle account status
+      const status = (json.user?.Status || '').toString().toLowerCase();
       if (status === 'cancelled' || status === 'expired') {
-        // redirect to membership plan page
+        alert('Your subscription has expired. Please choose a new plan.');
         window.location.href = 'MembershipPlan.html';
         return;
       }
 
-      // Otherwise redirect by role
-      const role = (json.role || '').toString().toLowerCase();
+      // ✅ Redirect by role
+      const role = (json.user?.Role || '').toString().toLowerCase();
       if (role === 'admin') {
         window.location.href = 'BookAdmin-Dashboard.html';
       } else {
@@ -94,4 +114,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
-

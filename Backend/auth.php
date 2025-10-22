@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-require_once __DIR__ . '/config.php';  // config.php must create a $pdo PDO instance
+require_once __DIR__ . '/config.php';
 
 $email = isset($_POST['email']) ? trim($_POST['email']) : '';
 $password = isset($_POST['password']) ? $_POST['password'] : '';
@@ -29,8 +29,8 @@ if (!empty($errors)) {
 }
 
 try {
-    // prepare and execute
-    $stmt = $pdo->prepare('SELECT AccountID, Email, Password, Role, Status FROM ACCOUNT WHERE Email = ? LIMIT 1');
+    // Fetch user data including Plan
+    $stmt = $pdo->prepare('SELECT AccountID, Email, Password, Plan, Role, Status, SubsEnd FROM ACCOUNT WHERE Email = ? LIMIT 1');
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -59,35 +59,51 @@ try {
         exit;
     }
 
-    // Successful login: start session and return success (do NOT return password)
+    // Check if subscription is expired
+    $currentDate = date('Y-m-d');
+    $subsEnd = $user['SubsEnd'];
+    $isExpired = ($subsEnd && $subsEnd < $currentDate);
+    
+    // If expired, downgrade to Basic
+    $plan = $user['Plan'];
+    if ($isExpired || $user['Status'] !== 'Active') {
+        $plan = 'Basic';
+    }
+
+    // Successful login: start session
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
     // regenerate session id for security
     session_regenerate_id(true);
 
-    // store minimal user info in session
+    // store user info in session including Plan
     $_SESSION['user'] = [
         'AccountID' => $user['AccountID'],
         'Email'     => $user['Email'],
+        'Plan'      => $plan,
         'Role'      => $user['Role'],
-        'Status'    => $user['Status']
+        'Status'    => $user['Status'],
+        'SubsEnd'   => $user['SubsEnd']
     ];
 
-    // Respond with user info (omit sensitive fields)
+    // Respond with user info (omit password)
     echo json_encode([
         'success' => true,
         'message' => 'Authenticated successfully.',
         'user' => [
             'AccountID' => $user['AccountID'],
             'Email'     => $user['Email'],
+            'Plan'      => $plan,
             'Role'      => $user['Role'],
-            'Status'    => $user['Status']
+            'Status'    => $user['Status'],
+            'SubsEnd'   => $user['SubsEnd'],
+            'isExpired' => $isExpired
         ]
     ]);
     exit;
 } catch (PDOException $e) {
-    // Don't leak DB errors to clients in production. Log it server-side instead.
+    error_log('Auth error: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Server error.']);
     exit;

@@ -1,11 +1,10 @@
 // ====== Book Data ======
-window.books = [
-
+const books = [
   {
     title: "The Lightning Thief",
     genre: "Book Recommendation",
     cover: "Media/Covers/PJ.jpg",
-    description: "The first Percy Jackson book — a modern-day teen discovers he’s a demigod and begins an epic quest.",
+    description: "The first Percy Jackson book – a modern-day teen discovers he's a demigod and begins an epic quest.",
     pdfUrl: "Media/Books/PJ.pdf"
   },
   {
@@ -29,11 +28,11 @@ window.books = [
     description: "A fast-paced Percy Jackson adventure involving traps, monsters, and a race to stop a dangerous invasion.",
     pdfUrl: "Media/Books/PJ4.pdf"
   },
-{
+  {
     title: "The Last Olympian",
     genre: "Book Recommendation",
     cover: "Media/Covers/PJ5.jpg",
-    description: "The climactic Percy Jackson finale — high-stakes heroism, ancient gods, and the defense of Olympus.",
+    description: "The climactic Percy Jackson finale – high-stakes heroism, ancient gods, and the defense of Olympus.",
     pdfUrl: "Media/Books/PJ5.pdf"
   },
   {
@@ -51,7 +50,7 @@ window.books = [
     pdfUrl: "Media/Books/ATOMIC.pdf"
   },
   {
-    title: "Workbook for James Clear’s Atomic Habits: The Step By Step Guide",
+    title: "Workbook for James Clear's Atomic Habits: The Step By Step Guide",
     genre: "Educational",
     cover: "Media/Covers/workbook.jpg",
     description: "A practical workbook with exercises and templates to implement Atomic Habits' ideas.",
@@ -89,14 +88,14 @@ window.books = [
     title: "Sherlock Holmes (Collected/Stories)",
     genre: "Novel",
     cover: "Media/Covers/sh.jpg",
-    description: "Classic detective cases featuring Holmes’ brilliant observation and deductive reasoning.",
+    description: "Classic detective cases featuring Holmes' brilliant observation and deductive reasoning.",
     pdfUrl: "Media/Books/SH.pdf"
   },
   {
     title: "The Bell Jar",
     genre: "Novel",
     cover: "Media/Covers/tbj.jpg",
-    description: "A powerful, semi-autobiographical novel about a young woman’s mental health and identity.",
+    description: "A powerful, semi-autobiographical novel about a young woman's mental health and identity.",
     pdfUrl: "Media/Books/TBJ.pdf"
   },
   {
@@ -110,7 +109,7 @@ window.books = [
     title: "The Stranger",
     genre: "Novel",
     cover: "Media/Covers/str.jpg",
-    description: "Albert Camus’ existential classic about absurdity, alienation, and moral consequence.",
+    description: "Albert Camus' existential classic about absurdity, alienation, and moral consequence.",
     pdfUrl: "Media/Books/STRANGER.pdf"
   },
   {
@@ -213,7 +212,6 @@ window.books = [
   }
 ];
 
-
 // ====== DOM Elements ======
 const grids = {
   recommendationGrid: "Book Recommendation",
@@ -227,10 +225,130 @@ const closeModal = document.getElementById("closeModal");
 const addBookBtn = document.getElementById("addBookBtn");
 let selectedBook = null;
 
+// ====== 🧠 USER DATA & PLAN VALIDATION ======
+let userPlan = "Basic"; // default fallback
+let userData = {
+  loggedIn: false,
+  email: '',
+  plan: 'Basic',
+  role: 'User',
+  status: 'Active',
+  accountId: null
+};
+
+// Define access levels for each plan
+const allowedGenres = {
+  basic: ["educational"],
+  standard: ["educational", "novel"],
+  premium: ["educational", "novel", "graphic novel", "book recommendation"]
+};
+
+// Helper function to determine minimum required plan for a genre
+function requiredPlan(genre) {
+  const g = genre.toLowerCase();
+  if (g === "educational") return "Basic";
+  if (g === "novel") return "Standard";
+  if (g === "graphic novel") return "Premium";
+  return "Premium";
+}
+
+// ✅ Load user data from sessionStorage (set by sign-in or sign-up)
+function loadUserFromSession() {
+  const loggedIn = sessionStorage.getItem('user_logged_in') === 'true';
+  
+  if (loggedIn) {
+    userData = {
+      loggedIn: true,
+      email: sessionStorage.getItem('user_email') || '',
+      plan: sessionStorage.getItem('user_plan') || 'Basic',
+      role: sessionStorage.getItem('user_role') || 'User',
+      status: sessionStorage.getItem('user_status') || 'Active',
+      accountId: sessionStorage.getItem('user_account_id') || null,
+      subsEnd: sessionStorage.getItem('user_subs_end') || null
+    };
+    
+    userPlan = userData.plan.trim().toLowerCase();
+    console.log('📘 User loaded from session:', userData);
+    
+    // Check for expired subscription
+    const isExpired = sessionStorage.getItem('user_subs_expired') === 'true';
+    if (isExpired) {
+      console.warn('⚠️ Subscription expired from session data');
+    }
+  } else {
+    console.log('📘 No user session found. Using Basic plan.');
+  }
+}
+
+// ✅ Fetch user plan from server (fallback/validation)
+async function fetchUserPlan() {
+  try {
+    const response = await fetch('Backend/get_user_plan.php', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch user plan');
+    }
+    
+    const data = await response.json();
+    
+    if (data.success && data.loggedIn && data.plan) {
+      // Update from server if available
+      userPlan = data.plan.trim().toLowerCase();
+      userData.plan = data.plan;
+      userData.status = data.status || 'Active';
+      userData.loggedIn = true;
+      
+      // Sync with sessionStorage
+      sessionStorage.setItem('user_plan', data.plan);
+      sessionStorage.setItem('user_status', data.status);
+      
+      // Check if subscription expired
+      if (data.isExpired) {
+        sessionStorage.setItem('user_subs_expired', 'true');
+        console.warn('⚠️ Subscription expired. Access limited to Basic plan.');
+        alert('Your subscription has expired. You now have access to Educational books only. Please upgrade to continue accessing other content.');
+      }
+      
+      console.log("📘 User plan validated from database:", userPlan);
+    } else {
+      console.log("📘 Server returned no active session");
+    }
+    
+  } catch (error) {
+    console.error('Error fetching user plan:', error);
+    // Keep using session data or Basic fallback
+  }
+  
+  // Final validation
+  const validPlans = ["basic", "standard", "premium"];
+  if (!validPlans.includes(userPlan)) {
+    console.warn(`⚠️ Invalid plan detected: "${userPlan}". Defaulting to Basic.`);
+    userPlan = "basic";
+    sessionStorage.setItem("user_plan", "Basic");
+  }
+}
+
+// ✅ Display user info on homepage (optional)
+function displayUserInfo() {
+  const userInfoEl = document.getElementById('user-info');
+  if (userInfoEl && userData.loggedIn) {
+    const planBadge = userPlan.toUpperCase();
+    userInfoEl.innerHTML = `
+      <span>Welcome, ${userData.email}!</span>
+      <span class="plan-badge">${planBadge} Plan</span>
+    `;
+  }
+}
+
 // ====== Render Books ======
 function loadBooks() {
   Object.entries(grids).forEach(([gridId, category]) => {
     const grid = document.getElementById(gridId);
+    if (!grid) return;
+    
     grid.innerHTML = "";
     books
       .filter(book => book.genre === category)
@@ -238,7 +356,24 @@ function loadBooks() {
         const card = document.createElement("div");
         card.classList.add("book-card");
         card.innerHTML = `<img src="${book.cover}" alt="${book.title}">`;
-        card.addEventListener("click", () => openPreview(book));
+
+        const genre = book.genre.toLowerCase();
+        const isAllowed = allowedGenres[userPlan]?.includes(genre);
+
+        if (!isAllowed) {
+          card.style.filter = "grayscale(100%) brightness(0.6)";
+          card.style.cursor = "not-allowed";
+          card.title = `Upgrade to ${requiredPlan(book.genre)} to access this book.`;
+
+          card.addEventListener("click", () => {
+            alert(
+              `⚠️ "${book.title}" is not available in your current plan (${userPlan.toUpperCase()}).\n\nUpgrade to ${requiredPlan(book.genre)} to unlock this genre!`
+            );
+          });
+        } else {
+          card.addEventListener("click", () => openPreview(book));
+        }
+
         grid.appendChild(card);
       });
   });
@@ -263,73 +398,72 @@ window.addEventListener("click", e => {
   if (e.target === modal) modal.style.display = "none";
 });
 
-// ✅ When "Add to My Books" is clicked, save book data to localStorage
 addBookBtn.addEventListener("click", () => {
-  if (!selectedBook) {
-    alert("No book selected.");
-    return;
-  }
-
-  // Read existing list (or empty array)
-  const myBooks = JSON.parse(localStorage.getItem("myBooks") || "[]");
-
-  // Avoid duplicates by title
-  const exists = myBooks.some(b => b.title === selectedBook.title);
-  if (exists) {
-    alert(`"${selectedBook.title}" is already in My Books.`);
-    modal.style.display = "none";
-    return;
-  }
-
-  // ✅ Add cover path along with the rest of the info
-  myBooks.push({
-    title: selectedBook.title,
-    author: selectedBook.author || "Unknown",
-    category: selectedBook.genre || "Uncategorized",
-    description: selectedBook.description || "",
-    pdfUrl: selectedBook.pdfUrl || "#",
-    cover: selectedBook.cover || "Media/Covers/default.jpg"  // 🔹 added
-  });
-
-  // Save back
-  localStorage.setItem("myBooks", JSON.stringify(myBooks));
-
-  alert(`✅ "${selectedBook.title}" has been added to My Books!`);
+  alert(`${selectedBook.title} has been added to your My Books!`);
   modal.style.display = "none";
 });
 
-
 const closeModalBtn = document.getElementById("closeModal");
-
 closeModalBtn.addEventListener("click", () => {
   modal.style.display = "none";
   selectedBook = null;
 });
 
-
 // ====== Initialize ======
-// ====== Initialize ======
-loadBooks();
-
-// mark the active nav link based on current URL (works for local pages)
-(function markActiveNav() {
-  const navLinks = document.querySelectorAll('.nav-icons a');
-  const current = window.location.pathname.split('/').pop() || 'homepage.html'; // fallback
-  navLinks.forEach(a => {
-    const href = a.getAttribute('href')?.split('/').pop();
-    if (href && href === current) {
-      a.classList.add('active');
-      a.setAttribute('aria-current', 'page');
-    } else {
-      a.classList.remove('active');
-      a.removeAttribute('aria-current');
-    }
-  });
-})();
-
-// Re-run feather.replace AFTER we possibly added the .active class and after DOM modifications.
-// This ensures the generated <svg> icons are replaced *after* JS changes so they inherit styles correctly.
-if (window.feather && typeof feather.replace === 'function') {
-  feather.replace();
+async function init() {
+  console.log('🚀 Initializing homepage...');
+  
+  // 1. Load user data from sessionStorage (from sign-in/sign-up)
+  loadUserFromSession();
+  
+  // 2. Validate with server (optional but recommended)
+  await fetchUserPlan();
+  
+  // 3. Display user info if logged in
+  displayUserInfo();
+  
+  // 4. Load books with correct access levels
+  loadBooks();
+  
+  // 5. Mark active navigation
+  markActiveNav();
+  
+  // 6. Replace feather icons
+  if (window.feather && typeof feather.replace === "function") {
+    feather.replace();
+  }
+  
+  console.log('✅ Homepage initialized with plan:', userPlan);
 }
 
+function markActiveNav() {
+  const navLinks = document.querySelectorAll(".nav-icons a");
+  const current = window.location.pathname.split("/").pop() || "homepage.html";
+  navLinks.forEach(a => {
+    const href = a.getAttribute("href")?.split("/").pop();
+    if (href && href === current) {
+      a.classList.add("active");
+      a.setAttribute("aria-current", "page");
+    } else {
+      a.classList.remove("active");
+      a.removeAttribute("aria-current");
+    }
+  });
+}
+
+// ====== Check authentication on page load ======
+function checkAuth() {
+  const loggedIn = sessionStorage.getItem('user_logged_in') === 'true';
+  
+  if (!loggedIn) {
+    console.warn('⚠️ User not logged in. Redirecting to sign-in page.');
+    // Uncomment below to enforce authentication
+    // window.location.href = 'SignIn.html';
+  }
+}
+
+// Optional: Check auth before init
+// checkAuth();
+
+// Start the application
+init();

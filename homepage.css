@@ -34,26 +34,14 @@ body {
 .logo img {
     width: 200px;
 }
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
 
-.logo img {
-    width: 200px;
-}
-
-/* Space out nav icons evenly */
+/* --- Navbar icons (copied from homepage) --- */
 .nav-icons {
   display: flex;
-  gap: 30px; /* same as MyBooks page */
-  align-items: center;
-  justify-content: center;
-  margin-right: 20px; /* optional slight right margin */
+  gap: 30px;
 }
 
-/* --- Navbar icons: improved + stronger svg target --- */
+/* clickable links */
 .nav-icons a {
   position: relative;
   display: inline-flex;
@@ -69,15 +57,15 @@ body {
   
 }
 
-/* ensure the generated svg stroke follows the anchor color */
+/* feather svg stroke color follows text color */
 .nav-icons a svg,
 .nav-icons a svg * {
   stroke: currentColor !important;
-  fill: none !important;   /* prevents accidentally filled paths overriding the look */
+  fill: none !important;
   transition: stroke 0.22s ease, transform 0.22s ease;
 }
 
-/* hover / focus */
+/* hover & focus */
 .nav-icons a:hover,
 .nav-icons a:focus-visible {
   background-color: rgba(255,255,255,0.12);
@@ -85,16 +73,16 @@ body {
   transform: translateY(-2px) scale(1.04);
 }
 
-/* active page indicator */
+/* active page highlight */
 .nav-icons a.active {
   background-color: rgba(255,255,255,0.14);
   color: #ffcc00;
   transform: none;
 }
 
-/* underline indicator */
+/* underline animation */
 .nav-icons a::after {
-  content:"";
+  content: "";
   position: absolute;
   bottom: 4px;
   left: 20%;
@@ -105,13 +93,14 @@ body {
   transform: translateY(4px);
   transition: opacity 0.22s ease, transform 0.22s ease;
 }
+
 .nav-icons a:hover::after,
 .nav-icons a.active::after {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* logout button stands out (danger) */
+/* logout special color */
 .nav-icons a.logout:hover {
   color: #ff6b6b;
   background-color: rgba(255,107,107,0.08);
@@ -288,3 +277,4 @@ h1 {
   cursor: pointer;
   color: #333;
 }
+

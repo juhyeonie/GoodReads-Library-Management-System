@@ -1,5 +1,5 @@
 (function () {
-  console.log("PaymentMethod.js loaded ✔");
+  console.log("PaymentMethod.js loaded ✓");
 
   const plans = {
     Basic: { days: 30, amount: 100 },
@@ -68,29 +68,69 @@
     fd.append('plan', short);
     fd.append('subs_started', startDate);
     fd.append('subs_end', endDate);
+    fd.append('payment_method', paymentSelect.value);
 
-    const res = await fetch('Backend/signup.php', { method: 'POST', body: fd });
-    const json = await res.json();
+    try {
+      const res = await fetch('Backend/signup.php', { method: 'POST', body: fd });
+      const json = await res.json();
 
-    if (!json.success) {
-      alert(json.message || 'Signup failed');
-      return;
+      if (!json.success) {
+        alert(json.message || 'Signup failed');
+        return;
+      }
+
+      // ✅ Store user data after successful signup
+      sessionStorage.setItem('user_logged_in', 'true');
+      sessionStorage.setItem('user_email', email);
+      sessionStorage.setItem('user_plan', short);
+      sessionStorage.setItem('user_role', 'User');
+      sessionStorage.setItem('user_status', 'Active');
+      sessionStorage.setItem('user_subs_end', endDate);
+      if (json.account_id) {
+        sessionStorage.setItem('user_account_id', json.account_id);
+      }
+
+      // ✅ Auto-login after signup
+      const loginFd = new FormData();
+      loginFd.append('email', email);
+      loginFd.append('password', password);
+
+      const loginRes = await fetch('Backend/auth.php', {
+        method: 'POST',
+        body: loginFd,
+        credentials: 'same-origin'
+      });
+
+      const loginJson = await loginRes.json();
+      if (loginJson.success && loginJson.user) {
+        // Update with server data
+        sessionStorage.setItem('user_plan', loginJson.user.Plan);
+        sessionStorage.setItem('user_role', loginJson.user.Role);
+        sessionStorage.setItem('user_status', loginJson.user.Status);
+        sessionStorage.setItem('user_account_id', loginJson.user.AccountID);
+      }
+
+      const receipt = {
+        plan: short,
+        amount: planData.amount,
+        startDate,
+        endDate,
+        method: paymentSelect.value
+      };
+
+      receiptInner.innerHTML = buildReceipt(receipt);
+      receiptCard.classList.remove('empty');
+      printBtn.disabled = false;
+      newBtn.disabled = false;
+
+      // Clear temporary signup data
+      sessionStorage.removeItem('signup_email');
+      sessionStorage.removeItem('signup_password');
+
+    } catch (err) {
+      console.error('Signup error:', err);
+      alert('Network or server error during signup.');
     }
-
-    const receipt = {
-      plan: short,
-      amount: planData.amount,
-      startDate,
-      endDate,
-      method: paymentSelect.value
-    };
-
-    receiptInner.innerHTML = buildReceipt(receipt);
-    receiptCard.classList.remove('empty');
-    printBtn.disabled = false;
-    newBtn.disabled = false;
-
-    sessionStorage.clear();
   });
 
   printBtn.addEventListener('click', () => window.print());
