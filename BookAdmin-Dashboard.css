@@ -117,6 +117,118 @@ th { background: #1b3c53; color: #fff; font-weight:700; }
 
 td button { border:none; border-radius:6px; padding:6px 10px; cursor:pointer; background:#456882; color:#fff; margin-right:6px; font-weight:600; font-size:13px; }
 
+/* Modal (replaced to match SubsAdmin modal design) */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 14, 18, 0.48);
+  z-index: 2200;
+  padding: 28px;
+}
+
+.modal-overlay[aria-hidden="false"] { display: flex; }
+
+.modal-box {
+  width: 680px;
+  max-width: calc(100% - 48px);
+  background: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 18px 42px rgba(16,24,40,0.3);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* top gradient bar like the reference */
+.modal-topbar {
+  height: 48px;
+  background: linear-gradient(90deg, #1b3c53 0%, #908daf 100%);
+}
+
+/* modal content */
+.modal-body {
+  padding: 34px 40px 22px 40px;
+}
+
+.modal-title {
+  color: #1b3c53;
+  font-size: 20px;
+  margin-bottom: 18px;
+  font-weight: 700;
+}
+
+/* form fields */
+.book-form .field { display:block; margin-bottom:12px; }
+.book-form input,
+.book-form textarea,
+.book-form select {
+  width: 100%;
+  border: 1px solid #cdd6db;
+  padding: 11px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #222;
+  background: #fff;
+  outline: none;
+}
+.book-form textarea { resize: vertical; min-height:72px; }
+
+/* bottom gradient bar with actions */
+.modal-bottombar {
+  height: 62px;
+  background: linear-gradient(90deg, #1b3c53 0%, #908daf 100%);
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  padding: 0 18px;
+}
+
+.modal-actions { display:flex; gap:10px; }
+
+/* buttons */
+.btn {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight:700;
+  cursor: pointer;
+  font-size: 13px;
+}
+.btn.confirm {
+  background: #fff;
+  color: #1b3c53;
+}
+.btn.clear {
+  background: rgba(255,255,255,0.14);
+  color: #fff;
+  border: none;
+}
+.btn.cancel {
+  background: rgba(255,255,255,0.14);
+  color: #fff;
+}
+
+/* small screens */
+@media (max-width:720px) {
+  .modal-box { width: 560px; }
+  .modal-body { padding: 22px; }
+}
+@media (max-width:420px) {
+  .modal-box { width: 100%; padding:0; }
+  .modal-body { padding: 18px; }
+}
+/* ...existing code... */
+/* Accessibility helper */
+.sr-only { position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden; }
+
+/* Animations */
+@keyframes fadeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:none; } }
+
+
 @media (max-width: 1100px) {
   .sidebar { width: 260px; }
   .main-content { margin-left: 260px; width: calc(100% - 260px); padding:20px; }
