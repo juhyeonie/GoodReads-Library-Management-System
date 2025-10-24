@@ -9,6 +9,7 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Gordita', 'Segoe UI', Roboto, sans-serif;
+
 }
 
 body {
@@ -34,6 +35,35 @@ body {
 .logo img {
     width: 200px;
 }
+.back-container {
+  width: 100%;
+  padding: 20px 40px;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: 0.3s ease;
+  color: #333;
+}
+
+.back-btn:hover {
+  background: rgba(0,0,0,0.06);
+}
+
+.back-btn:active {
+  transform: translateY(1px);
+}
+
+
 
 .Form-Container {
     display: flex;

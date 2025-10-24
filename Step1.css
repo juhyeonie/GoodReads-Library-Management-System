@@ -1,0 +1,224 @@
+@font-face {
+  font-family: 'Gordita';
+  src: url('fonts/Gordita.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Gordita', 'Segoe UI', Roboto, sans-serif; 
+}
+
+body {
+  background: #f5f5f5;
+  min-height: 20vh;
+}
+
+/* HEADER */
+.header { 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to right, #253b5a, #7881a1);
+    padding: 10px 40px;
+    color: white;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.logo img {
+    width: 200px;
+}
+
+
+.step-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e3c72;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
+  margin-top: -90px; /* 👈 Moves it upward */
+}
+.back-container {
+  width: 100%;
+  padding: 20px 40px;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: 0.3s ease;
+  color: #333;
+}
+
+.back-btn:hover {
+  background: rgba(0,0,0,0.06);
+}
+
+.back-btn:active {
+  transform: translateY(1px);
+}
+
+
+
+/* FEATURED BOOKS / PLANS SECTION */
+.featured-books {
+  text-align: center;
+  padding: 100px 40px;
+  background: #f5f5f5;
+  color: #123040;;
+}
+
+.featured-books h2 {
+  font-size: 34px;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.plan-subtext {
+  font-size: 16px;
+  opacity: 0.8;
+  margin-bottom: 60px;
+}
+
+.plans-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+
+.plan {
+  background: #fff;
+  color: #1e3c72;
+  border-radius: 16px;
+  width: 300px;
+  padding: 40px 30px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.plan:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.plan h3 {
+  font-size: 22px;
+  margin-bottom: 10px;
+  color: #0c1d3a;
+}
+
+.price {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1e90ff;
+  margin-bottom: 20px;
+}
+
+.features {
+  list-style: none;
+  text-align: left;
+  margin: 0 auto 30px auto;
+  max-width: 250px;
+}
+
+.features li {
+  margin: 10px 0;
+  position: relative;
+  padding-left: 25px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.features li::before {
+  content: "✔";
+  position: absolute;
+  left: 0;
+  color: #1e90ff;
+  font-weight: bold;
+}
+
+/* Plan Buttons */
+.plan-btn {
+  background: #1e90ff;
+  border: none;
+  color: white;
+  padding: 12px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+  font-weight: 600;
+}
+
+.plan-btn:hover {
+  background: #0c70d4;
+}
+
+/* Highlighted Plan */
+.highlight {
+  border: 2px solid #1e90ff;
+  transform: scale(1.05);
+}
+
+.ribbon {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: #1e90ff;
+  color: white;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* Premium Plan Theme */
+.premium {
+  background: linear-gradient(to bottom right, #1e3c72, #2a5298);
+  color: white;
+}
+
+.premium .price {
+  color: #ffdb58;
+}
+
+.premium .features li::before {
+  color: #ffdb58;
+}
+
+.premium-btn {
+  background: #ffdb58;
+  color: #1e3c72;
+}
+
+.premium-btn:hover {
+  background: #ffd02a;
+}
+
+/* Basic Plan Accent */
+.basic .price {
+  color: #2d6a4f;
+}
+
+.basic .features li::before {
+  color: #2d6a4f;
+}

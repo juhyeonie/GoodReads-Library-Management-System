@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Sign In</title>
+  <title>GoodReads | Sign-in</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="SignIn.css">
 </head>
@@ -10,10 +10,14 @@
 
   <header class="header">
     <div class="logo">
-      <!-- adjust path if logo is in Media/ or root -->
       <img src="logo.png" alt="GoodReads" style="height:48px;">
     </div>
   </header>
+
+  <!-- BACK BUTTON BELOW HEADER -->
+  <div class="back-container">
+    <button class="back-btn" onclick="history.back()">← Back</button>
+  </div>
 
   <div class="Form-Container">
     <div class="Signin-Box">
@@ -36,7 +40,7 @@
         <div id="server-msg" style="color:#c33; margin-top:0.5rem; display:none"></div>
 
         <p class="Signup-Text">
-          New to GoodReads? <a href="#">Sign up now.</a>
+          New to GoodReads? <a href="Step1.html">Sign up now.</a>
         </p>
       </form>
     </div>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Membership | Step 1 of 3</title>
+  <link rel="stylesheet" href="Step1.css" />
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">
+      <!-- adjust path if logo is in Media/ or root -->
+      <img src="logo.png" alt="GoodReads" style="height:48px;">
+    </div>
+  </header>
+
+    </div>
+  </header>
+
+    <!-- BACK BUTTON BELOW HEADER -->
+  <div class="back-container">
+    <button class="back-btn" onclick="history.back()">← Back</button>
+  </div>
+
+  <!-- PRICING / PLANS SECTION -->
+<section id="featured-books" class="featured-books">
+  <p class="step-text">Step 1 of 3</p>
+  <h2>Choose the Perfect Plan for Your Reading Journey</h2>
+  <p class="plan-subtext">
+    Whether you're a casual reader or a book lover, there’s a plan that fits your needs.
+  </p>
+
+  <div class="plans-container">
+    <!-- BASIC PLAN -->
+    <div class="plan basic">
+      <h3>Basic Plan</h3>
+      <p class="price">₱0 / month</p>
+      <ul class="features">
+        <li>Access to limited books or categories (Novel)</li>
+        <li>Daily reading time limit (60 minutes per day)</li>
+        <li>Limited pages per book (first 30 pages only)</li>
+      </ul>
+      <button class="plan-btn" onclick="selectPlan('Basic')">Get Started Free</button>
+    </div>
+
+    <!-- STANDARD PLAN -->
+    <div class="plan standard highlight">
+      <div class="ribbon">Most Popular</div>
+      <h3>Standard Plan</h3>
+      <p class="price">₱199 / month</p>
+      <ul class="features">
+        <li>Unlimited reading time</li>
+        <li>Access to all general categories (Educational, Novel, Graphic Novel)</li>
+        <li>Light customization (change reader theme)</li>
+      </ul>
+      <button class="plan-btn" onclick="selectPlan('Standard')">Go Standard</button>
+    </div>
+
+    <!-- PREMIUM PLAN -->
+    <div class="plan premium">
+      <h3>Premium Plan</h3>
+      <p class="price">₱299 / month</p>
+      <ul class="features">
+        <li>Unlimited reading time</li>
+        <li>Access to all general categories (Educational, Novel, Graphic Novel)</li>
+        <li>Light customization (change reader theme)</li>
+        <li>Bookmark feature (save reading progress)</li>
+        <li>Like & dislike system (engage with the community)</li>
+      </ul>
+      <button class="plan-btn" onclick="selectPlan('Premium')">Go Premium</button>
+    </div>
+  </div>
+</section>
+<script>
+  function selectPlan(planName) {
+    localStorage.setItem("selectedPlan", planName);
+    window.location.href = "step2.html";
+  }
+</script>
+</body>
+</html>

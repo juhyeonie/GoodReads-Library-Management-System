@@ -1,20 +1,19 @@
 @font-face {
-    font-family: 'Gordita';
-    src: url('fonts/Gordita.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
+  font-family: "Gordita";
+  src: url("fonts/Gordita.ttf") format("truetype");
 }
 
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: Gordita, sans-serif;
-    background: #f5f5f5;
-    color: rgb(21, 43, 59);
+  font-family: Gordita, sans-serif;
+  color: #f5f5f5;
+  background: #0c1d3a;
+  overflow-x: hidden;
 }
 
 .header {
@@ -36,102 +35,380 @@ body {
     width: 200px;
 }
 
-.SigninButton,
-.GetStartedButton {
-    background: #234c6a;
-    color: white;
-    border: 1px solid rgba(21, 43, 59);
-    padding: 10px 18px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: 0.25s;
+.auth-buttons button {
+  background: #1e90ff;
+  border: none;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
 }
 
-.SigninButton:hover,
-.GetStartedButton:hover {
-    background: #123040;
-    color: #f5f5f5;
+.auth-buttons button:hover {
+  background: #1560b9;
 }
 
-.label {
-    text-align: center;
-    margin-top: 300px;
-    padding: 0 15px;
+/* HERO SECTION */
+.hero {
+  position: relative;
+  text-align: center;
+  padding: 160px 20px;
+  background: url("hero-bg.jpg") center/cover no-repeat;
+  color: white;
 }
 
-.label h1 {
-    font-size: 32px;
-    font-weight: bold;
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(12, 29, 58, 0.7);
 }
 
-.label p {
-    font-size: 14px;
-    margin-top: 15px;
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 700px;
+  margin: 0 auto;
 }
 
+.hero-content h2 {
+  font-size: 42px;
+  font-weight: 600;
+}
 
-/* ✅ Responsive Adjustments */
+.hero-content p {
+  margin: 20px 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.hero-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.hero-buttons button {
+  background: #1e90ff;
+  border: none;
+  color: white;
+  padding: 12px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.hero-buttons .get-started {
+  background: #ffffff;
+  color: #0c1d3a;
+}
+
+.hero-buttons button:hover {
+  transform: translateY(-2px);
+}
+
+.featured-books {
+  text-align: center;
+  padding: 100px 40px;
+  background: #f5f5f5;
+  color: #1e3c72;
+}
+
+.featured-books h2 {
+  font-size: 34px;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.plan-subtext {
+  font-size: 16px;
+  opacity: 0.8;
+  margin-bottom: 60px;
+}
+
+.plans-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+
+.plan {
+  background: #fff;
+  color: #1e3c72;
+  border-radius: 16px;
+  width: 300px;
+  padding: 40px 30px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.plan:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.plan h3 {
+  font-size: 22px;
+  margin-bottom: 10px;
+  color: #0c1d3a;
+}
+
+.price {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1e90ff;
+  margin-bottom: 20px;
+}
+
+.features {
+  list-style: none;
+  text-align: left;
+  margin: 0 auto 30px auto;
+  max-width: 250px;
+}
+
+.features li {
+  margin: 10px 0;
+  position: relative;
+  padding-left: 25px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.features li::before {
+  content: "✔";
+  position: absolute;
+  left: 0;
+  color: #1e90ff;
+  font-weight: bold;
+}
+
+/* Plan Buttons */
+.plan-btn {
+  background: #1e90ff;
+  border: none;
+  color: white;
+  padding: 12px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+  font-weight: 600;
+}
+
+.plan-btn:hover {
+  background: #0c70d4;
+}
+
+/* Highlighted Plan */
+.highlight {
+  border: 2px solid #1e90ff;
+  transform: scale(1.05);
+}
+
+.ribbon {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: #1e90ff;
+  color: white;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* Premium Plan Theme */
+.premium {
+  background: linear-gradient(to bottom right, #1e3c72, #2a5298);
+  color: white;
+}
+
+.premium .price {
+  color: #ffdb58;
+}
+
+.premium .features li::before {
+  color: #ffdb58;
+}
+
+.premium-btn {
+  background: #ffdb58;
+  color: #1e3c72;
+}
+
+.premium-btn:hover {
+  background: #ffd02a;
+}
+
+/* Basic Plan Accent */
+.basic .price {
+  color: #2d6a4f;
+}
+
+.basic .features li::before {
+  color: #2d6a4f;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .plans-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .plan {
+    width: 90%;
+    max-width: 360px;
+  }
+}
+
+/* ABOUT */
+.about {
+  padding: 80px 40px;
+  text-align: center;
+  background: linear-gradient(to right, #0c1d3a, #1e3c72);
+}
+
+.about h2 {
+  font-size: 30px;
+  margin-bottom: 20px;
+}
+
+.about p {
+  max-width: 700px;
+  margin: 0 auto;
+  font-size: 15px;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+/* FOOTER */
+.footer {
+  background: #0c1d3a;
+  padding: 30px 20px;
+  text-align: center;
+  color: #bbb;
+}
+
+.footer-links a {
+  color: #bbb;
+  margin: 0 10px;
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  color: #fff;
+}
+
+/* RESPONSIVE */
 @media (max-width: 768px) {
-    .header {
-        padding: 15px 20px;
-    }
+  .plans-container {
+    flex-direction: column;
+    align-items: center;
+  }
 
-    .logo img {
-        width: 150px;
-    }
-
-    .SigninButton {
-        padding: 6px 15px;
-        font-size: 13px;
-    }
-
-    .label {
-        margin-top: 80px;
-    }
-
-    .label h1 {
-        font-size: 24px;
-        line-height: 1.3;
-    }
-
-    .label p {
-        font-size: 13px;
-    }
-
-    .GetStartedButton {
-        font-size: 13px;
-        padding: 8px 16px;
-    }
+  .hero-content h2 {
+    font-size: 30px;
+  }
+}
+.books-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  opacity: 0.35;
 }
 
-@media (max-width: 480px) {
-    .header {
-        flex-direction: column;
-        gap: 10px;
-        padding: 10px;
-    }
+/* Base row container */
+.book-row {
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
 
-    .logo img {
-        width: 120px;
-    }
+/* Each track of books */
+.book-track {
+  display: flex;
+  gap: 25px;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
 
-    .label {
-        margin-top: 60px;
-    }
+/* Books */
+.book-track img {
+  width: 120px;
+  height: 160px;
+  border-radius: 10px;
+  object-fit: cover;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
 
-    .label h1 {
-        font-size: 20px;
-    }
+/* Optional hover for visual depth */
+.book-track img:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+}
 
-    .label p {
-        font-size: 12px;
-    }
+/* === Parallax Layers (different speeds + blur depths) === */
+.book-row:nth-child(1) .book-track {
+  animation-name: scrollRight;
+  animation-duration: 500s;
+  filter: blur(2px) brightness(0.9);
+animation-delay: -220s; /* start halfway */
+}
 
-    .GetStartedButton,
-    .SigninButton {
-        width: 100%;
-        max-width: 200px;
-    }
+.book-row:nth-child(2) .book-track {
+  animation-name: scrollLeft;
+  animation-duration: 500s;
+  filter: blur(2px) brightness(0.9);
+animation-delay: -35s; /* start halfway */
+}
+
+.book-row:nth-child(3) .book-track {
+  animation-name: scrollRight;
+  animation-duration: 500s;
+  filter: blur(2px) brightness(0.9);
+    animation-delay: -220s; /* start halfway */
+}
+
+/* === Keyframes (seamless infinite loop) === */
+@keyframes scrollRight {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+@keyframes scrollLeft {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Keep hero content on top */
+.hero {
+  position: relative;
+  min-height: 75vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 3;
 }

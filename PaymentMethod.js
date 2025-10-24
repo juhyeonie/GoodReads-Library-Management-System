@@ -1,101 +1,33 @@
-(function () {
-  console.log("PaymentMethod.js loaded ✔");
+const selectedPlan = localStorage.getItem("selectedPlan");
+document.getElementById("selected-plan").value = selectedPlan || "No plan selected";
 
-  const plans = {
-    Basic: { days: 30, amount: 100 },
-    Standard: { days: 30, amount: 150 },
-    Premium: { days: 30, amount: 250 }
-  };
+// Agree checkbox enables Pay button
+const agree = document.getElementById("agree");
+const payBtn = document.getElementById("startBtn");
 
-  const selectedPlanInput = document.getElementById('selected-plan');
-  const paymentSelect = document.getElementById('payment-method');
-  const agree = document.getElementById('agree');
-  const startBtn = document.getElementById('startBtn');
-  const receiptInner = document.getElementById('receiptInner');
-  const receiptCard = document.getElementById('receiptCard');
-  const printBtn = document.getElementById('printBtn');
-  const newBtn = document.getElementById('newBtn');
+agree.addEventListener("change", () => {
+  payBtn.disabled = !agree.checked;
+});
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const rawPlan = urlParams.get('plan') || 'Basic - PHP 100';
-  selectedPlanInput.value = rawPlan;
+// On Pay click, generate receipt
+payBtn.addEventListener("click", () => {
+  const method = document.getElementById("payment-method").value;
+  const receipt = document.getElementById("receiptInner");
 
-  function extractShort(raw) {
-    const m = raw.match(/(Basic|Standard|Premium)/i);
-    return m ? m[0].charAt(0).toUpperCase() + m[0].slice(1).toLowerCase() : 'Basic';
-  }
-  const short = extractShort(rawPlan);
-  const planData = plans[short] || plans.Basic;
-
-  const pad = n => (n < 10 ? '0' + n : n);
-  const fmt = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-  const addDays = (d, days) => new Date(d.getTime() + days * 86400000);
-
-  function buildReceipt(data) {
-    return `
-      <h3>Subscription Receipt</h3>
-      <p><b>Plan:</b> ${data.plan}</p>
-      <p><b>Amount:</b> ₱${data.amount}</p>
-      <p><b>Start:</b> ${data.startDate}</p>
-      <p><b>End:</b> ${data.endDate}</p>
-      <p><b>Payment:</b> ${data.method}</p>
-    `;
+  if (!method) {
+    alert("Please choose a payment method.");
+    return;
   }
 
-  function updateState() {
-    startBtn.disabled = !(agree.checked && paymentSelect.value);
-  }
-  agree.addEventListener('change', updateState);
-  paymentSelect.addEventListener('change', updateState);
+  receipt.innerHTML = `
+    <h3>Payment Receipt</h3>
+    <p><strong>Plan:</strong> ${selectedPlan}</p>
+    <p><strong>Payment Method:</strong> ${method}</p>
+    <p><strong>Status:</strong> Payment Successful</p>
+    <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+  `;
 
-  startBtn.addEventListener('click', async e => {
-    e.preventDefault();
-
-    const email = sessionStorage.getItem('signup_email');
-    const password = sessionStorage.getItem('signup_password');
-    if (!email || !password) {
-      alert('Missing signup data, please restart.');
-      return (window.location.href = 'Membership.html');
-    }
-
-    const now = new Date();
-    const startDate = fmt(now);
-    const endDate = fmt(addDays(now, planData.days));
-
-    const fd = new FormData();
-    fd.append('email', email);
-    fd.append('password', password);
-    fd.append('plan', short);
-    fd.append('subs_started', startDate);
-    fd.append('subs_end', endDate);
-
-    const res = await fetch('Backend/signup.php', { method: 'POST', body: fd });
-    const json = await res.json();
-
-    if (!json.success) {
-      alert(json.message || 'Signup failed');
-      return;
-    }
-
-    const receipt = {
-      plan: short,
-      amount: planData.amount,
-      startDate,
-      endDate,
-      method: paymentSelect.value
-    };
-
-    receiptInner.innerHTML = buildReceipt(receipt);
-    receiptCard.classList.remove('empty');
-    printBtn.disabled = false;
-    newBtn.disabled = false;
-
-    sessionStorage.clear();
-  });
-
-  printBtn.addEventListener('click', () => window.print());
-  newBtn.addEventListener('click', () => {
-    alert('Redirecting to homepage...');
-    window.location.href = 'Homepage.html';
-  });
-})();
+  document.getElementById("receiptCard").classList.remove("empty");
+  document.getElementById("printBtn").disabled = false;
+  document.getElementById("newBtn").disabled = false;
+});
