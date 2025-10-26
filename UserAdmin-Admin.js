@@ -1,5 +1,4 @@
-
-    // Sidebar behavior
+// Sidebar behavior
     (function() {
       const sidebar = document.getElementById('sidebar');
       const menuToggle = document.getElementById('menuToggle');
@@ -106,8 +105,9 @@
             <td>${escapeHtml(u.receipt)}</td>
             <td>${escapeHtml(u.email)}</td>
             <td>${escapeHtml(u.role || '')}</td>
-            <td style="text-align:right">
+            <td>
               <div class="actions">
+                <button class="pill view" data-id="${escapeHtml(u.receipt)}">View</button>
                 <button class="pill edit" data-id="${escapeHtml(u.receipt)}">Edit</button>
                 <button class="pill delete" data-id="${escapeHtml(u.receipt)}">Delete</button>
               </div>

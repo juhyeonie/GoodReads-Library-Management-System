@@ -1,97 +1,79 @@
-
-/* UserAdmin-User.js - Customer Management */
 (function () {
-  const SIDEBAR_COLLAPSED_KEY = 'gr_sidebar_collapsed';
-  const MOBILE_BREAK = 800;
+  const COLLAPSED_KEY = 'sidebar_collapsed';
+  const MOBILE_BREAKPOINT = 768;
 
-  // Layout elements
   const sidebar = document.getElementById('sidebar');
   const menuToggle = document.getElementById('menuToggle');
   const collapseBtn = document.getElementById('collapseBtn');
   const mainContent = document.getElementById('mainContent');
+  const overlay = document.getElementById('sidebarOverlay');
 
-  function isMobile() { return window.innerWidth <= MOBILE_BREAK; }
- 
-  function applyLayout() {
-    const collapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
-    if (!sidebar || !mainContent) return;
+  function isMobile() { 
+    return window.innerWidth <= MOBILE_BREAKPOINT; 
+  }
 
+  function updateLayout() {
     if (isMobile()) {
-      sidebar.classList.remove('collapsed-desktop');
-      sidebar.classList.remove('expanded');
-      mainContent.classList.add('full');
-      mainContent.classList.remove('collapsed-desktop');
-      if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
-      if (collapseBtn) collapseBtn.setAttribute('aria-pressed', 'false');
-      document.body.classList.remove('no-scroll');
+      sidebar.classList.remove('collapsed');
+      mainContent.classList.remove('collapsed');
+      sidebar.classList.remove('mobile-open');
+      overlay.classList.remove('active');
     } else {
-      sidebar.classList.remove('expanded');
-      mainContent.classList.remove('full');
-
-      if (collapsed) {
-        sidebar.classList.add('collapsed-desktop');
-        mainContent.classList.add('collapsed-desktop');
-        if (collapseBtn) collapseBtn.setAttribute('aria-pressed', 'true');
-      } else {
-        sidebar.classList.remove('collapsed-desktop');
-        mainContent.classList.remove('collapsed-desktop');
-        if (collapseBtn) collapseBtn.setAttribute('aria-pressed', 'false');
-      }
-      if (menuToggle) menuToggle.setAttribute('aria-expanded', 'true');
-      document.body.classList.remove('no-scroll');
+      const isCollapsed = localStorage.getItem(COLLAPSED_KEY) === 'true';
+      sidebar.classList.toggle('collapsed', isCollapsed);
+      mainContent.classList.toggle('collapsed', isCollapsed);
+      sidebar.classList.remove('mobile-open');
+      overlay.classList.remove('active');
     }
   }
 
-  applyLayout();
-  window.addEventListener('resize', applyLayout);
+  updateLayout();
+  window.addEventListener('resize', updateLayout);
 
-  if (menuToggle && sidebar) {
-    menuToggle.addEventListener('click', () => {
-      if (!sidebar.classList.contains('expanded')) {
-        sidebar.classList.add('expanded');
-        document.body.classList.add('no-scroll');
-        if (mainContent) mainContent.classList.remove('full');
-        menuToggle.setAttribute('aria-expanded', 'true');
-      } else {
-        sidebar.classList.remove('expanded');
-        document.body.classList.remove('no-scroll');
-        if (mainContent) mainContent.classList.add('full');
-        menuToggle.setAttribute('aria-expanded', 'false');
-      }
-    });
-  }
-
-  if (collapseBtn && sidebar && mainContent) {
+  if (collapseBtn) {
     collapseBtn.addEventListener('click', () => {
       if (isMobile()) return;
-      const nowCollapsed = sidebar.classList.toggle('collapsed-desktop');
-      mainContent.classList.toggle('collapsed-desktop', nowCollapsed);
-      collapseBtn.setAttribute('aria-pressed', String(nowCollapsed));
-      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, nowCollapsed ? 'true' : 'false');
+      const isCollapsed = sidebar.classList.toggle('collapsed');
+      mainContent.classList.toggle('collapsed', isCollapsed);
+      collapseBtn.setAttribute('aria-pressed', String(isCollapsed));
+      localStorage.setItem(COLLAPSED_KEY, isCollapsed);
     });
   }
 
-  document.addEventListener('click', (e) => {
-    if (isMobile() && sidebar && sidebar.classList.contains('expanded')) {
-      if (!sidebar.contains(e.target) && menuToggle && !menuToggle.contains(e.target)) {
-        sidebar.classList.remove('expanded');
-        document.body.classList.remove('no-scroll');
-        if (mainContent) mainContent.classList.add('full');
-        if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
+  if (menuToggle) {
+    menuToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sidebar.classList.toggle('mobile-open');
+      overlay.classList.toggle('active');
+    });
+  }
+
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('mobile-open');
+      overlay.classList.remove('active');
+    });
+  }
+
+  const menuLinks = sidebar.querySelectorAll('.menu-item');
+  menuLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      if (isMobile()) {
+        sidebar.classList.remove('mobile-open');
+        overlay.classList.remove('active');
       }
-    }
+    });
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && isMobile() && sidebar && sidebar.classList.contains('expanded')) {
-      sidebar.classList.remove('expanded');
-      document.body.classList.remove('no-scroll');
-      if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
+    if (e.key === 'Escape' && isMobile() && sidebar.classList.contains('mobile-open')) {
+      sidebar.classList.remove('mobile-open');
+      overlay.classList.remove('active');
     }
   });
 
   /* ---------------- Demo data & table rendering ---------------- */
-  let nextId = 1008; // Auto-increment counter
+  let nextId = 1008;
   
   const demoUsers = [
     { receipt: '1000', email: 'dfdfd', plan: 'free', payment: 'credit_card' },
@@ -161,16 +143,11 @@
     renderTable(filtered);
   }
 
-  // Initial render
   applyFilters();
   if (searchInput) searchInput.addEventListener('input', applyFilters);
   if (filterSelect) filterSelect.addEventListener('change', applyFilters);
 
-  /***************************************************************
-   * Modals: Edit, Add, Delete
-   ***************************************************************/
-
-  // Edit modal elements
+  /* ======= Edit Modal ======= */
   const editModal = document.getElementById('editModal');
   const editForm = document.getElementById('editForm');
   const editEmail = document.getElementById('editEmail');
@@ -183,13 +160,13 @@
 
   function showEditModal() {
     if (!editModal) return;
-    editModal.setAttribute('aria-hidden', 'false');
+    editModal.classList.add('show');
     document.body.classList.add('no-scroll');
     setTimeout(() => { editEmail && editEmail.focus(); }, 80);
   }
   function hideEditModal() {
     if (!editModal) return;
-    editModal.setAttribute('aria-hidden', 'true');
+    editModal.classList.remove('show');
     document.body.classList.remove('no-scroll');
   }
 
@@ -227,7 +204,7 @@
     if (e.target === editModal) hideEditModal();
   });
 
-  /**************** Add User Modal ****************/
+  /* ===== Add Modal ===== */
   const addModal = document.getElementById('addModal');
   const addForm = document.getElementById('addForm');
   const addEmail = document.getElementById('addEmail');
@@ -241,13 +218,13 @@
 
   function showAddModal() {
     if (!addModal) return;
-    addModal.setAttribute('aria-hidden', 'false');
+    addModal.classList.add('show');
     document.body.classList.add('no-scroll');
     setTimeout(() => addEmail && addEmail.focus(), 80);
   }
   function hideAddModal() {
     if (!addModal) return;
-    addModal.setAttribute('aria-hidden', 'true');
+    addModal.classList.remove('show');
     document.body.classList.remove('no-scroll');
   }
 
@@ -279,7 +256,7 @@
       payment
     };
     users.unshift(newUser);
-    nextId++; // Increment for next user
+    nextId++;
     applyFilters();
     hideAddModal();
   });
@@ -293,7 +270,7 @@
     if (e.target === addModal) hideAddModal();
   });
 
-  /**************** Delete modal ****************/
+  /* ===== Delete modal ===== */
   const deleteModal = document.getElementById('deleteModal');
   const deleteMessage = document.getElementById('deleteMessage');
   const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
@@ -304,12 +281,12 @@
   function showDeleteModal(message, id) {
     deleteTargetId = id;
     deleteMessage.textContent = message || 'Are you sure you want to delete this user?';
-    deleteModal.setAttribute('aria-hidden', 'false');
+    deleteModal.classList.add('show');
     document.body.classList.add('no-scroll');
     setTimeout(() => confirmDeleteBtn && confirmDeleteBtn.focus(), 80);
   }
   function hideDeleteModal() {
-    deleteModal.setAttribute('aria-hidden', 'true');
+    deleteModal.classList.remove('show');
     document.body.classList.remove('no-scroll');
     deleteTargetId = null;
   }
@@ -331,7 +308,7 @@
     if (e.target === deleteModal) hideDeleteModal();
   });
 
-  /**************** Delegated table actions ****************/
+  /* ===== Delegated table actions ===== */
   document.addEventListener('click', (e) => {
     const editBtn = e.target.closest && e.target.closest('.edit');
     if (editBtn) {
@@ -351,10 +328,10 @@
   /* ESC closes modals */
   document.addEventListener('keydown', (ev) => {
     if (ev.key === 'Escape') {
-      if (editModal && editModal.getAttribute('aria-hidden') === 'false') hideEditModal();
-      if (addModal && addModal.getAttribute('aria-hidden') === 'false') hideAddModal();
-      if (deleteModal && deleteModal.getAttribute('aria-hidden') === 'false') hideDeleteModal();
+      if (editModal && editModal.classList.contains('show')) hideEditModal();
+      if (addModal && addModal.classList.contains('show')) hideAddModal();
+      if (deleteModal && deleteModal.classList.contains('show')) hideDeleteModal();
     }
-    });
+  });
 
 })();
