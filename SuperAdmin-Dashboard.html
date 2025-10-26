@@ -4,81 +4,557 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GoodReads | Dashboard</title>
-  <link rel="stylesheet" href="SuperAdmin-Dashboard.css">
+  <style>
+/* ===== Reset & Base ===== */
+* { box-sizing: border-box; margin:0; padding:0; }
+html,body { height:100%; }
+body {
+  font-family: "Gordita", Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  background: #f5f5f5;
+  color:#222;
+}
+
+/* ===== App layout ===== */
+.app { display:flex; min-height:100vh; width:100%; }
+
+/* Sidebar - YouTube-style behavior */
+.sidebar {
+  width: 280px;
+  background: linear-gradient(180deg,#1b3c53 0%, #6f6b9b 100%);
+  color: #fff;
+  display:flex;
+  flex-direction:column;
+  position: fixed; 
+  top:0; 
+  left:0; 
+  bottom:0;
+  transition: width 0.2s ease;
+  z-index: 1000;
+  box-shadow: 0 2px 6px rgba(16,24,32,.08);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.sidebar.collapsed {
+  width: 72px;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    width: 240px;
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar.mobile-open {
+    transform: translateX(0);
+    z-index: 2000;
+  }
+}
+
+.sidebar-top {
+  flex: 1;
+  padding: 28px 18px;
+}
+
+.sidebar.collapsed .sidebar-top {
+  padding: 20px 8px;
+}
+
+.collapse-btn {
+  display:inline-block; 
+  margin:8px 0 12px; 
+  background: rgba(255,255,255,0.06);
+  color:#fff; 
+  border:none; 
+  padding:6px 8px; 
+  border-radius:6px; 
+  cursor:pointer; 
+  font-weight:700;
+  transition: opacity 0.2s;
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar.collapsed .collapse-btn {
+  padding: 6px;
+  text-align: center;
+}
+
+@media (max-width: 768px) { 
+  .collapse-btn { display:none; } 
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+
+.logo-img { 
+  width: 190px; 
+  display:block; 
+  margin: 0 auto; 
+  transition: width 0.2s ease, opacity 0.2s ease; 
+}
+
+.logo-pic {
+  width: 48px;
+  display: none;
+  margin: 0 auto;
+  transition: width 0.2s ease, opacity 0.2s ease;
+}
+
+.sidebar.collapsed .logo-img {
+  display: none;
+}
+
+.sidebar.collapsed .logo-pic {
+  display: block;
+}
+
+.menu { 
+  margin-top: 12px; 
+  display:flex; 
+  flex-direction:column; 
+  gap:4px; 
+}
+
+.menu-item {
+  display:flex; 
+  align-items:center; 
+  gap:16px; 
+  padding:10px 12px; 
+  border-radius:8px;
+  text-decoration:none; 
+  color:#fff; 
+  font-weight:600; 
+  transition: background 0.2s ease;
+  white-space: nowrap;
+  position: relative;
+}
+
+.sidebar.collapsed .menu-item {
+  justify-content: center;
+  padding: 10px;
+  gap: 0;
+}
+
+.menu-item .icon { 
+  width:24px; 
+  height: 24px;
+  display:flex; 
+  align-items:center; 
+  justify-content:center;
+  flex-shrink: 0;
+}
+
+.menu-item .icon img { 
+  width:22px; 
+  height:22px; 
+  object-fit:contain; 
+}
+
+.menu-item .text {
+  transition: opacity 0.2s ease;
+  overflow: hidden;
+}
+
+.sidebar.collapsed .menu-item .text {
+  opacity: 0;
+  width: 0;
+  display: none;
+}
+
+.menu-item.active, .menu-item:hover { 
+  background: rgba(255,255,255,0.12); 
+}
+
+.sidebar.collapsed .menu-item::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 100%;
+  margin-left: 8px;
+  padding: 6px 12px;
+  background: rgba(0,0,0,0.9);
+  color: white;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  font-size: 13px;
+  z-index: 1000;
+}
+
+.sidebar.collapsed .menu-item:hover::after {
+  opacity: 1;
+}
+
+.sidebar-bottom {
+  padding: 16px 18px 28px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar.collapsed .sidebar-bottom {
+  padding: 16px 8px 20px;
+}
+
+.user {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:14px;
+  transition: all 0.2s;
+}
+
+.sidebar.collapsed .user {
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar.collapsed .username {
+  display: none;
+}
+
+.logout-icon img { 
+  width:28px; 
+  height:28px; 
+}
+
+/* ===== Main content ===== */
+.main-content {
+  margin-left: 280px;
+  padding: 28px 34px;
+  width: calc(100% - 280px);
+  transition: margin-left 0.2s ease, width 0.2s ease;
+  min-height:100vh;
+}
+
+.main-content.collapsed {
+  margin-left: 72px;
+  width: calc(100% - 72px);
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    padding: 60px 16px 16px;
+  }
+  
+  .main-content.collapsed {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+.menu-toggle {
+  display:none; 
+  position:fixed; 
+  left:16px; 
+  top:14px; 
+  z-index:1100;
+  background:#1b3c53; 
+  color:#fff; 
+  border:none; 
+  padding:10px 12px; 
+  border-radius:6px;
+  font-size: 20px;
+  cursor:pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+  }
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1500;
+}
+
+@media (max-width: 768px) {
+  .sidebar-overlay.active {
+    display: block;
+  }
+}
+
+/* ===== Top area ===== */
+.top-bar { 
+  margin-bottom:18px; 
+}
+
+.top-bar h1 { 
+  color:#1b3c53; 
+  font-size:28px;
+}
+
+/* ===== Stats section ===== */
+.stats-section { 
+  padding-top:6px; 
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) 340px;
+  gap: 10px;
+  align-items: default;
+  grid-template-rows: auto auto;
+}
+
+/* Stat card */
+.stat-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 18px 20px;
+  border: 1px solid rgba(0,0,0,.06);
+  box-shadow: 0 6px 18px rgba(16,24,40,0.03);
+  min-height: 120px;
+  display:flex;
+  flex-direction:column;
+  justify-content: space-between;
+}
+
+.stat-card.tall { 
+  grid-row: 1 / 3;
+  grid-column: 4;
+  min-height: 100%;
+  max-height: 520px;
+  padding: 18px 16px;
+}
+
+/* header row */
+.stat-header {
+  display:flex; 
+  justify-content:space-between; 
+  align-items:center; 
+  margin-bottom:8px;
+}
+
+.stat-title { 
+  font-size:14px; 
+  color:#5f6368; 
+  font-weight:600; 
+}
+
+.stat-icon { 
+  font-size:22px; 
+}
+
+/* stat value */
+.stat-value { 
+  font-size:32px; 
+  font-weight:700; 
+  color:#1b3c53; 
+  margin-top: auto;
+}
+
+/* activity list */
+.activity-list {
+  margin-top: 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px;
+  border-radius: 6px;
+  flex: 1;
+  background: linear-gradient(180deg, rgba(245,245,245,1) 0%, rgba(250,250,250,1) 100%);
+  border: 1px solid rgba(0,0,0,0.04);
+  max-height: calc(100% - 60px);
+}
+
+.activity-item {
+  padding:10px 12px;
+  border-radius:6px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.04);
+  margin-bottom:8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  font-size:13px;
+  color:#333;
+}
+
+.activity-item:last-child {
+  margin-bottom: 0;
+}
+
+.activity-time { 
+  font-size:12px; 
+  color:#7a848b; 
+  margin-bottom:4px; 
+  font-weight: 600;
+}
+
+.empty-note { 
+  color:#8b9398; 
+  padding:20px; 
+  text-align:center; 
+}
+
+/* graphs label placeholder */
+.graphs-label { 
+  margin-top: 24px; 
+  color:#1b3c53; 
+  font-size: 18px; 
+  font-weight: 700;
+  padding: 12px 0;
+  border-bottom: 2px solid rgba(27,60,83,0.1);
+}
+
+/* responsive */
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) 320px;
+  }
+  
+  .stat-card:nth-child(1) { grid-column: 1; grid-row: 1; }
+  .stat-card:nth-child(2) { grid-column: 2; grid-row: 1; }
+  .stat-card:nth-child(3) { grid-column: 1; grid-row: 2; }
+  .stat-card:nth-child(4) { grid-column: 2; grid-row: 2; }
+  .stat-card:nth-child(5) { grid-column: 1; grid-row: 3; }
+  .stat-card:nth-child(6) { grid-column: 2; grid-row: 3; }
+  .stat-card.tall { 
+    grid-column: 3; 
+    grid-row: 1 / 4; 
+  }
+}
+
+@media (max-width: 900px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .stat-card.tall { 
+    grid-column: 1 / 3; 
+    grid-row: auto;
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 600px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stat-card.tall { 
+    grid-column: 1; 
+    min-height: 350px;
+  }
+  
+  .stat-card {
+    min-height: 100px;
+    padding: 14px 16px;
+  }
+}
+
+body.no-scroll {
+  overflow: hidden;
+}
+  </style>
 </head>
 <body>
 
-  <!-- Mobile menu toggle -->
-  <button id="menuToggle" class="menu-toggle" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <button id="menuToggle" class="menu-toggle" aria-label="Toggle menu">☰</button>
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
   <div class="app">
-    <!-- Sidebar (keeps same structure & classes as your other pages) -->
-    <aside id="sidebar" class="sidebar" role="navigation" aria-label="Main sidebar">
+    <aside id="sidebar" class="sidebar">
       <div class="sidebar-top">
         <div class="logo">
           <img src="logo.png" alt="GoodReads Logo" class="logo-img" />
+          <img src="logopic.png" alt="GoodReads" class="logo-pic" />
         </div>
 
-        <!-- Desktop collapse button -->
-        <button id="collapseBtn" class="collapse-btn" aria-pressed="false" title="Collapse sidebar">⇤</button>
+        <button id="collapseBtn" class="collapse-btn">☰</button>
 
-        <nav class="menu" aria-label="Primary navigation">
-          <a href="SuperAdmin-Dashboard.html" class="menu-item active">
+        <nav class="menu">
+          <a href="SuperAdmin-Dashboard.html" class="menu-item active" data-tooltip="Dashboard">
             <span class="icon"><img src="dashboard.png" alt="" /></span>
             <span class="text">Dashboard</span>
           </a>
-
-          <a href="SuperAdmin-Admin.html" class="menu-item">
+          <a href="SuperAdmin-User.html" class="menu-item" data-tooltip="Customer Management">
+            <span class="icon"><img src="user.png" alt="" /></span>
+            <span class="text">Customer Management</span>
+          </a>
+          <a href="SuperAdmin-Admin.html" class="menu-item" data-tooltip="Admin Management">
             <span class="icon"><img src="admin.png" alt="" /></span>
             <span class="text">Admin Management</span>
           </a>
-
-          <a href="SuperAdmin-User.html" class="menu-item">
-            <span class="icon"><img src="user.png" alt="" /></span>
-            <span class="text">User Management</span>
-          </a>
-
-          <a href="SuperAdmin-BookManagement.html" class="menu-item">
-            <span class="icon"><img src="book.png" alt="" /></span>
-            <span class="text">Book Management</span>
+          <a href="SuperAdmin-Subscription.html" class="menu-item" data-tooltip="Plan Management">
+            <span class="icon"><img src="subscription.png" alt="" /></span>
+            <span class="text">Plan Management</span>
           </a>
         </nav>
       </div>
 
       <div class="sidebar-bottom">
         <div class="user">
-          <p class="username">Super Admin1</p>
-          <a href="StartPage.html" class="logout-icon" title="Logout"><img src="logout.png" alt="Logout" /></a>
+          <p class="username">Super Admin</p>
+          <a href="StartPage.html" class="logout-icon" title="Logout">
+            <img src="logout.png" alt="Logout" />
+          </a>
         </div>
       </div>
     </aside>
 
-    <!-- Main content -->
-    <main id="mainContent" class="main-content" role="main">
+    <main id="mainContent" class="main-content">
       <div class="top-bar">
         <h1>Dashboard</h1>
       </div>
 
       <!-- Stats -->
-      <section class="stats-section" aria-label="High level stats">
+      <section class="stats-section">
         <div class="stats-grid">
-          <div class="stat-card" id="card-total-users" role="article" aria-label="Total users">
+          <!-- Small stat cards (6) -->
+          <div class="stat-card">
             <div class="stat-header">
-              <div class="stat-title">Total User</div>
+              <div class="stat-title">Free Plan</div>
+              <div class="stat-icon">🆓</div>
+            </div>
+            <div class="stat-value" id="value-free-plan">—</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-title">Standard Plan</div>
+              <div class="stat-icon">⭐</div>
+            </div>
+            <div class="stat-value" id="value-standard-plan">—</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-title">Premium Plan</div>
+              <div class="stat-icon">👑</div>
+            </div>
+            <div class="stat-value" id="value-premium-plan">—</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-title">Total Admins</div>
+              <div class="stat-icon">🧑‍💼</div>
+            </div>
+            <div class="stat-value" id="value-total-admins">—</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-title">Total Customers</div>
               <div class="stat-icon">👥</div>
             </div>
-            <div class="stat-value" id="value-total-users">—</div>
+            <div class="stat-value" id="value-total-customers">—</div>
           </div>
 
-          <div class="stat-card" id="card-active-subscriptions" role="article" aria-label="Total active subscription">
-            <div class="stat-header">
-              <div class="stat-title">Total Active Subscription</div>
-              <div class="stat-icon">🔁</div>
-            </div>
-            <div class="stat-value" id="value-active-subscriptions">—</div>
-          </div>
-
-          <div class="stat-card" id="card-total-books" role="article" aria-label="Total books">
+          <div class="stat-card">
             <div class="stat-header">
               <div class="stat-title">Total Books</div>
               <div class="stat-icon">📚</div>
@@ -86,14 +562,14 @@
             <div class="stat-value" id="value-total-books">—</div>
           </div>
 
-          <div class="stat-card tall" id="card-activity-log" role="article" aria-label="Admin's activity log">
+          <!-- Activity tall column on the right -->
+          <div class="stat-card tall">
             <div class="stat-header">
               <div class="stat-title">Admin's Activity Log</div>
               <div class="stat-icon">📝</div>
             </div>
 
-            <div class="activity-list" id="activityList" aria-live="polite">
-              <!-- activity items injected by JavaScript -->
+            <div class="activity-list" id="activityList">
               <div class="empty-note">No activity yet</div>
             </div>
           </div>
@@ -105,6 +581,176 @@
     </main>
   </div>
 
-  <script src="SuperAdmin-Dashboard.js"></script>
+  <script>
+    // Sidebar behavior
+    (function() {
+      const sidebar = document.getElementById('sidebar');
+      const menuToggle = document.getElementById('menuToggle');
+      const collapseBtn = document.getElementById('collapseBtn');
+      const mainContent = document.getElementById('mainContent');
+      const overlay = document.getElementById('sidebarOverlay');
+      
+      const COLLAPSED_KEY = 'sidebar_collapsed';
+      const MOBILE_BREAKPOINT = 768;
+
+      function isMobile() {
+        return window.innerWidth <= MOBILE_BREAKPOINT;
+      }
+
+      function updateLayout() {
+        if (isMobile()) {
+          sidebar.classList.remove('collapsed');
+          mainContent.classList.remove('collapsed');
+          sidebar.classList.remove('mobile-open');
+          overlay.classList.remove('active');
+        } else {
+          const isCollapsed = localStorage.getItem(COLLAPSED_KEY) === 'true';
+          sidebar.classList.toggle('collapsed', isCollapsed);
+          mainContent.classList.toggle('collapsed', isCollapsed);
+          sidebar.classList.remove('mobile-open');
+          overlay.classList.remove('active');
+        }
+      }
+
+      updateLayout();
+      window.addEventListener('resize', updateLayout);
+
+      if (collapseBtn) {
+        collapseBtn.addEventListener('click', () => {
+          if (isMobile()) return;
+          const isCollapsed = sidebar.classList.toggle('collapsed');
+          mainContent.classList.toggle('collapsed', isCollapsed);
+          localStorage.setItem(COLLAPSED_KEY, isCollapsed);
+        });
+      }
+
+      if (menuToggle) {
+        menuToggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          sidebar.classList.toggle('mobile-open');
+          overlay.classList.toggle('active');
+        });
+      }
+
+      if (overlay) {
+        overlay.addEventListener('click', () => {
+          sidebar.classList.remove('mobile-open');
+          overlay.classList.remove('active');
+        });
+      }
+
+      const menuLinks = sidebar.querySelectorAll('.menu-item');
+      menuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          if (isMobile()) {
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('active');
+          }
+        });
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isMobile() && sidebar.classList.contains('mobile-open')) {
+          sidebar.classList.remove('mobile-open');
+          overlay.classList.remove('active');
+        }
+      });
+    })();
+
+    // Dashboard Stats
+    (function() {
+      const demoCustomers = [
+        { receipt: '1007', email: 'user8@example.com', plan: 'cancelled', payment: 'credit_card', password: 'pass8' },
+        { receipt: '1006', email: 'user7@example.com', plan: 'free', payment: 'maya', password: 'pass7' },
+        { receipt: '1005', email: 'user6@example.com', plan: 'premium', payment: 'gcash', password: 'pass6' },
+        { receipt: '1004', email: 'user5@example.com', plan: 'standard', payment: 'credit_card', password: 'pass5' },
+        { receipt: '1003', email: 'john.smith@example.com', plan: 'expired', payment: 'paypal', password: 'pass4' },
+        { receipt: '1002', email: 'jane.doe@example.com', plan: 'free', payment: 'paypal', password: 'pass3' },
+        { receipt: '1001', email: 'bob@example.com', plan: 'premium', payment: 'maya', password: 'pass2' },
+        { receipt: '1000', email: 'alice@example.com', plan: 'standard', payment: 'gcash', password: 'pass1' }
+      ];
+
+      const demoAdmins = [
+        { id: 'a1', name: 'Super Admin' },
+        { id: 'a2', name: 'Admin2' }
+      ];
+
+      const demoBooks = [
+        { id: 'b1', title: 'Book One' },
+        { id: 'b2', title: 'Book Two' },
+        { id: 'b3', title: 'Book Three' },
+        { id: 'b4', title: 'Book Four' }
+      ];
+
+      let customers = demoCustomers.slice();
+
+      function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str).replace(/[&<>"']/g, s => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[s]));
+      }
+
+      async function loadStats() {
+        try {
+          const counts = customers.reduce((acc, c) => {
+            const p = (c.plan || '').toLowerCase();
+            if (!acc[p]) acc[p] = 0;
+            acc[p]++;
+            return acc;
+          }, {});
+
+          const freeCount = counts['free'] || 0;
+          const standardCount = counts['standard'] || 0;
+          const premiumCount = counts['premium'] || 0;
+          const totalAdmins = demoAdmins.length;
+          const totalCustomers = customers.length;
+          const totalBooks = demoBooks.length;
+
+          document.getElementById('value-free-plan').textContent = freeCount;
+          document.getElementById('value-standard-plan').textContent = standardCount;
+          document.getElementById('value-premium-plan').textContent = premiumCount;
+          document.getElementById('value-total-admins').textContent = totalAdmins;
+          document.getElementById('value-total-customers').textContent = totalCustomers;
+          document.getElementById('value-total-books').textContent = totalBooks;
+
+          const activity = [
+            { t: '2025-10-21 10:12', text: 'Super Admin1 created admin Admin2' },
+            { t: '2025-10-21 09:43', text: 'Subscription Admin approved subscription for user 1003' },
+            { t: '2025-10-20 18:02', text: 'Book Admin added "Advanced Physics"' },
+            { t: '2025-10-20 15:30', text: 'User Admin updated customer profile for user 1005' },
+            { t: '2025-10-20 14:15', text: 'Book Admin removed outdated book "Old Edition"' },
+            { t: '2025-10-19 16:45', text: 'Super Admin modified system settings' }
+          ];
+
+          const activityList = document.getElementById('activityList');
+          activityList.innerHTML = '';
+          if (activity && activity.length) {
+            activity.forEach(item => {
+              const div = document.createElement('div');
+              div.className = 'activity-item';
+              div.innerHTML = `<div class="activity-time">${escapeHtml(item.t)}</div><div>${escapeHtml(item.text)}</div>`;
+              activityList.appendChild(div);
+            });
+          } else {
+            activityList.innerHTML = '<div class="empty-note">No activity yet</div>';
+          }
+
+        } catch (err) {
+          console.error('Failed to load dashboard stats', err);
+          document.getElementById('value-free-plan').textContent = '—';
+          document.getElementById('value-standard-plan').textContent = '—';
+          document.getElementById('value-premium-plan').textContent = '—';
+          document.getElementById('value-total-admins').textContent = '—';
+          document.getElementById('value-total-customers').textContent = '—';
+          document.getElementById('value-total-books').textContent = '—';
+          document.getElementById('activityList').innerHTML = '<div class="empty-note">Unable to load activity</div>';
+        }
+      }
+
+      loadStats();
+      setInterval(loadStats, 60000);
+    })();
+  </script>
 </body>
 </html>

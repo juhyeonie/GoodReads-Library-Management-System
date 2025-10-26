@@ -18,19 +18,20 @@ body {
 
 /* Sidebar (BookAdmin style) */
 .sidebar {
-  width: 300px;
-  min-width: 220px;
-  max-width: 320px;
-  background: linear-gradient(180deg,#1b3c53 0%, #908daf 100%);
+  width: 280px;
+  background: linear-gradient(180deg,#1b3c53 0%, #6f6b9b 100%);
   color: #fff;
   display:flex;
   flex-direction:column;
-  justify-content:space-between;
-  padding: 28px 18px;
-  position: fixed; top:0; left:0; bottom:0;
-  transition: transform .28s ease, width .28s ease, padding .2s ease;
-  z-index: 1200;
+  position: fixed; 
+  top:0; 
+  left:0; 
+  bottom:0;
+  transition: width 0.2s ease;
+  z-index: 1000;
   box-shadow: 0 2px 6px rgba(16,24,32,.08);
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Mobile hidden (use transform so collapse is smooth) */
@@ -68,11 +69,11 @@ body {
 
 /* Main content */
 .main-content {
-  margin-left: 300px;
+  margin-left: 280px;
   padding: 28px 34px;
-  width: calc(100% - 300px);
+  width: calc(100% - 280px);
   min-height: 100vh;
-  transition: margin-left .28s ease, width .28s ease;
+  transition: margin-left .2s ease, width .2s ease;
 }
 
 /* collapsed desktop main */

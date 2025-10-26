@@ -1,245 +1,196 @@
-// Unified initializer — waits for DOMContentLoaded, then wires sidebar, Edit modal, table actions.
-document.addEventListener('DOMContentLoaded', () => {
-  const SIDEBAR_COLLAPSED_KEY = 'gr_usermgmt_sidebar_collapsed';
-  const MOBILE_BREAK = 800;
+/* Professional Sidebar / Layout controller
+   Replace existing layout/sidebar JS with this block.
+   Works for both Dashboard and User Management pages.
+*/
+(function () {
+  const SIDEBAR_COLLAPSED_KEY = 'gr_sidebar_collapsed_v2';
+  const MOBILE_BREAK = 800; // px
+  const RESIZE_DEBOUNCE_MS = 120;
 
+  // Elements
   const sidebar = document.getElementById('sidebar');
   const menuToggle = document.getElementById('menuToggle');
   const collapseBtn = document.getElementById('collapseBtn');
   const mainContent = document.getElementById('mainContent');
 
-  function isMobile() { return window.innerWidth <= MOBILE_BREAK; }
+  if (!sidebar || !mainContent) {
+    // nothing to do if layout missing
+    return;
+  }
 
-  function applyLayout() {
-    const collapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
-    if (!sidebar || !mainContent) return;
+  // Utilities
+  const isMobile = () => window.innerWidth <= MOBILE_BREAK;
+  const readCollapsed = () => localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+  const saveCollapsed = (v) => localStorage.setItem(SIDEBAR_COLLAPSED_KEY, v ? 'true' : 'false');
+
+  // Focus-trap helpers (lightweight)
+  let previousActiveElement = null;
+  function trapFocusInSidebar() {
+    const focusable = sidebar.querySelectorAll('a,button,input,select,textarea,[tabindex]:not([tabindex="-1"])');
+    if (!focusable.length) return;
+    previousActiveElement = document.activeElement;
+    focusable[0].focus();
+
+    function handleKey(e) {
+      if (e.key !== 'Tab') return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
+    sidebar.__trapHandler = handleKey;
+    document.addEventListener('keydown', handleKey);
+  }
+
+  function releaseFocusTrap() {
+    if (sidebar.__trapHandler) {
+      document.removeEventListener('keydown', sidebar.__trapHandler);
+      sidebar.__trapHandler = null;
+    }
+    if (previousActiveElement && previousActiveElement.focus) previousActiveElement.focus();
+    previousActiveElement = null;
+  }
+
+  // Apply layout state based on size + stored collapsed
+  function applyLayoutState() {
+    const collapsed = readCollapsed();
 
     if (isMobile()) {
-      // Mobile: sidebar is overlay, main content always full width
       sidebar.classList.remove('collapsed-desktop');
-      sidebar.classList.remove('expanded');
+      mainContent.classList.add('full');
       mainContent.classList.remove('collapsed-desktop');
-      if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
-      if (collapseBtn) collapseBtn.setAttribute('aria-pressed', 'false');
-      document.body.classList.remove('no-scroll');
-    } else {
-      // Desktop: sidebar pushes content
-      sidebar.classList.remove('expanded');
 
+      // Mobile sidebar closed by default (unless opened by menuToggle)
+      if (!sidebar.classList.contains('expanded')) {
+        // ensure attributes reflect closed state
+        menuToggle && menuToggle.setAttribute('aria-expanded', 'false');
+      } else {
+        menuToggle && menuToggle.setAttribute('aria-expanded', 'true');
+      }
+      // collapseBtn should reflect not-pressed on mobile
+      collapseBtn && collapseBtn.setAttribute('aria-pressed', 'false');
+    } else {
+      // Desktop behavior: collapsed state controlled by localStorage
+      menuToggle && menuToggle.setAttribute('aria-expanded', 'true'); // menuToggle irrelevant on desktop
       if (collapsed) {
         sidebar.classList.add('collapsed-desktop');
         mainContent.classList.add('collapsed-desktop');
-        if (collapseBtn) collapseBtn.setAttribute('aria-pressed', 'true');
+        collapseBtn && collapseBtn.setAttribute('aria-pressed', 'true');
       } else {
         sidebar.classList.remove('collapsed-desktop');
         mainContent.classList.remove('collapsed-desktop');
-        if (collapseBtn) collapseBtn.setAttribute('aria-pressed', 'false');
+        collapseBtn && collapseBtn.setAttribute('aria-pressed', 'false');
       }
-      if (menuToggle) menuToggle.setAttribute('aria-expanded', 'true');
+      // always release mobile focus trap if any
+      sidebar.classList.remove('expanded');
       document.body.classList.remove('no-scroll');
+      releaseFocusTrap();
     }
   }
 
-  applyLayout();
-  window.addEventListener('resize', applyLayout);
-
-  // Mobile menu toggle (overlay)
-  if (menuToggle && sidebar) {
-    menuToggle.addEventListener('click', () => {
-      if (!sidebar.classList.contains('expanded')) {
-        sidebar.classList.add('expanded');
-        document.body.classList.add('no-scroll');
-        menuToggle.setAttribute('aria-expanded', 'true');
-      } else {
-        sidebar.classList.remove('expanded');
-        document.body.classList.remove('no-scroll');
-        menuToggle.setAttribute('aria-expanded', 'false');
-      }
-    });
+  // Toggle collapse for desktop
+  function toggleDesktopCollapse() {
+    if (isMobile()) return;
+    const nowCollapsed = sidebar.classList.toggle('collapsed-desktop');
+    mainContent.classList.toggle('collapsed-desktop', nowCollapsed);
+    collapseBtn && collapseBtn.setAttribute('aria-pressed', String(nowCollapsed));
+    saveCollapsed(nowCollapsed);
   }
 
-  // Desktop collapse/uncollapse (icons-only)
-  if (collapseBtn && sidebar && mainContent) {
-    collapseBtn.addEventListener('click', () => {
-      if (isMobile()) return;
-      const nowCollapsed = sidebar.classList.toggle('collapsed-desktop');
-      mainContent.classList.toggle('collapsed-desktop', nowCollapsed);
-      collapseBtn.setAttribute('aria-pressed', String(nowCollapsed));
-      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, nowCollapsed ? 'true' : 'false');
-    });
-  }
-
-  // Close mobile sidebar if clicking outside
-  document.addEventListener('click', (e) => {
-    if (isMobile() && sidebar && sidebar.classList.contains('expanded')) {
-      if (!sidebar.contains(e.target) && menuToggle && !menuToggle.contains(e.target)) {
-        sidebar.classList.remove('expanded');
-        document.body.classList.remove('no-scroll');
-        if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
-      }
+  // Open/close mobile sidebar (menu toggle)
+  function toggleMobileSidebar() {
+    if (!isMobile()) return;
+    const opening = !sidebar.classList.contains('expanded');
+    if (opening) {
+      sidebar.classList.add('expanded');
+      menuToggle && menuToggle.setAttribute('aria-expanded', 'true');
+      document.body.classList.add('no-scroll');
+      // trap focus so keyboard users don't tab into main content while sidebar open
+      trapFocusInSidebar();
+      // listen for outside clicks (once)
+      setTimeout(() => document.addEventListener('click', onDocClickOutside), 0);
+    } else {
+      closeMobileSidebar();
     }
-  });
+  }
 
-  // ESC to close mobile overlay
+  function closeMobileSidebar() {
+    sidebar.classList.remove('expanded');
+    menuToggle && menuToggle.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('no-scroll');
+    releaseFocusTrap();
+    document.removeEventListener('click', onDocClickOutside);
+  }
+
+  // Close when clicking outside on mobile
+  function onDocClickOutside(e) {
+    if (!isMobile()) return;
+    if (!sidebar.contains(e.target) && menuToggle && !menuToggle.contains(e.target)) {
+      closeMobileSidebar();
+    }
+  }
+
+  // Keyboard handlers (Enter / Space activation)
+  function onKeyActivate(e, fn) {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+      e.preventDefault();
+      fn();
+    }
+  }
+
+  // Debounced resize handler
+  let resizeTimer = null;
+  function onResize() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      // if switching from mobile -> desktop, ensure mobile state cleaned up
+      if (!isMobile()) {
+        closeMobileSidebar();
+      }
+      applyLayoutState();
+    }, RESIZE_DEBOUNCE_MS);
+  }
+
+  // Attach handlers
+  if (collapseBtn) {
+    collapseBtn.addEventListener('click', toggleDesktopCollapse);
+    collapseBtn.addEventListener('keydown', (e) => onKeyActivate(e, toggleDesktopCollapse));
+    collapseBtn.setAttribute('role', 'button');
+    collapseBtn.setAttribute('aria-pressed', String(readCollapsed()));
+    collapseBtn.title = collapseBtn.title || 'Collapse sidebar';
+  }
+
+  if (menuToggle) {
+    menuToggle.addEventListener('click', toggleMobileSidebar);
+    menuToggle.addEventListener('keydown', (e) => onKeyActivate(e, toggleMobileSidebar));
+    menuToggle.setAttribute('aria-controls', 'sidebar');
+    menuToggle.setAttribute('aria-expanded', 'false');
+    menuToggle.title = menuToggle.title || 'Toggle menu';
+  }
+
+  // Escape key closes mobile sidebar
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      if (isMobile() && sidebar && sidebar.classList.contains('expanded')) {
-        sidebar.classList.remove('expanded');
-        document.body.classList.remove('no-scroll');
-        if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
-      }
-      if (editModal && editModal.getAttribute('aria-hidden') === 'false') {
-        hideEditModal();
+      if (isMobile() && sidebar.classList.contains('expanded')) {
+        closeMobileSidebar();
       }
     }
   });
 
-  /* ----------------- Edit User Modal ----------------- */
-  const editModal = document.getElementById('editUserModal');
-  const editForm = document.getElementById('editUserForm');
-  const confirmEditBtn = document.getElementById('confirmEdit');
-  const closeEditBtn = document.getElementById('closeEditModal');
+  // Initialize
+  applyLayoutState();
+  window.addEventListener('resize', onResize);
 
-  let activeRow = null;
-
-  function showEditModal() {
-    if (!editModal) return;
-    editModal.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('no-scroll');
-    const first = editForm && editForm.querySelector('input');
-    if (first) first.focus();
-  }
-
-  function hideEditModal() {
-    if (!editModal) return;
-    editModal.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('no-scroll');
-    activeRow = null;
-  }
-
-  if (editModal) {
-    editModal.addEventListener('click', (e) => { 
-      if (e.target === editModal) hideEditModal(); 
-    });
-  }
-
-  if (editForm) {
-    editForm.addEventListener('submit', (e) => e.preventDefault());
-  }
-
-  // Delegate edit / delete clicks on table
-  document.addEventListener('click', (e) => {
-    const editBtn = e.target.closest && e.target.closest('.edit-btn');
-    if (editBtn) {
-      const tr = editBtn.closest('tr');
-      if (!tr) return;
-      activeRow = tr;
-
-      const email = tr.querySelector('[data-col="email"]')?.textContent.trim() || '';
-      
-      if (editForm) {
-        editForm.querySelector('[name="email"]').value = email;
-        editForm.querySelector('[name="password"]').value = '';
-      }
-
-      showEditModal();
-      return;
-    }
-
-    const delBtn = e.target.closest && e.target.closest('.delete-btn');
-    if (delBtn) {
-      const tr = delBtn.closest('tr');
-      if (tr && confirm('Are you sure you want to delete this user?')) {
-        tr.remove();
-      }
-      return;
-    }
-  });
-
-  if (confirmEditBtn) {
-    confirmEditBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (!activeRow || !editForm) { 
-        hideEditModal(); 
-        return; 
-      }
-
-      const email = editForm.querySelector('[name="email"]').value;
-      const password = editForm.querySelector('[name="password"]').value;
-
-      const emailCell = activeRow.querySelector('[data-col="email"]');
-      const passwordCell = activeRow.querySelector('[data-col="password"]');
-
-      if (emailCell) emailCell.textContent = email;
-      if (password && passwordCell) {
-        passwordCell.textContent = '••••••••';
-      }
-
-      hideEditModal();
-    });
-  }
-
-  if (closeEditBtn) {
-    closeEditBtn.addEventListener('click', (e) => { 
-      e.preventDefault(); 
-      hideEditModal(); 
-    });
-  }
-
-  /* ----------------- Table render with demo data ----------------- */
-  const tbody = document.querySelector('#usersTable tbody');
-
-  // Demo data
-  const demoUsers = [
-    { id: '1000', email: 'user1@example.com', password: '••••••••' },
-    { id: '1001', email: 'user2@example.com', password: '••••••••' },
-    { id: '1002', email: 'user3@example.com', password: '••••••••' },
-    { id: '1003', email: 'user4@example.com', password: '••••••••' },
-    { id: '1004', email: 'user5@example.com', password: '••••••••' },
-    { id: '1005', email: 'user6@example.com', password: '••••••••' },
-    { id: '1006', email: 'user7@example.com', password: '••••••••' },
-    { id: '1007', email: 'user8@example.com', password: '••••••••' }
-  ];
-
-  function renderUsers() {
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    
-    demoUsers.forEach(user => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${escapeHtml(user.id)}</td>
-                      <td data-col="email">${escapeHtml(user.email)}</td>
-                      <td data-col="password">${escapeHtml(user.password)}</td>
-                      <td>
-                        <button class="edit-btn" data-id="${user.id}">Edit</button>
-                        <button class="delete-btn" data-id="${user.id}">Delete</button>
-                      </td>`;
-      tbody.appendChild(tr);
-    });
-  }
-
-  // Update stats (demo values)
-  const totalAdmins = document.getElementById('totalAdmins');
-  const totalAdmins2 = document.getElementById('totalAdmins2');
-  const activeUsers = document.getElementById('activeUsers');
-  const inactiveUsers = document.getElementById('inactiveUsers');
-
-  if (totalAdmins) totalAdmins.textContent = '12';
-  if (totalAdmins2) totalAdmins2.textContent = '12';
-  if (activeUsers) activeUsers.textContent = '156';
-  if (inactiveUsers) inactiveUsers.textContent = '24';
-
-  renderUsers();
-
-  /* ----------------- Helpers ----------------- */
-  function escapeHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/[&<>"']/g, (m) => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    }[m]));
-  }
-});
+  // Expose a small API on the sidebar for debugging if needed
+  sidebar.__gr = sidebar.__gr || {};
+  sidebar.__gr.closeMobileSidebar = closeMobileSidebar;
+  sidebar.__gr.openMobileSidebar = () => {
+    if (isMobile() && !sidebar.classList.contains('expanded')) toggleMobileSidebar();
+  };
+})();

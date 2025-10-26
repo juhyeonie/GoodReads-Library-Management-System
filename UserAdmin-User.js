@@ -1,7 +1,5 @@
-/* UserAdmin-User.js
-   Handles sidebar layout, table rendering, Edit/Add/Delete modals.
-*/
 
+/* UserAdmin-User.js - Customer Management */
 (function () {
   const SIDEBAR_COLLAPSED_KEY = 'gr_sidebar_collapsed';
   const MOBILE_BREAK = 800;
@@ -93,17 +91,18 @@
   });
 
   /* ---------------- Demo data & table rendering ---------------- */
+  let nextId = 1008; // Auto-increment counter
+  
   const demoUsers = [
-    { receipt: '1000', email: 'alice@example.com', password: 'password1' },
-    { receipt: '1001', email: 'bob@example.com', password: 'password2' },
-    { receipt: '1002', email: 'jane.doe@example.com', password: 'password3' },
-    { receipt: '1003', email: 'john.smith@example.com', password: 'password4' },
-    { receipt: '1004', email: 'user5@example.com', password: 'password5' },
-    { receipt: '1005', email: 'user6@example.com', password: 'password6' },
-    { receipt: '1006', email: 'user7@example.com', password: 'password7' },
-    { receipt: '1007', email: 'user8@example.com', password: 'password8' }
+    { receipt: '1000', email: 'dfdfd', plan: 'free', payment: 'credit_card' },
+    { receipt: '1001', email: 'alice@example.com', plan: 'standard', payment: 'gcash' },
+    { receipt: '1002', email: 'bob@example.com', plan: 'premium', payment: 'maya' },
+    { receipt: '1003', email: 'jane.doe@example.com', plan: 'free', payment: 'paypal' },
+    { receipt: '1004', email: 'john.smith@example.com', plan: 'standard', payment: 'credit_card' },
+    { receipt: '1005', email: 'user5@example.com', plan: 'premium', payment: 'gcash' },
+    { receipt: '1006', email: 'user6@example.com', plan: 'free', payment: 'maya' },
+    { receipt: '1007', email: 'user7@example.com', plan: 'cancelled', payment: 'paypal' }
   ];
-
 
   let users = demoUsers.slice();
 
@@ -115,7 +114,20 @@
     if (str == null) return '';
     return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
   }
-  function maskPassword(p) { if (!p) return ''; return '•'.repeat(Math.min(8, p.length)); }
+
+  function formatPaymentMethod(method) {
+    const methods = {
+      'credit_card': 'Credit Card',
+      'gcash': 'GCash',
+      'maya': 'Maya',
+      'paypal': 'PayPal'
+    };
+    return methods[method] || method;
+  }
+
+  function formatPlan(plan) {
+    return plan.charAt(0).toUpperCase() + plan.slice(1);
+  }
 
   function renderTable(rows) {
     tbody.innerHTML = '';
@@ -124,7 +136,8 @@
       tr.innerHTML = `
         <td>${escapeHtml(u.receipt)}</td>
         <td>${escapeHtml(u.email)}</td>
-        <td>${escapeHtml(maskPassword(u.password))}</td>
+        <td>${escapeHtml(formatPlan(u.plan))}</td>
+        <td>${escapeHtml(formatPaymentMethod(u.payment))}</td>
         <td style="text-align:right">
           <div class="actions">
             <button class="pill edit" data-id="${escapeHtml(u.receipt)}">Edit</button>
@@ -136,14 +149,14 @@
     });
   }
 
-  
   function applyFilters() {
     const q = (searchInput && searchInput.value || '').trim().toLowerCase();
     const f = (filterSelect && filterSelect.value) || 'all';
   
     const filtered = users.filter(u => {
       const matchText = !q || (u.receipt + ' ' + u.email).toLowerCase().includes(q);
-      return matchText;
+      const matchFilter = f === 'all' || u.plan === f;
+      return matchText && matchFilter;
     });
     renderTable(filtered);
   }
@@ -153,7 +166,6 @@
   if (searchInput) searchInput.addEventListener('input', applyFilters);
   if (filterSelect) filterSelect.addEventListener('change', applyFilters);
 
-  
   /***************************************************************
    * Modals: Edit, Add, Delete
    ***************************************************************/
@@ -163,6 +175,8 @@
   const editForm = document.getElementById('editForm');
   const editEmail = document.getElementById('editEmail');
   const editPassword = document.getElementById('editPassword');
+  const editPlan = document.getElementById('editPlan');
+  const editPayment = document.getElementById('editPayment');
   const editReceipt = document.getElementById('editReceipt');
   const confirmEdit = document.getElementById('confirmEdit');
   const cancelEdit = document.getElementById('cancelEdit');
@@ -184,7 +198,9 @@
     if (!u) return;
     editReceipt.value = u.receipt;
     editEmail.value = u.email;
-    editPassword.value = u.password;
+    editPassword.value = '';
+    editPlan.value = u.plan || '';
+    editPayment.value = u.payment || '';
     showEditModal();
   }
 
@@ -194,7 +210,9 @@
     const idx = users.findIndex(x => x.receipt === r);
     if (idx >= 0) {
       users[idx].email = editEmail.value.trim();
-      users[idx].password = editPassword.value;
+      if (editPassword.value) users[idx].password = editPassword.value;
+      users[idx].plan = editPlan.value;
+      users[idx].payment = editPayment.value;
       applyFilters();
     }
     hideEditModal();
@@ -214,6 +232,8 @@
   const addForm = document.getElementById('addForm');
   const addEmail = document.getElementById('addEmail');
   const addPassword = document.getElementById('addPassword');
+  const addPlan = document.getElementById('addPlan');
+  const addPayment = document.getElementById('addPayment');
   const addReceipt = document.getElementById('addReceipt');
   const confirmAdd = document.getElementById('confirmAdd');
   const cancelAdd = document.getElementById('cancelAdd');
@@ -232,9 +252,11 @@
   }
 
   addUserBtn.addEventListener('click', (e) => {
-    addReceipt.value = String(Date.now()).slice(-5);
+    addReceipt.value = String(nextId);
     addEmail.value = '';
     addPassword.value = '';
+    addPlan.value = '';
+    addPayment.value = '';
     showAddModal();
   });
 
@@ -242,17 +264,22 @@
     e.preventDefault();
     const email = (addEmail && addEmail.value || '').trim();
     const password = (addPassword && addPassword.value || '');
-    if (!email || !password) {
-      // simple feedback; you can replace with validation UI
-      alert('Please provide both Email and Password.');
+    const plan = (addPlan && addPlan.value || '');
+    const payment = (addPayment && addPayment.value || '');
+    
+    if (!email || !password || !plan || !payment) {
+      alert('Please fill in all fields.');
       return;
     }
     const newUser = {
       receipt: addReceipt.value,
       email,
-      password
+      password,
+      plan,
+      payment
     };
     users.unshift(newUser);
+    nextId++; // Increment for next user
     applyFilters();
     hideAddModal();
   });
@@ -328,6 +355,6 @@
       if (addModal && addModal.getAttribute('aria-hidden') === 'false') hideAddModal();
       if (deleteModal && deleteModal.getAttribute('aria-hidden') === 'false') hideDeleteModal();
     }
-  });
+    });
 
 })();

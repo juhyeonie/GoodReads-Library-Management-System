@@ -1,176 +1,232 @@
-// ...existing code...
-document.addEventListener('DOMContentLoaded', () => {
-  const SIDEBAR_COLLAPSED_KEY = 'gr_subs_sidebar_collapsed';
-  const MOBILE_BREAK = 800;
+// Sidebar behavior
+    (function() {
+      const sidebar = document.getElementById('sidebar');
+      const menuToggle = document.getElementById('menuToggle');
+      const collapseBtn = document.getElementById('collapseBtn');
+      const mainContent = document.getElementById('mainContent');
+      const overlay = document.getElementById('sidebarOverlay');
+      
+      const COLLAPSED_KEY = 'sidebar_collapsed';
+      const MOBILE_BREAKPOINT = 768;
 
-  const sidebar = document.getElementById('sidebar');
-  const menuToggle = document.getElementById('menuToggle');
-  const collapseBtn = document.getElementById('collapseBtn');
-  const mainEl = document.getElementById('mainContent');
-
-  function isMobile() { return window.innerWidth <= MOBILE_BREAK; }
-
-  function applyLayout() {
-    const collapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
-    if (!sidebar || !mainEl) return;
-
-    if (isMobile()) {
-      sidebar.classList.remove('collapsed-desktop', 'expanded');
-      mainEl.classList.add('full');
-      mainEl.classList.remove('collapsed-desktop');
-      if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
-      if (collapseBtn) collapseBtn.setAttribute('aria-pressed', 'false');
-    } else {
-      sidebar.classList.remove('expanded');
-      mainEl.classList.remove('full');
-      if (collapsed) {
-        sidebar.classList.add('collapsed-desktop');
-        mainEl.classList.add('collapsed-desktop');
-        if (collapseBtn) collapseBtn.setAttribute('aria-pressed', 'true');
-      } else {
-        sidebar.classList.remove('collapsed-desktop');
-        mainEl.classList.remove('collapsed-desktop');
-        if (collapseBtn) collapseBtn.setAttribute('aria-pressed', 'false');
+      function isMobile() {
+        return window.innerWidth <= MOBILE_BREAKPOINT;
       }
-      if (menuToggle) menuToggle.setAttribute('aria-expanded', 'true');
-    }
-  }
 
-  applyLayout();
-  window.addEventListener('resize', applyLayout);
+      function updateLayout() {
+        if (isMobile()) {
+          sidebar.classList.remove('collapsed');
+          mainContent.classList.remove('collapsed');
+          sidebar.classList.remove('mobile-open');
+          overlay.classList.remove('active');
+        } else {
+          const isCollapsed = localStorage.getItem(COLLAPSED_KEY) === 'true';
+          sidebar.classList.toggle('collapsed', isCollapsed);
+          mainContent.classList.toggle('collapsed', isCollapsed);
+          sidebar.classList.remove('mobile-open');
+          overlay.classList.remove('active');
+        }
+      }
 
-  if (menuToggle && sidebar) {
-    menuToggle.addEventListener('click', () => {
-      if (!sidebar.classList.contains('expanded')) {
-        sidebar.classList.add('expanded');
+      updateLayout();
+      window.addEventListener('resize', updateLayout);
+
+      if (collapseBtn) {
+        collapseBtn.addEventListener('click', () => {
+          if (isMobile()) return;
+          const isCollapsed = sidebar.classList.toggle('collapsed');
+          mainContent.classList.toggle('collapsed', isCollapsed);
+          localStorage.setItem(COLLAPSED_KEY, isCollapsed);
+        });
+      }
+
+      if (menuToggle) {
+        menuToggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          sidebar.classList.toggle('mobile-open');
+          overlay.classList.toggle('active');
+        });
+      }
+
+      if (overlay) {
+        overlay.addEventListener('click', () => {
+          sidebar.classList.remove('mobile-open');
+          overlay.classList.remove('active');
+        });
+      }
+
+      const menuLinks = sidebar.querySelectorAll('.menu-item');
+      menuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          if (isMobile()) {
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('active');
+          }
+        });
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isMobile() && sidebar.classList.contains('mobile-open')) {
+          sidebar.classList.remove('mobile-open');
+          overlay.classList.remove('active');
+        }
+      });
+    })();
+
+    // Customer subscription data and functionality
+    (function() {
+      let nextId = 1008;
+      
+      const demoUsers = [
+        { id: '1000', email: 'jane@example.com', plan: 'free', payment: 'credit_card' },
+        { id: '1001', email: 'tom@example.com', plan: 'standard', payment: 'gcash' },
+        { id: '1002', email: 'ana@example.com', plan: 'premium', payment: 'maya' },
+        { id: '1003', email: 'bob@example.com', plan: 'free', payment: 'paypal' },
+        { id: '1004', email: 'alice@example.com', plan: 'standard', payment: 'credit_card' },
+        { id: '1005', email: 'john@example.com', plan: 'premium', payment: 'gcash' },
+        { id: '1006', email: 'sara@example.com', plan: 'free', payment: 'maya' },
+        { id: '1007', email: 'mike@example.com', plan: 'standard', payment: 'paypal' }
+      ];
+
+      let users = demoUsers.slice();
+
+      const tbody = document.querySelector('#usersTable tbody');
+      const searchInput = document.getElementById('userSearch');
+      const planFilter = document.getElementById('planFilter');
+      const editModal = document.getElementById('editUserModal');
+      const userEmail = document.getElementById('userEmail');
+      const userPlan = document.getElementById('userPlan');
+      const userPayment = document.getElementById('userPayment');
+      const userId = document.getElementById('userId');
+      const confirmBtn = document.getElementById('confirmUserEdit');
+      const cancelBtn = document.getElementById('cancelUserEdit');
+      const editForm = document.getElementById('editUserForm');
+
+      function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str).replace(/[&<>"']/g, s => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[s]));
+      }
+
+      function formatPaymentMethod(method) {
+        const methods = {
+          'credit_card': 'Credit Card',
+          'gcash': 'GCash',
+          'maya': 'Maya',
+          'paypal': 'PayPal'
+        };
+        return methods[method] || method;
+      }
+
+      function formatPlan(plan) {
+        return plan.charAt(0).toUpperCase() + plan.slice(1);
+      }
+
+      function renderTable(rows) {
+        tbody.innerHTML = '';
+        rows.forEach(u => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${escapeHtml(u.id)}</td>
+            <td>${escapeHtml(u.email)}</td>
+            <td>${escapeHtml(formatPlan(u.plan))}</td>
+            <td>${escapeHtml(formatPaymentMethod(u.payment))}</td>
+            <td style="text-align:right">
+              <button class="action-btn view-btn" data-id="${escapeHtml(u.id)}">View</button>
+              <button class="action-btn edit-btn" data-id="${escapeHtml(u.id)}">Edit</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function applyFilters() {
+        const q = (searchInput && searchInput.value || '').trim().toLowerCase();
+        const f = (planFilter && planFilter.value) || 'all';
+      
+        const filtered = users.filter(u => {
+          const matchText = !q || u.email.toLowerCase().includes(q);
+          const matchFilter = f === 'all' || u.plan === f;
+          return matchText && matchFilter;
+        });
+        renderTable(filtered);
+      }
+
+      applyFilters();
+      if (searchInput) searchInput.addEventListener('input', applyFilters);
+      if (planFilter) planFilter.addEventListener('change', applyFilters);
+
+      function showEdit() {
+        if (!editModal) return;
+        editModal.classList.add('show');
         document.body.classList.add('no-scroll');
-        mainEl && mainEl.classList.remove('full');
-        menuToggle.setAttribute('aria-expanded', 'true');
-      } else {
-        sidebar.classList.remove('expanded');
-        document.body.classList.remove('no-scroll');
-        mainEl && mainEl.classList.add('full');
-        menuToggle.setAttribute('aria-expanded', 'false');
+        setTimeout(() => userEmail && userEmail.focus(), 80);
       }
-    });
-  }
 
-  if (collapseBtn && sidebar && mainEl) {
-    collapseBtn.addEventListener('click', () => {
-      if (isMobile()) return;
-      const nowCollapsed = sidebar.classList.toggle('collapsed-desktop');
-      mainEl.classList.toggle('collapsed-desktop', nowCollapsed);
-      collapseBtn.setAttribute('aria-pressed', String(nowCollapsed));
-      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, nowCollapsed ? 'true' : 'false');
-    });
-  }
-
-  document.addEventListener('click', (e) => {
-    if (isMobile() && sidebar && sidebar.classList.contains('expanded')) {
-      if (!sidebar.contains(e.target) && menuToggle && !menuToggle.contains(e.target)) {
-        sidebar.classList.remove('expanded');
+      function hideEdit() {
+        if (!editModal) return;
+        editModal.classList.remove('show');
         document.body.classList.remove('no-scroll');
-        mainEl && mainEl.classList.add('full');
-        if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
       }
-    }
-  });
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && isMobile() && sidebar && sidebar.classList.contains('expanded')) {
-      sidebar.classList.remove('expanded');
-      document.body.classList.remove('no-scroll');
-      if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
-    }
-  });
+      // Edit button click
+      document.addEventListener('click', (e) => {
+        const editBtn = e.target.closest('.edit-btn');
+        if (editBtn) {
+          const id = editBtn.dataset.id;
+          const user = users.find(u => u.id === id);
+          if (!user) return;
+          
+          if (userId) userId.value = user.id;
+          if (userEmail) userEmail.value = user.email;
+          if (userPlan) userPlan.value = user.plan;
+          if (userPayment) userPayment.value = user.payment;
+          
+          showEdit();
+          return;
+        }
+      });
 
-  /* Modal + table actions */
-  const usersTable = document.getElementById('usersTable');
-  const editModal = document.getElementById('editUserModal');
-  const editForm = document.getElementById('editUserForm');
-  const userEmail = document.getElementById('userEmail');
-  const userPlan = document.getElementById('userPlan');
-  const userAmount = document.getElementById('userAmount');
-  const userStatus = document.getElementById('userStatus');
-  const confirmBtn = document.getElementById('confirmUserEdit');
-  const cancelBtn = document.getElementById('cancelUserEdit');
+      // Confirm edit
+      confirmBtn && confirmBtn.addEventListener('click', (evt) => {
+        evt.preventDefault();
+        
+        const id = userId && userId.value;
+        if (!id) { 
+          hideEdit(); 
+          return; 
+        }
+        
+        const idx = users.findIndex(u => u.id === id);
+        if (idx >= 0) {
+          users[idx].email = userEmail ? userEmail.value.trim() : '';
+          users[idx].plan = userPlan ? userPlan.value : '';
+          users[idx].payment = userPayment ? userPayment.value : '';
+          applyFilters();
+        }
+        
+        hideEdit();
+      });
 
-  let activeRow = null;
+      // Cancel
+      cancelBtn && cancelBtn.addEventListener('click', (e) => { 
+        e.preventDefault(); 
+        hideEdit(); 
+      });
 
-  function showEdit() {
-    if (!editModal) return;
-    editModal.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('no-scroll');
-    userEmail && userEmail.focus();
-  }
-  function hideEdit() {
-    if (!editModal) return;
-    editModal.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('no-scroll');
-    activeRow = null;
-  }
+      // Click overlay to close
+      editModal && editModal.addEventListener('click', (e) => { 
+        if (e.target === editModal) hideEdit(); 
+      });
 
-  // delegate clicks for edit (view removed)
-  document.addEventListener('click', (e) => {
-    const editBtn = e.target.closest && e.target.closest('.edit-btn');
-    if (editBtn) {
-      const tr = editBtn.closest('tr');
-      if (!tr) return;
-      activeRow = tr;
-      const get = (col) => (tr.querySelector(`[data-col="${col}"]`) || {}).textContent || '';
-      if (userEmail) userEmail.value = get('email').trim();
-      if (userPlan) userPlan.value = get('plan').trim();
-      if (userAmount) userAmount.value = get('amount').trim();
-      if (userStatus) userStatus.value = get('status').trim();
-      showEdit();
-      return;
-    }
-  });
+      // Escape to close
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && editModal && editModal.classList.contains('show')) {
+          hideEdit();
+        }
+      });
 
-  // confirm edit -> update row
-  confirmBtn && confirmBtn.addEventListener('click', (evt) => {
-    evt.preventDefault();
-    if (!activeRow) { hideEdit(); return; }
-    const set = (col, value) => {
-      const el = activeRow.querySelector(`[data-col="${col}"]`);
-      if (el) el.textContent = value;
-    };
-    set('email', userEmail ? userEmail.value.trim() : '');
-    set('plan', userPlan ? userPlan.value.trim() : '');
-    set('amount', userAmount ? userAmount.value.trim() : '');
-    set('status', userStatus ? userStatus.value.trim() : '');
-    hideEdit();
-  });
-
-  cancelBtn && cancelBtn.addEventListener('click', (e) => { e.preventDefault(); hideEdit(); });
-
-  // clicking overlay outside modal-box closes
-  editModal && editModal.addEventListener('click', (e) => { if (e.target === editModal) hideEdit(); });
-
-  // escape closes modal
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && editModal && editModal.getAttribute('aria-hidden') === 'false') hideEdit();
-  });
-
-  // simple search/filter (client-side)
-  const searchInput = document.getElementById('userSearch');
-  const statusFilter = document.getElementById('statusFilter');
-
-  function filterRows() {
-    const q = (searchInput && searchInput.value || '').trim().toLowerCase();
-    const s = (statusFilter && statusFilter.value) || 'all';
-    const rows = usersTable && usersTable.tBodies[0] && Array.from(usersTable.tBodies[0].rows) || [];
-    rows.forEach(r => {
-      const email = (r.querySelector('[data-col="email"]') || {}).textContent || '';
-      const plan = (r.querySelector('[data-col="plan"]') || {}).textContent || '';
-      const status = (r.querySelector('[data-col="status"]') || {}).textContent || '';
-      const matchesQuery = !q || (email + ' ' + plan).toLowerCase().includes(q);
-      const matchesStatus = (s === 'all') || (status.toLowerCase() === s);
-      r.style.display = (matchesQuery && matchesStatus) ? '' : 'none';
-    });
-  }
-
-  if (searchInput) searchInput.addEventListener('input', filterRows);
-  if (statusFilter) statusFilter.addEventListener('change', filterRows);
-  filterRows();
-});
+      // Prevent form submit
+      editForm && editForm.addEventListener('submit', (e) => e.preventDefault());
+    })();
