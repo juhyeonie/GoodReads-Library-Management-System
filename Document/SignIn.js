@@ -1,25 +1,19 @@
 // Validate-SignIn.js
-console.log('Validate-SignIn.js loaded');
+console.log('SignIn.js loaded');
 
 document.addEventListener('DOMContentLoaded', () => {
-  // quick visual test (optional; remove when done)
-  const el = document.createElement('div');
-  el.id = 'js-loaded-test';
-  el.textContent = 'JS loaded ✔';
-  el.style.position = 'fixed';
-  el.style.bottom = '6px';
-  el.style.right = '6px';
-  el.style.background = '#0f0';
-  el.style.padding = '2px 6px';
-  el.style.fontSize = '12px';
-  document.body.appendChild(el);
-
   const form = document.getElementById('signinForm');
   const email = document.getElementById('email');
   const password = document.getElementById('password');
   const errEmail = document.getElementById('err-email');
   const errPassword = document.getElementById('err-password');
   const serverMsg = document.getElementById('server-msg');
+
+  // Force clear autofilled values on page load
+  setTimeout(() => {
+    email.value = '';
+    password.value = '';
+  }, 50);
 
   const show = (el, msg) => { el.textContent = msg; el.style.display = 'block'; };
   const hide = el => { el.textContent = ''; el.style.display = 'none'; };
@@ -72,20 +66,57 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // ✅ New logic: handle account status first
-      const status = (json.status || '').toString().toLowerCase();
+      // ✅ Store user plan in session storage for homepage access control
+      if (json.user && json.user.Status) {
+        const plan = json.user.Status.toString().toLowerCase();
+        sessionStorage.setItem('user_plan', plan);
+        console.log('📘 User plan stored:', plan);
+      }
+
+      // ✅ Check account status first
+      const status = json.user?.Status ? json.user.Status.toString().toLowerCase() : '';
       if (status === 'cancelled' || status === 'expired') {
-        // redirect to membership plan page
+        // Redirect to membership plan page for expired/cancelled accounts
         window.location.href = 'MembershipPlan.html';
         return;
       }
 
-      // Otherwise redirect by role
-      const role = (json.role || '').toString().toLowerCase();
-      if (role === 'admin') {
-        window.location.href = 'BookAdmin-Dashboard.html';
-      } else {
-        window.location.href = 'temp/index.html';
+      // ✅ Route based on role
+      const role = json.user?.Role ? json.user.Role.toString().toLowerCase() : '';
+      
+      console.log('🔐 User role detected:', role);
+
+      switch(role) {
+        case 'superadmin':
+        case 'super admin':
+          console.log('→ Redirecting to SuperAdmin Dashboard');
+          window.location.href = 'SuperAdmin-Dashboard.html';
+          break;
+          
+        case 'useradmin':
+        case 'user admin':
+          console.log('→ Redirecting to UserAdmin Dashboard');
+          window.location.href = 'UserAdmin-Dashboard.html';
+          break;
+          
+        case 'subsadmin':
+        case 'subs admin':
+        case 'subscriptionadmin':
+        case 'subscription admin':
+          console.log('→ Redirecting to SubsAdmin Dashboard');
+          window.location.href = 'SubsAdmin-Dashboard.html';
+          break;
+          
+        case 'user':
+        case 'customer':
+          console.log('→ Redirecting to Homepage');
+          window.location.href = 'homepage.html';
+          break;
+          
+        default:
+          console.warn('⚠️ Unknown role:', role);
+          // Default to homepage for unknown roles
+          window.location.href = 'homepage.html';
       }
 
     } catch (err) {
@@ -94,4 +125,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
-

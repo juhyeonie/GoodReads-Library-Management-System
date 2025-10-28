@@ -8,6 +8,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const serverMsg = document.getElementById('server-msg');
   const nextBtn = document.getElementById('nextBtn');
 
+  // Clear any autofilled values on page load
+  email.value = '';
+  password.value = '';
+  
+  // Also clear sessionStorage if coming fresh to this page
+  // (optional - comment out if you want to preserve data on back button)
+  // sessionStorage.removeItem('signup_email');
+  // sessionStorage.removeItem('signup_password');
+
   const show = (el,msg)=>{ el.textContent = msg; el.style.display='block'; };
   const hide = el=>{ el.textContent=''; el.style.display='none'; };
 
