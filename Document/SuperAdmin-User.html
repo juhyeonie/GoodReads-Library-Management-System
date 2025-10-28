@@ -57,18 +57,19 @@
 
         <div class="search-panel">
           <div class="search-container">
-            <input id="searchInput" type="text" placeholder="Search receipt / email..." />
+            <input id="searchInput" type="text" placeholder="Search Account ID / email..." />
             <button class="search-btn" aria-label="Search">
               <img src="search.png" alt="Search" />
             </button>
           </div>
           <select id="filterSelect" class="filter-select">
-            <option value="all">All</option>
-            <option value="free">Free</option>
-            <option value="standard">Standard</option>
-            <option value="premium">Premium</option>
-            <option value="expired">Expired</option>
-            <option value="cancelled">Cancelled</option>
+            <option value="all">All Plans/Statuses</option>
+            <option value="Basic Plan">Basic Plan</option>
+            <option value="Standard Plan">Standard Plan</option>
+            <option value="Premium Plan">Premium Plan</option>
+            <option value="expired">Expired Status</option>
+            <option value="cancelled">Cancelled Status</option>
+            <option value="downgraded">Downgraded Status</option>
           </select>
         </div>
       </div>
@@ -90,7 +91,8 @@
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+              </tbody>
           </table>
         </div>
 
@@ -99,7 +101,6 @@
     </main>
   </div>
 
-  <!-- Edit Modal -->
   <div id="editModal" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-topbar"></div>
@@ -111,30 +112,29 @@
             <div class="error-message" id="editEmailError"></div>
           </div>
           <div class="field">
-            <input id="editPassword" name="password" type="password" placeholder="Password" />
+            <input id="editPassword" name="password" type="password" placeholder="Password (leave blank to keep current)" />
             <div class="error-message" id="editPasswordError"></div>
           </div>
           <div class="field">
             <select id="editPlan" name="plan">
               <option value="">Select Plan</option>
-              <option value="free">Free</option>
-              <option value="standard">Standard</option>
-              <option value="premium">Premium</option>
+              <option value="Basic Plan">Basic Plan</option>
+              <option value="Standard Plan">Standard Plan</option>
+              <option value="Premium Plan">Premium Plan</option>
             </select>
             <div class="error-message" id="editPlanError"></div>
           </div>
           <div class="field">
             <select id="editPayment" name="payment">
               <option value="">Select Payment Method</option>
-              <option value="credit_card">Credit Card</option>
-              <option value="gcash">GCash</option>
-              <option value="maya">Maya</option>
-              <option value="paypal">PayPal</option>
-            </select>
+              <option value="Credit Card">Credit Card</option>
+              <option value="Gcash">GCash</option>
+              <option value="Maya">Maya</option>
+              <option value="Paypal">PayPal</option>
+              <option value="Free Plan">Free Plan</option> </select>
             <div class="error-message" id="editPaymentError"></div>
           </div>
-          <input type="hidden" id="editReceipt" name="receipt">
-        </form>
+          <input type="hidden" id="editReceipt" name="receipt"> </form>
       </div>
       <div class="modal-bottombar">
         <div class="modal-actions">
@@ -145,7 +145,6 @@
     </div>
   </div>
 
-  <!-- Add Modal -->
   <div id="addModal" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-topbar"></div>
@@ -163,24 +162,23 @@
           <div class="field">
             <select id="addPlan" name="plan">
               <option value="">Select Plan</option>
-              <option value="free">Free</option>
-              <option value="standard">Standard</option>
-              <option value="premium">Premium</option>
+              <option value="Basic Plan">Basic Plan</option>
+              <option value="Standard Plan">Standard Plan</option>
+              <option value="Premium Plan">Premium Plan</option>
             </select>
             <div class="error-message" id="addPlanError"></div>
           </div>
           <div class="field">
             <select id="addPayment" name="payment">
               <option value="">Select Payment Method</option>
-              <option value="credit_card">Credit Card</option>
-              <option value="gcash">GCash</option>
-              <option value="maya">Maya</option>
-              <option value="paypal">PayPal</option>
-            </select>
+              <option value="Credit Card">Credit Card</option>
+              <option value="Gcash">GCash</option>
+              <option value="Maya">Maya</option>
+              <option value="Paypal">PayPal</option>
+              <option value="Free Plan">Free Plan</option> </select>
             <div class="error-message" id="addPaymentError"></div>
           </div>
-          <input type="hidden" id="addReceipt" name="receipt">
-        </form>
+          </form>
       </div>
       <div class="modal-bottombar">
         <div class="modal-actions">
@@ -191,7 +189,6 @@
     </div>
   </div>
 
-  <!-- Delete Modal -->
   <div id="deleteModal" class="modal-overlay">
     <div class="confirm-box">
       <div>
