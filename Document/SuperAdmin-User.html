@@ -108,14 +108,17 @@
         <h2 class="modal-title">Edit user details</h2>
         <form id="editForm" class="user-form">
           <div class="field">
+             <label class="field-label">Email</label>
             <input id="editEmail" name="email" type="email" placeholder="Email" />
             <div class="error-message" id="editEmailError"></div>
           </div>
           <div class="field">
+             <label class="field-label">Password</label>
             <input id="editPassword" name="password" type="password" placeholder="Password (leave blank to keep current)" />
             <div class="error-message" id="editPasswordError"></div>
           </div>
           <div class="field">
+             <label class="field-label">Subscription Plan</label>
             <select id="editPlan" name="plan">
               <option value="">Select Plan</option>
               <option value="Basic Plan">Basic Plan</option>
@@ -123,17 +126,6 @@
               <option value="Premium Plan">Premium Plan</option>
             </select>
             <div class="error-message" id="editPlanError"></div>
-          </div>
-          <div class="field">
-            <select id="editPayment" name="payment">
-              <option value="">Select Payment Method</option>
-              <option value="Credit Card">Credit Card</option>
-              <option value="Gcash">GCash</option>
-              <option value="Maya">Maya</option>
-              <option value="Paypal">PayPal</option>
-              <option value="Free Plan">Free Plan</option>
-            </select>
-            <div class="error-message" id="editPaymentError"></div>
           </div>
           <input type="hidden" id="editReceipt" name="receipt"> </form>
       </div>
