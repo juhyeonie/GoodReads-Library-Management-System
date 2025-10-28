@@ -49,8 +49,8 @@ if (!empty($errors)) {
 }
 
 try {
-    // prepare and fetch user (case-insensitive email lookup could be added if required)
-    $stmt = $pdo->prepare('SELECT AccountID, Email, Password, Role, Status, FullName FROM ACCOUNT WHERE Email = ? LIMIT 1');
+    // FIX: Removed FullName from the SELECT list because the table is missing it.
+    $stmt = $pdo->prepare('SELECT AccountID, Email, Password, Role, Status, Plan, SubsEnd FROM ACCOUNT WHERE Email = ? LIMIT 1');
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -64,16 +64,10 @@ try {
     $stored = $user['Password'];
     $ok = false;
 
-    // If stored password appears to be a bcrypt (or other password_hash) hash, use password_verify.
-    // password_verify will safely return false for non-hash strings.
-    if (password_verify($password, $stored)) {
+    // Password Verification (using password_verify for hashes, fallback for plaintext)
+    // Checks hash first, then plain-text (for legacy)
+    if (password_verify($password, $stored) || $password === $stored) {
         $ok = true;
-    } else {
-        // fallback: legacy plain-text or other formats (compare exact)
-        // WARNING: plain-text storage is insecure; consider migrating to password_hash.
-        if ($password === $stored) {
-            $ok = true;
-        }
     }
 
     if (!$ok) {
@@ -81,6 +75,35 @@ try {
         echo json_encode(['success' => false, 'message' => 'Invalid email or password.']);
         exit;
     }
+
+    $originalPlan = $user['Plan'];
+    $currentPlan = $user['Plan'];
+    $isSubscriptionExpired = false;
+
+    // --- Subscription Expiration Logic (Only for Users/Customers) ---
+    if (strcasecmp($user['Role'], 'User') === 0 || strcasecmp($user['Role'], 'Customer') === 0) {
+
+        $subsEndTimestamp = strtotime($user['SubsEnd']);
+        $todayTimestamp = strtotime(date('Y-m-d'));
+
+        // Check if the plan is Standard or Premium AND the subscription end date is in the past
+        if ($subsEndTimestamp && $subsEndTimestamp < $todayTimestamp) {
+             $currentPlanLower = strtolower($currentPlan);
+             if ($currentPlanLower === 'standard' || $currentPlanLower === 'premium') {
+                $isSubscriptionExpired = true;
+                $currentPlan = 'Basic'; // Downgrade to Basic
+
+                // Update the database to reflect the new Basic plan
+                $updateStmt = $pdo->prepare('UPDATE ACCOUNT SET Plan = ?, SubsEnd = NULL, SubsStarted = NULL, Status = ? WHERE AccountID = ?');
+                $updateStmt->execute(['Basic', 'Downgraded', $user['AccountID']]);
+
+                // Update the user array for the session and response
+                $user['Plan'] = 'Basic';
+                $user['Status'] = 'Downgraded';
+            }
+        }
+    }
+    // --- End Subscription Expiration Logic ---
 
     // Successful login: regenerate session id and store safe user info in session
     session_regenerate_id(true);
@@ -90,7 +113,9 @@ try {
         'Email'     => $user['Email'],
         'Role'      => $user['Role'],
         'Status'    => $user['Status'],
-        'FullName'  => isset($user['FullName']) ? $user['FullName'] : null,
+        'Plan'      => $user['Plan'],
+        // NOTE: FullName is removed here too to align with the table structure
+        'FullName'  => null, 
         'logged_in_at' => date('c')
     ];
 
@@ -103,7 +128,10 @@ try {
             'Email' => $user['Email'],
             'Role' => $user['Role'],
             'Status' => $user['Status'],
-            'FullName' => isset($user['FullName']) ? $user['FullName'] : null
+            'Plan' => $user['Plan'], // New plan status
+            'OriginalPlan' => $originalPlan, // Original plan for client-side message
+            'IsExpired' => $isSubscriptionExpired, // Flag for client
+            'FullName' => null // NOTE: FullName is null since it's not in the table
         ]
     ]);
     exit;
@@ -111,6 +139,7 @@ try {
 } catch (PDOException $ex) {
     // Log server-side in real app. Returning generic message to client.
     http_response_code(500);
+    error_log("Auth error: " . $ex->getMessage());
     echo json_encode(['success' => false, 'message' => 'Server error.']);
     exit;
 }

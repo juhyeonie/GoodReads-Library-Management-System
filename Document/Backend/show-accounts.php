@@ -9,12 +9,13 @@ echo "<tr><th>ID</th><th>Email</th><th>Plan</th><th>Role</th><th>SubsStarted</th
 foreach ($accounts as $a) {
     echo "<tr>";
     echo "<td>" . (int)$a['AccountID'] . "</td>";
-    echo "<td>" . htmlspecialchars($a['Email']) . "</td>";
-    echo "<td>" . htmlspecialchars($a['Plan']) . "</td>";
-    echo "<td>" . htmlspecialchars($a['Role']) . "</td>";
-    echo "<td>" . htmlspecialchars($a['SubsStarted']) . "</td>";
-    echo "<td>" . htmlspecialchars($a['SubsEnd']) . "</td>";
-    echo "<td>" . htmlspecialchars($a['Status']) . "</td>";
+    echo "<td>" . htmlspecialchars($a['Email'] ?? '') . "</td>";
+    echo "<td>" . htmlspecialchars($a['Plan'] ?? '') . "</td>";
+    echo "<td>" . htmlspecialchars($a['Role'] ?? '') . "</td>";
+    // FIX: Use null coalescing operator (??) to handle NULL values gracefully for SubsStarted and SubsEnd
+    echo "<td>" . htmlspecialchars($a['SubsStarted'] ?? '') . "</td>";
+    echo "<td>" . htmlspecialchars($a['SubsEnd'] ?? '') . "</td>";
+    echo "<td>" . htmlspecialchars($a['Status'] ?? '') . "</td>";
     echo "</tr>";
 }
 echo "</table>";

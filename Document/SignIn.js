@@ -35,6 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return ok;
   };
+  
+  // Helper function for redirection
+  const redirectToHomepage = () => {
+      window.location.href = 'homepage.html';
+  };
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -66,43 +71,49 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // ✅ Store user plan in session storage for homepage access control
-      if (json.user && json.user.Status) {
-        const plan = json.user.Status.toString().toLowerCase();
-        sessionStorage.setItem('user_plan', plan);
-        console.log('📘 User plan stored:', plan);
-      }
+      const user = json.user;
+      const role = user?.Role ? user.Role.toString().toLowerCase() : '';
+      const plan = user?.Plan ? user.Plan.toString().toLowerCase() : 'basic';
+      
+      // 1. Store CURRENT user plan in session storage for homepage access control
+      sessionStorage.setItem('user_plan', plan);
+      console.log('📘 User plan stored:', plan);
+      
+      // Clear previous plan expiration flags
+      sessionStorage.removeItem('is_plan_expired');
+      sessionStorage.removeItem('original_plan');
 
-      // ✅ Check account status first
-      const status = json.user?.Status ? json.user.Status.toString().toLowerCase() : '';
+
+      // 2. Store expiration status if applicable (only for non-admin accounts)
+      if (user.IsExpired && (role === 'user' || role === 'customer')) {
+          sessionStorage.setItem('is_plan_expired', 'true');
+          sessionStorage.setItem('original_plan', user.OriginalPlan || 'Standard/Premium');
+          console.log(`⚠️ Subscription expired. Original plan: ${user.OriginalPlan}. Downgraded to Basic. Flag stored for homepage.`);
+      }
+      
+      // 3. Check general status (e.g., 'Cancelled')
+      const status = user?.Status ? user.Status.toString().toLowerCase() : '';
       if (status === 'cancelled' || status === 'expired') {
-        // Redirect to membership plan page for expired/cancelled accounts
+        // Redirect to membership plan page for truly un-logged-in accounts if needed
         window.location.href = 'MembershipPlan.html';
         return;
       }
 
-      // ✅ Route based on role
-      const role = json.user?.Role ? json.user.Role.toString().toLowerCase() : '';
-      
+      // 4. Route based on role
       console.log('🔐 User role detected:', role);
 
       switch(role) {
         case 'superadmin':
-        case 'super admin':
           console.log('→ Redirecting to SuperAdmin Dashboard');
           window.location.href = 'SuperAdmin-Dashboard.html';
           break;
           
         case 'useradmin':
-        case 'user admin':
           console.log('→ Redirecting to UserAdmin Dashboard');
           window.location.href = 'UserAdmin-Dashboard.html';
           break;
           
         case 'subsadmin':
-        case 'subs admin':
-        case 'subscriptionadmin':
-        case 'subscription admin':
           console.log('→ Redirecting to SubsAdmin Dashboard');
           window.location.href = 'SubsAdmin-Dashboard.html';
           break;
@@ -110,13 +121,13 @@ document.addEventListener('DOMContentLoaded', () => {
         case 'user':
         case 'customer':
           console.log('→ Redirecting to Homepage');
-          window.location.href = 'homepage.html';
+          redirectToHomepage();
           break;
           
         default:
           console.warn('⚠️ Unknown role:', role);
           // Default to homepage for unknown roles
-          window.location.href = 'homepage.html';
+          redirectToHomepage();
       }
 
     } catch (err) {
