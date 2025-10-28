@@ -22,24 +22,28 @@
         <button id="collapseBtn" class="collapse-btn">☰</button>
 
         <nav class="menu">
-          <a href="SubsAdmin-Dashboard.html" class="menu-item" data-tooltip="Dashboard">
+          <a href="SuperAdmin-Dashboard.html" class="menu-item" data-tooltip="Dashboard">
             <span class="icon"><img src="dashboard.png" alt="" /></span>
             <span class="text">Dashboard</span>
           </a>
-          <a href="SubsAdmin-Subscription.html" class="menu-item active" data-tooltip="Subscription">
-            <span class="icon"><img src="subscription.png" alt="" /></span>
-            <span class="text">Subscription</span>
-          </a>
-          <a href="SubsAdmin-UserSubscription.html" class="menu-item" data-tooltip="Customer Subscription">
+          <a href="SuperAdmin-User.html" class="menu-item" data-tooltip="Customer Management">
             <span class="icon"><img src="user.png" alt="" /></span>
-            <span class="text">Customer Subscription</span>
+            <span class="text">Customer Management</span>
+          </a>
+          <a href="SuperAdmin-Admin.html" class="menu-item" data-tooltip="Admin Management">
+            <span class="icon"><img src="admin.png" alt="" /></span>
+            <span class="text">Admin Management</span>
+          </a>
+          <a href="SuperAdmin-Subscription.html" class="menu-item active" data-tooltip="Plan Management">
+            <span class="icon"><img src="subscription.png" alt="" /></span>
+            <span class="text">Plan Management</span>
           </a>
         </nav>
       </div>
 
       <div class="sidebar-bottom">
         <div class="user">
-          <p class="username">Subscription Admin1</p>
+          <p class="username">Super Admin</p>
           <a href="StartPage.html" class="logout-icon" title="Logout">
             <img src="logout.png" alt="Logout" />
           </a>
@@ -53,49 +57,10 @@
       </div>
 
       <section class="plans">
-        <!-- Basic Plan -->
-        <div class="plan-card basic" data-plan="basic">
-          <h3 class="plan-title">Basic Plan</h3>
-          <p class="plan-price">₱0 / month</p>
-          <ul class="plan-features">
-            <li>Access to limited books or categories (Novel)</li>
-            <li>Daily reading time limit (60 minutes per day)</li>
-            <li>Limited pages per book (first 30 pages only)</li>
-          </ul>
-          <button class="edit-btn">Edit</button>
-        </div>
-
-        <!-- Standard Plan -->
-        <div class="plan-card standard highlight" data-plan="standard">
-          <div class="ribbon">Most Popular</div>
-          <h3 class="plan-title">Standard Plan</h3>
-          <p class="plan-price">₱199 / month</p>
-          <ul class="plan-features">
-            <li>Unlimited reading time</li>
-            <li>Access to all general categories (Educational, Novel, Graphic Novel)</li>
-            <li>Light customization (change reader theme)</li>
-          </ul>
-          <button class="edit-btn">Edit</button>
-        </div>
-
-        <!-- Premium Plan -->
-        <div class="plan-card premium" data-plan="premium">
-          <h3 class="plan-title">Premium Plan</h3>
-          <p class="plan-price">₱299 / month</p>
-          <ul class="plan-features">
-            <li>Unlimited reading time</li>
-            <li>Access to all general categories (Educational, Novel, Graphic Novel)</li>
-            <li>Light customization (change reader theme)</li>
-            <li>Bookmark feature (save reading progress)</li>
-            <li>Like & dislike system (engage with the community)</li>
-          </ul>
-          <button class="edit-btn">Edit</button>
-        </div>
-      </section>
+        </section>
     </main>
   </div>
 
-  <!-- Modal: edit plan -->
   <div id="editPlanModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="editPlanTitle">
     <div class="modal-box" role="document">
       <div class="modal-topbar"></div>
