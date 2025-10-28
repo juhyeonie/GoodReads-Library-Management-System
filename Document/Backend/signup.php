@@ -14,7 +14,8 @@ function json_exit($code,$payload){ http_response_code($code); echo json_encode(
 
 $email = isset($_POST['email']) ? trim((string)$_POST['email']) : '';
 $password = isset($_POST['password']) ? (string)$_POST['password'] : '';
-$plan = isset($_POST['plan']) ? trim((string)$_POST['plan']) : 'Basic';
+// UPDATED: Default plan is now "Basic Plan"
+$plan = isset($_POST['plan']) ? trim((string)$_POST['plan']) : 'Basic Plan';
 $subs_started = isset($_POST['subs_started']) ? trim((string)$_POST['subs_started']) : null;
 $subs_end = isset($_POST['subs_end']) ? trim((string)$_POST['subs_end']) : null;
 $payment_method = isset($_POST['payment_method']) ? trim((string)$_POST['payment_method']) : ''; // New column
@@ -40,8 +41,8 @@ try {
     if (!$subs_started) $subs_started = date('Y-m-d');
     if (!$subs_end) $subs_end = date('Y-m-d', strtotime($subs_started.' +30 days'));
     
-    // Set default payment method if not provided (e.g., 'Free Plan' for Basic)
-    if ($payment_method === '' && $plan === 'Basic') $payment_method = 'Free Plan';
+    // UPDATED: Check for "Basic Plan"
+    if ($payment_method === '' && $plan === 'Basic Plan') $payment_method = 'Free Plan';
 
 
     // FIX 1: Updated column names for INSERT (Plan_Status, Payment_Method)

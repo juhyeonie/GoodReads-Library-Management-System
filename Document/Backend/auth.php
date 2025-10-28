@@ -88,16 +88,18 @@ try {
         // Check if the plan is Standard or Premium AND the subscription end date is in the past
         if ($subsEndTimestamp && $subsEndTimestamp < $todayTimestamp) {
              $currentPlanLower = strtolower($currentPlan);
-             if ($currentPlanLower === 'standard' || $currentPlanLower === 'premium') {
+             // UPDATED: Check for the full plan names
+             if ($currentPlanLower === 'standard plan' || $currentPlanLower === 'premium plan') {
                 $isSubscriptionExpired = true;
-                $currentPlan = 'Basic'; // Downgrade to Basic
+                $currentPlan = 'Basic Plan'; // UPDATED: Downgrade to Basic Plan
 
                 // FIX 2: Updated column name from Status to Plan_Status
                 $updateStmt = $pdo->prepare('UPDATE ACCOUNT SET Plan = ?, SubsEnd = NULL, SubsStarted = NULL, Plan_Status = ? WHERE AccountID = ?');
-                $updateStmt->execute(['Basic', 'Downgraded', $user['AccountID']]);
+                // UPDATED: Use "Basic Plan"
+                $updateStmt->execute(['Basic Plan', 'Downgraded', $user['AccountID']]);
 
                 // Update the user array for the session and response
-                $user['Plan'] = 'Basic';
+                $user['Plan'] = 'Basic Plan'; // UPDATED
                 $user['Plan_Status'] = 'Downgraded';
             }
         }
@@ -111,7 +113,6 @@ try {
         'AccountID' => $user['AccountID'],
         'Email'     => $user['Email'],
         'Role'      => $user['Role'],
-        // FIX 3: Updated key from Status to Plan_Status
         'Status'    => $user['Plan_Status'], 
         'Plan'      => $user['Plan'],
         'FullName'  => null,
@@ -126,7 +127,6 @@ try {
             'AccountID' => $user['AccountID'],
             'Email' => $user['Email'],
             'Role' => $user['Role'],
-            // FIX 4: Updated key from Status to Plan_Status
             'Status' => $user['Plan_Status'], 
             'Plan' => $user['Plan'], // New plan status
             'OriginalPlan' => $originalPlan, // Original plan for client-side message
