@@ -1,245 +1,323 @@
-// Unified initializer — waits for DOMContentLoaded, then wires sidebar, Edit modal, table actions.
-document.addEventListener('DOMContentLoaded', () => {
-  const SIDEBAR_COLLAPSED_KEY = 'gr_usermgmt_sidebar_collapsed';
-  const MOBILE_BREAK = 800;
+(function () {
+  const COLLAPSED_KEY = 'sidebar_collapsed';
+  const MOBILE_BREAKPOINT = 768;
 
   const sidebar = document.getElementById('sidebar');
   const menuToggle = document.getElementById('menuToggle');
   const collapseBtn = document.getElementById('collapseBtn');
   const mainContent = document.getElementById('mainContent');
+  const overlay = document.getElementById('sidebarOverlay');
 
-  function isMobile() { return window.innerWidth <= MOBILE_BREAK; }
+  function isMobile() { 
+    return window.innerWidth <= MOBILE_BREAKPOINT; 
+  }
 
-  function applyLayout() {
-    const collapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
-    if (!sidebar || !mainContent) return;
-
+  function updateLayout() {
     if (isMobile()) {
-      // Mobile: sidebar is overlay, main content always full width
-      sidebar.classList.remove('collapsed-desktop');
-      sidebar.classList.remove('expanded');
-      mainContent.classList.remove('collapsed-desktop');
-      if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
-      if (collapseBtn) collapseBtn.setAttribute('aria-pressed', 'false');
-      document.body.classList.remove('no-scroll');
+      sidebar.classList.remove('collapsed');
+      mainContent.classList.remove('collapsed');
+      sidebar.classList.remove('mobile-open');
+      overlay.classList.remove('active');
     } else {
-      // Desktop: sidebar pushes content
-      sidebar.classList.remove('expanded');
-
-      if (collapsed) {
-        sidebar.classList.add('collapsed-desktop');
-        mainContent.classList.add('collapsed-desktop');
-        if (collapseBtn) collapseBtn.setAttribute('aria-pressed', 'true');
-      } else {
-        sidebar.classList.remove('collapsed-desktop');
-        mainContent.classList.remove('collapsed-desktop');
-        if (collapseBtn) collapseBtn.setAttribute('aria-pressed', 'false');
-      }
-      if (menuToggle) menuToggle.setAttribute('aria-expanded', 'true');
-      document.body.classList.remove('no-scroll');
+      const isCollapsed = localStorage.getItem(COLLAPSED_KEY) === 'true';
+      sidebar.classList.toggle('collapsed', isCollapsed);
+      mainContent.classList.toggle('collapsed', isCollapsed);
+      sidebar.classList.remove('mobile-open');
+      overlay.classList.remove('active');
     }
   }
 
-  applyLayout();
-  window.addEventListener('resize', applyLayout);
+  updateLayout();
+  window.addEventListener('resize', updateLayout);
 
-  // Mobile menu toggle (overlay)
-  if (menuToggle && sidebar) {
-    menuToggle.addEventListener('click', () => {
-      if (!sidebar.classList.contains('expanded')) {
-        sidebar.classList.add('expanded');
-        document.body.classList.add('no-scroll');
-        menuToggle.setAttribute('aria-expanded', 'true');
-      } else {
-        sidebar.classList.remove('expanded');
-        document.body.classList.remove('no-scroll');
-        menuToggle.setAttribute('aria-expanded', 'false');
-      }
-    });
-  }
-
-  // Desktop collapse/uncollapse (icons-only)
-  if (collapseBtn && sidebar && mainContent) {
+  if (collapseBtn) {
     collapseBtn.addEventListener('click', () => {
       if (isMobile()) return;
-      const nowCollapsed = sidebar.classList.toggle('collapsed-desktop');
-      mainContent.classList.toggle('collapsed-desktop', nowCollapsed);
-      collapseBtn.setAttribute('aria-pressed', String(nowCollapsed));
-      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, nowCollapsed ? 'true' : 'false');
+      const isCollapsed = sidebar.classList.toggle('collapsed');
+      mainContent.classList.toggle('collapsed', isCollapsed);
+      collapseBtn.setAttribute('aria-pressed', String(isCollapsed));
+      localStorage.setItem(COLLAPSED_KEY, isCollapsed);
     });
   }
 
-  // Close mobile sidebar if clicking outside
-  document.addEventListener('click', (e) => {
-    if (isMobile() && sidebar && sidebar.classList.contains('expanded')) {
-      if (!sidebar.contains(e.target) && menuToggle && !menuToggle.contains(e.target)) {
-        sidebar.classList.remove('expanded');
-        document.body.classList.remove('no-scroll');
-        if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
+  if (menuToggle) {
+    menuToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sidebar.classList.toggle('mobile-open');
+      overlay.classList.toggle('active');
+    });
+  }
+
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('mobile-open');
+      overlay.classList.remove('active');
+    });
+  }
+
+  const menuLinks = sidebar.querySelectorAll('.menu-item');
+  menuLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      if (isMobile()) {
+        sidebar.classList.remove('mobile-open');
+        overlay.classList.remove('active');
       }
-    }
+    });
   });
 
-  // ESC to close mobile overlay
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      if (isMobile() && sidebar && sidebar.classList.contains('expanded')) {
-        sidebar.classList.remove('expanded');
-        document.body.classList.remove('no-scroll');
-        if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
-      }
-      if (editModal && editModal.getAttribute('aria-hidden') === 'false') {
-        hideEditModal();
-      }
+    if (e.key === 'Escape' && isMobile() && sidebar.classList.contains('mobile-open')) {
+      sidebar.classList.remove('mobile-open');
+      overlay.classList.remove('active');
     }
   });
 
-  /* ----------------- Edit User Modal ----------------- */
-  const editModal = document.getElementById('editUserModal');
-  const editForm = document.getElementById('editUserForm');
-  const confirmEditBtn = document.getElementById('confirmEdit');
-  const closeEditBtn = document.getElementById('closeEditModal');
+  /* ---------------- Demo data & rendering ---------------- */
+  let nextId = 1008;
+  const demoCustomers = [
+    { receipt: '1007', email: 'user8@example.com', plan: 'cancelled', payment: 'credit_card', password: 'pass8' },
+    { receipt: '1006', email: 'user7@example.com', plan: 'free', payment: 'maya', password: 'pass7' },
+    { receipt: '1005', email: 'user6@example.com', plan: 'premium', payment: 'gcash', password: 'pass6' },
+    { receipt: '1004', email: 'user5@example.com', plan: 'standard', payment: 'credit_card', password: 'pass5' },
+    { receipt: '1003', email: 'john.smith@example.com', plan: 'expired', payment: 'paypal', password: 'pass4' },
+    { receipt: '1002', email: 'jane.doe@example.com', plan: 'free', payment: 'paypal', password: 'pass3' },
+    { receipt: '1001', email: 'bob@example.com', plan: 'premium', payment: 'maya', password: 'pass2' },
+    { receipt: '1000', email: 'alice@example.com', plan: 'standard', payment: 'gcash', password: 'pass1' }
+  ];
 
-  let activeRow = null;
+  let customers = demoCustomers.slice();
+  const tbody = document.querySelector('#customersTable tbody');
+
+  function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+  }
+
+  function formatPaymentMethod(method) {
+    const methods = {
+      'credit_card': 'Credit Card',
+      'gcash': 'GCash',
+      'maya': 'Maya',
+      'paypal': 'PayPal'
+    };
+    return methods[method] || method;
+  }
+
+  function formatPlan(plan) {
+    return (plan || '').charAt(0).toUpperCase() + (plan || '').slice(1);
+  }
+
+  function updateStats() {
+    const stats = { free:0, standard:0, premium:0, expired:0, cancelled:0 };
+    customers.forEach(c => {
+      if (stats.hasOwnProperty(c.plan)) stats[c.plan]++;
+    });
+    document.getElementById('freeCount').textContent = stats.free;
+    document.getElementById('standardCount').textContent = stats.standard;
+    document.getElementById('premiumCount').textContent = stats.premium;
+    document.getElementById('expiredCount').textContent = stats.expired;
+    document.getElementById('cancelledCount').textContent = stats.cancelled;
+  }
+
+  function renderTable(filteredRows) {
+    const rows = filteredRows || customers;
+    tbody.innerHTML = '';
+    rows.forEach(u => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(u.receipt)}</td>
+        <td>${escapeHtml(u.email)}</td>
+        <td><span class="plan-badge ${escapeHtml(u.plan)}">${escapeHtml(formatPlan(u.plan))}</span></td>
+        <td>${escapeHtml(formatPaymentMethod(u.payment))}</td>
+        <td style="text-align:right">
+          <div class="actions">
+            <button class="pill edit" data-id="${escapeHtml(u.receipt)}">Edit</button>
+            <button class="pill delete" data-id="${escapeHtml(u.receipt)}">Delete</button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+    updateStats();
+  }
+
+  function applyFilters() {
+    renderTable();
+  }
+
+  applyFilters();
+
+  /* ======= Edit Modal logic ======= */
+  const editModal = document.getElementById('editModal');
+  const editEmail = document.getElementById('editEmail');
+  const editPassword = document.getElementById('editPassword');
+  const editPlan = document.getElementById('editPlan');
+  const editPayment = document.getElementById('editPayment');
+  const editReceipt = document.getElementById('editReceipt');
+  const confirmEdit = document.getElementById('confirmEdit');
+  const cancelEdit = document.getElementById('cancelEdit');
 
   function showEditModal() {
     if (!editModal) return;
-    editModal.setAttribute('aria-hidden', 'false');
+    editModal.classList.add('show');
     document.body.classList.add('no-scroll');
-    const first = editForm && editForm.querySelector('input');
-    if (first) first.focus();
+    setTimeout(() => { editEmail && editEmail.focus(); }, 80);
   }
-
   function hideEditModal() {
     if (!editModal) return;
-    editModal.setAttribute('aria-hidden', 'true');
+    editModal.classList.remove('show');
     document.body.classList.remove('no-scroll');
-    activeRow = null;
   }
 
-  if (editModal) {
-    editModal.addEventListener('click', (e) => { 
-      if (e.target === editModal) hideEditModal(); 
-    });
+  function openEditFor(receipt) {
+    const u = customers.find(x => x.receipt === receipt);
+    if (!u) return;
+    editReceipt.value = u.receipt;
+    editEmail.value = u.email;
+    editPassword.value = '';
+    editPlan.value = u.plan || '';
+    editPayment.value = u.payment || '';
+    showEditModal();
   }
 
-  if (editForm) {
-    editForm.addEventListener('submit', (e) => e.preventDefault());
+  confirmEdit.addEventListener('click', (e) => {
+    e.preventDefault();
+    const r = editReceipt.value;
+    const idx = customers.findIndex(x => x.receipt === r);
+    if (idx >= 0) {
+      customers[idx].email = editEmail.value.trim();
+      if (editPassword.value) customers[idx].password = editPassword.value;
+      customers[idx].plan = editPlan.value;
+      customers[idx].payment = editPayment.value;
+      renderTable();
+    }
+    hideEditModal();
+  });
+
+  cancelEdit.addEventListener('click', (e) => {
+    e.preventDefault();
+    hideEditModal();
+  });
+
+  editModal.addEventListener('click', (e) => {
+    if (e.target === editModal) hideEditModal();
+  });
+
+  /* ===== Add Modal ===== */
+  const addModal = document.getElementById('addModal');
+  const addEmail = document.getElementById('addEmail');
+  const addPassword = document.getElementById('addPassword');
+  const addPlan = document.getElementById('addPlan');
+  const addPayment = document.getElementById('addPayment');
+  const addReceipt = document.getElementById('addReceipt');
+  const confirmAdd = document.getElementById('confirmAdd');
+  const cancelAdd = document.getElementById('cancelAdd');
+
+  function showAddModal() {
+    if (!addModal) return;
+    addModal.classList.add('show');
+    document.body.classList.add('no-scroll');
+    setTimeout(() => addEmail && addEmail.focus(), 80);
+  }
+  function hideAddModal() {
+    if (!addModal) return;
+    addModal.classList.remove('show');
+    document.body.classList.remove('no-scroll');
   }
 
-  // Delegate edit / delete clicks on table
+  confirmAdd.addEventListener('click', (e) => {
+    e.preventDefault();
+    const email = (addEmail && addEmail.value || '').trim();
+    const password = (addPassword && addPassword.value || '');
+    const plan = (addPlan && addPlan.value || '');
+    const payment = (addPayment && addPayment.value || '');
+    if (!email || !password || !plan || !payment) {
+      alert('Please fill in all fields.');
+      return;
+    }
+    const newUser = {
+      receipt: addReceipt.value || String(nextId++),
+      email,
+      password,
+      plan,
+      payment
+    };
+    customers.unshift(newUser);
+    renderTable();
+    hideAddModal();
+  });
+
+  cancelAdd.addEventListener('click', (e) => {
+    e.preventDefault();
+    hideAddModal();
+  });
+
+  addModal.addEventListener('click', (e) => {
+    if (e.target === addModal) hideAddModal();
+  });
+
+  /* ===== Delete modal ===== */
+  const deleteModal = document.getElementById('deleteModal');
+  const deleteMessage = document.getElementById('deleteMessage');
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+  const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
+  let deleteTargetId = null;
+
+  function showDeleteModal(message, id) {
+    deleteTargetId = id;
+    deleteMessage.textContent = message || 'Are you sure you want to delete this user?';
+    deleteModal.classList.add('show');
+    document.body.classList.add('no-scroll');
+    setTimeout(() => confirmDeleteBtn && confirmDeleteBtn.focus(), 80);
+  }
+  function hideDeleteModal() {
+    deleteModal.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+    deleteTargetId = null;
+  }
+
+  confirmDeleteBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!deleteTargetId) { hideDeleteModal(); return; }
+    customers = customers.filter(u => u.receipt !== deleteTargetId);
+    renderTable();
+    hideDeleteModal();
+  });
+
+  cancelDeleteBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    hideDeleteModal();
+  });
+
+  deleteModal.addEventListener('click', (e) => {
+    if (e.target === deleteModal) hideDeleteModal();
+  });
+
+  /**************** Delegated table actions ****************/
   document.addEventListener('click', (e) => {
-    const editBtn = e.target.closest && e.target.closest('.edit-btn');
+    const editBtn = e.target.closest && e.target.closest('.edit');
     if (editBtn) {
-      const tr = editBtn.closest('tr');
-      if (!tr) return;
-      activeRow = tr;
-
-      const email = tr.querySelector('[data-col="email"]')?.textContent.trim() || '';
-      
-      if (editForm) {
-        editForm.querySelector('[name="email"]').value = email;
-        editForm.querySelector('[name="password"]').value = '';
-      }
-
-      showEditModal();
+      const id = editBtn.dataset.id;
+      openEditFor(id);
       return;
     }
 
-    const delBtn = e.target.closest && e.target.closest('.delete-btn');
+    const delBtn = e.target.closest && e.target.closest('.delete');
     if (delBtn) {
-      const tr = delBtn.closest('tr');
-      if (tr && confirm('Are you sure you want to delete this user?')) {
-        tr.remove();
-      }
+      const id = delBtn.dataset.id;
+      showDeleteModal('Delete user ' + id + '? This action cannot be undone.', id);
       return;
     }
   });
 
-  if (confirmEditBtn) {
-    confirmEditBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (!activeRow || !editForm) { 
-        hideEditModal(); 
-        return; 
-      }
+  /* ESC closes modals */
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape') {
+      if (editModal && editModal.classList.contains('show')) hideEditModal();
+      if (addModal && addModal.classList.contains('show')) hideAddModal();
+      if (deleteModal && deleteModal.classList.contains('show')) hideDeleteModal();
+    }
+  });
 
-      const email = editForm.querySelector('[name="email"]').value;
-      const password = editForm.querySelector('[name="password"]').value;
-
-      const emailCell = activeRow.querySelector('[data-col="email"]');
-      const passwordCell = activeRow.querySelector('[data-col="password"]');
-
-      if (emailCell) emailCell.textContent = email;
-      if (password && passwordCell) {
-        passwordCell.textContent = '••••••••';
-      }
-
-      hideEditModal();
-    });
-  }
-
-  if (closeEditBtn) {
-    closeEditBtn.addEventListener('click', (e) => { 
-      e.preventDefault(); 
-      hideEditModal(); 
-    });
-  }
-
-  /* ----------------- Table render with demo data ----------------- */
-  const tbody = document.querySelector('#usersTable tbody');
-
-  // Demo data
-  const demoUsers = [
-    { id: '1000', email: 'user1@example.com', password: '••••••••' },
-    { id: '1001', email: 'user2@example.com', password: '••••••••' },
-    { id: '1002', email: 'user3@example.com', password: '••••••••' },
-    { id: '1003', email: 'user4@example.com', password: '••••••••' },
-    { id: '1004', email: 'user5@example.com', password: '••••••••' },
-    { id: '1005', email: 'user6@example.com', password: '••••••••' },
-    { id: '1006', email: 'user7@example.com', password: '••••••••' },
-    { id: '1007', email: 'user8@example.com', password: '••••••••' }
-  ];
-
-  function renderUsers() {
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    
-    demoUsers.forEach(user => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${escapeHtml(user.id)}</td>
-                      <td data-col="email">${escapeHtml(user.email)}</td>
-                      <td data-col="password">${escapeHtml(user.password)}</td>
-                      <td>
-                        <button class="edit-btn" data-id="${user.id}">Edit</button>
-                        <button class="delete-btn" data-id="${user.id}">Delete</button>
-                      </td>`;
-      tbody.appendChild(tr);
-    });
-  }
-
-  // Update stats (demo values)
-  const totalAdmins = document.getElementById('totalAdmins');
-  const totalAdmins2 = document.getElementById('totalAdmins2');
-  const activeUsers = document.getElementById('activeUsers');
-  const inactiveUsers = document.getElementById('inactiveUsers');
-
-  if (totalAdmins) totalAdmins.textContent = '12';
-  if (totalAdmins2) totalAdmins2.textContent = '12';
-  if (activeUsers) activeUsers.textContent = '156';
-  if (inactiveUsers) inactiveUsers.textContent = '24';
-
-  renderUsers();
-
-  /* ----------------- Helpers ----------------- */
-  function escapeHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/[&<>"']/g, (m) => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    }[m]));
-  }
-});
+})();

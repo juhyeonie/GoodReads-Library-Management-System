@@ -3,62 +3,36 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GoodReads | User Subscriptions</title>
-  <!-- reuse the SubsAdmin subscription CSS which contains sidebar & modal styles -->
+  <title>GoodReads | Customer Subscription</title>
   <link rel="stylesheet" href="SubsAdmin-UserSubscription.css" />
-  <style>
-    /* small page-specific tweaks (you can move these into a file) */
-    .table-wrap { background:#fff; border-radius:6px; padding:12px; border:1px solid rgba(0,0,0,.06); overflow:auto; }
-    .users-table { width:100%; border-collapse:collapse; min-width:900px; }
-    .users-table th, .users-table td { border:1px solid #c9c9c9; padding:8px 10px; text-align:left; }
-    .users-table th { background:#1b3c53; color:#fff; font-weight:700; }
-    .action-btn { background:#456882; color:#fff; border:0; border-radius:6px; padding:6px 10px; cursor:pointer; font-weight:700; margin-right:6px; }
-    .filters { display:flex; gap:12px; align-items:center; margin-bottom:12px; }
-    @media (max-width:800px){ .users-table{ min-width:700px } }
-
-    /* match selects to input style inside modal */
-    .edit-plan-form select,
-    .edit-plan-form input {
-      width: 100%;
-      border: 1px solid #cdd6db;
-      padding: 11px 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      color: #222;
-      background: #fff;
-      outline: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      background-image: linear-gradient(45deg, transparent 50%, #666 50%), linear-gradient(135deg, #666 50%, transparent 50%), linear-gradient(to right, #ddd, #ddd);
-      background-position: calc(100% - 18px) calc(1em + 2px), calc(100% - 13px) calc(1em + 2px), 100% 0;
-      background-size: 6px 6px, 6px 6px, 1px 1.5em;
-      background-repeat: no-repeat;
-    }
-    /* ensure mobile shows native arrow nicely */
-    @media (max-width:420px){
-      .edit-plan-form select { background-image: none; }
-    }
-  </style>
 </head>
 <body>
-  <button id="menuToggle" class="menu-toggle" aria-controls="sidebar" aria-expanded="false">☰</button>
+
+  <button id="menuToggle" class="menu-toggle" aria-label="Toggle menu">☰</button>
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
   <div class="app">
-    <aside id="sidebar" class="sidebar" role="navigation" aria-label="Main sidebar">
+    <aside id="sidebar" class="sidebar">
       <div class="sidebar-top">
-        <div class="logo"><img src="logo.png" alt="GoodReads Logo" class="logo-img" /></div>
-        <button id="collapseBtn" class="collapse-btn" aria-pressed="false" title="Collapse sidebar">⇤</button>
+        <div class="logo">
+          <img src="logo.png" alt="GoodReads Logo" class="logo-img" />
+          <img src="logopic.png" alt="GoodReads" class="logo-pic" />
+        </div>
 
-        <nav class="menu" aria-label="Primary navigation">
-          <a href="SubsAdmin-Dashboard.html" class="menu-item">
-            <span class="icon"><img src="dashboard.png" alt="" /></span><span class="text">Dashboard</span>
+        <button id="collapseBtn" class="collapse-btn">☰</button>
+
+        <nav class="menu">
+          <a href="SubsAdmin-Dashboard.html" class="menu-item" data-tooltip="Dashboard">
+            <span class="icon"><img src="dashboard.png" alt="" /></span>
+            <span class="text">Dashboard</span>
           </a>
-          <a href="SubsAdmin-Subscription.html" class="menu-item">
-            <span class="icon"><img src="subscription.png" alt="" /></span><span class="text">Subscription</span>
+          <a href="SubsAdmin-Subscription.html" class="menu-item" data-tooltip="Subscription">
+            <span class="icon"><img src="subscription.png" alt="" /></span>
+            <span class="text">Subscription</span>
           </a>
-          <a href="SubsAdmin-UserSubscription.html" class="menu-item active">
-            <span class="icon"><img src="user.png" alt="" /></span><span class="text">User Subscription</span>
+          <a href="SubsAdmin-UserSubscription.html" class="menu-item active" data-tooltip="Customer Subscription">
+            <span class="icon"><img src="user.png" alt="" /></span>
+            <span class="text">Customer Subscription</span>
           </a>
         </nav>
       </div>
@@ -66,77 +40,55 @@
       <div class="sidebar-bottom">
         <div class="user">
           <p class="username">Subscription Admin1</p>
-          <a href="StartPage.html" class="logout-icon" title="Logout"><img src="logout.png" alt="Logout" /></a>
+          <a href="StartPage.html" class="logout-icon" title="Logout">
+            <img src="logout.png" alt="Logout" />
+          </a>
         </div>
       </div>
     </aside>
 
-    <main id="mainContent" class="main-content" role="main">
+    <main id="mainContent" class="main-content">
       <div class="topbar">
-        <h1>User Subscriptions</h1>
+        <h1>Customer Subscription</h1>
 
         <div class="search-panel">
-          <!-- search -->
-          <div class="userSearch" role="search">
-            <input id="userSearch" type="search" placeholder="Search by email or plan..." />
-            <button class="search-btn" aria-label="Search"><img src="search.png" alt="Search" /></button>
+          <div class="userSearch">
+            <input id="userSearch" type="search" placeholder="Search by email..." />
+            <button class="search-btn" aria-label="Search">
+              <img src="search.png" alt="Search" />
+            </button>
           </div>
 
-          <select id="statusFilter" aria-label="Filter status">
+          <select id="planFilter" aria-label="Filter by plan">
             <option value="all">All</option>
-            <option value="active">Active</option>
-            <option value="expired">Expired</option>
-            <option value="cancelled">Cancelled</option>
+            <option value="free">Free</option>
+            <option value="standard">Standard</option>
+            <option value="premium">Premium</option>
           </select>
         </div>
       </div>
 
       <div class="table-wrap">
-        <table id="usersTable" class="users-table" aria-describedby="users-heading">
+        <table id="usersTable" class="users-table">
           <thead>
             <tr>
-              <th>Receipt no.</th>
+              <th>ID No</th>
               <th>Email</th>
               <th>Plan</th>
-              <th>Amount</th>
-              <th>Date</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>Payment Method</th>
+              <th style="text-align:right">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td data-col="receipt">1000</td>
-              <td data-col="email">jane@example.com</td>
-              <td data-col="plan">Pro</td>
-              <td data-col="amount">$50</td>
-              <td data-col="date">2025-10-01</td>
-              <td data-col="status">Active</td>
-              <td>
-                <button class="action-btn view-btn">View</button>
-                <button class="action-btn edit-btn">Edit</button>
-              </td>
-            </tr>
-            <tr>
-              <td data-col="receipt">1001</td>
-              <td data-col="email">tom@example.com</td>
-              <td data-col="plan">Basic</td>
-              <td data-col="amount">$0</td>
-              <td data-col="date">2025-09-28</td>
-              <td data-col="status">Expired</td>
-              <td>
-                <button class="action-btn view-btn">View</button>
-                <button class="action-btn edit-btn">Edit</button>
-              </td>
-            </tr>
+            <!-- Populated by JavaScript -->
           </tbody>
         </table>
       </div>
     </main>
   </div>
 
-  <!-- Edit user modal (same styled modal used on Subscription page) -->
-  <div id="editUserModal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="editUserTitle">
+  <!-- Edit user modal -->
+  <div id="editUserModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="editUserTitle">
     <div class="modal-box" role="document">
       <div class="modal-topbar"></div>
 
@@ -144,39 +96,30 @@
         <h2 id="editUserTitle" class="modal-title">Edit user details</h2>
 
         <form id="editUserForm" class="edit-plan-form" autocomplete="off">
-          <label class="field">
-            <input id="userEmail" name="email" type="email" placeholder="Email" />
-          </label>
+          <div class="field">
+            <input id="userEmail" name="email" type="email" placeholder="Email" readonly style="background:#f5f5f5; color:#888; cursor:not-allowed;" />
+          </div>
 
-          <!-- Plan select -->
-          <label class="field">
+          <div class="field">
             <select id="userPlan" name="plan" required>
-              <option value="" disabled selected>Choose plan</option>
-              <option value="Basic">Basic</option>
-              <option value="Standard">Standard</option>
-              <option value="Premium">Premium</option>
+              <option value="">Select Plan</option>
+              <option value="free">Free</option>
+              <option value="standard">Standard</option>
+              <option value="premium">Premium</option>
             </select>
-          </label>
+          </div>
 
-          <!-- Amount select -->
-          <label class="field">
-            <select id="userAmount" name="amount" required>
-              <option value="" disabled selected>Choose amount</option>
-              <option value="100">100</option>
-              <option value="150">150</option>
-              <option value="250">250</option>
+          <div class="field">
+            <select id="userPayment" name="payment" required>
+              <option value="">Select Payment Method</option>
+              <option value="credit_card">Credit Card</option>
+              <option value="gcash">GCash</option>
+              <option value="maya">Maya</option>
+              <option value="paypal">PayPal</option>
             </select>
-          </label>
+          </div>
 
-          <!-- Status select -->
-          <label class="field">
-            <select id="userStatus" name="status" required>
-              <option value="" disabled selected>Choose status</option>
-              <option value="Active">Active</option>
-              <option value="Expired">Expired</option>
-              <option value="Cancelled">Cancelled</option>
-            </select>
-          </label>
+          <input type="hidden" id="userId" name="id" />
         </form>
       </div>
 

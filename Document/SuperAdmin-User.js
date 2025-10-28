@@ -1,297 +1,397 @@
-// Sidebar & layout behaviour — same pattern as your other pages
-document.addEventListener('DOMContentLoaded', () => {
-  const SIDEBAR_COLLAPSED_KEY = 'gr_sidebar_collapsed';
-  const MOBILE_BREAK = 800;
+// Sidebar behavior
+    (function() {
+      const sidebar = document.getElementById('sidebar');
+      const menuToggle = document.getElementById('menuToggle');
+      const collapseBtn = document.getElementById('collapseBtn');
+      const mainContent = document.getElementById('mainContent');
+      const overlay = document.getElementById('sidebarOverlay');
+      
+      const COLLAPSED_KEY = 'sidebar_collapsed';
+      const MOBILE_BREAKPOINT = 768;
 
-  const sidebar = document.getElementById('sidebar');
-  const menuToggle = document.getElementById('menuToggle');
-  const collapseBtn = document.getElementById('collapseBtn');
-  const mainContent = document.getElementById('mainContent');
-
-  function isMobile() { return window.innerWidth <= MOBILE_BREAK; }
-
-  function applyLayout() {
-    const collapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
-    if (!sidebar || !mainContent) return;
-
-    if (isMobile()) {
-      sidebar.classList.remove('collapsed-desktop');
-      sidebar.classList.remove('expanded');
-      mainContent.classList.add('full');
-      mainContent.classList.remove('collapsed-desktop');
-      if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
-      if (collapseBtn) collapseBtn.setAttribute('aria-pressed', 'false');
-      document.body.classList.remove('no-scroll');
-    } else {
-      sidebar.classList.remove('expanded');
-      mainContent.classList.remove('full');
-
-      if (collapsed) {
-        sidebar.classList.add('collapsed-desktop');
-        mainContent.classList.add('collapsed-desktop');
-        if (collapseBtn) collapseBtn.setAttribute('aria-pressed', 'true');
-      } else {
-        sidebar.classList.remove('collapsed-desktop');
-        mainContent.classList.remove('collapsed-desktop');
-        if (collapseBtn) collapseBtn.setAttribute('aria-pressed', 'false');
+      function isMobile() {
+        return window.innerWidth <= MOBILE_BREAKPOINT;
       }
-      if (menuToggle) menuToggle.setAttribute('aria-expanded', 'true');
-      document.body.classList.remove('no-scroll');
-    }
-  }
 
-  applyLayout();
-  window.addEventListener('resize', applyLayout);
-
-  if (menuToggle && sidebar) {
-    menuToggle.addEventListener('click', () => {
-      if (!sidebar.classList.contains('expanded')) {
-        sidebar.classList.add('expanded');
-        document.body.classList.add('no-scroll');
-        if (mainContent) mainContent.classList.remove('full');
-        menuToggle.setAttribute('aria-expanded', 'true');
-      } else {
-        sidebar.classList.remove('expanded');
-        document.body.classList.remove('no-scroll');
-        if (mainContent) mainContent.classList.add('full');
-        menuToggle.setAttribute('aria-expanded', 'false');
+      function updateLayout() {
+        if (isMobile()) {
+          sidebar.classList.remove('collapsed');
+          mainContent.classList.remove('collapsed');
+          sidebar.classList.remove('mobile-open');
+          overlay.classList.remove('active');
+        } else {
+          const isCollapsed = localStorage.getItem(COLLAPSED_KEY) === 'true';
+          sidebar.classList.toggle('collapsed', isCollapsed);
+          mainContent.classList.toggle('collapsed', isCollapsed);
+          sidebar.classList.remove('mobile-open');
+          overlay.classList.remove('active');
+        }
       }
-    });
-  }
 
-  if (collapseBtn && sidebar && mainContent) {
-    collapseBtn.addEventListener('click', () => {
-      if (isMobile()) return;
-      const nowCollapsed = sidebar.classList.toggle('collapsed-desktop');
-      mainContent.classList.toggle('collapsed-desktop', nowCollapsed);
-      collapseBtn.setAttribute('aria-pressed', String(nowCollapsed));
-      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, nowCollapsed ? 'true' : 'false');
-    });
-  }
+      updateLayout();
+      window.addEventListener('resize', updateLayout);
 
-  document.addEventListener('click', (e) => {
-    if (isMobile() && sidebar && sidebar.classList.contains('expanded')) {
-      if (!sidebar.contains(e.target) && menuToggle && !menuToggle.contains(e.target)) {
-        sidebar.classList.remove('expanded');
-        document.body.classList.remove('no-scroll');
-        if (mainContent) mainContent.classList.add('full');
-        if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
+      if (collapseBtn) {
+        collapseBtn.addEventListener('click', () => {
+          if (isMobile()) return;
+          const isCollapsed = sidebar.classList.toggle('collapsed');
+          mainContent.classList.toggle('collapsed', isCollapsed);
+          localStorage.setItem(COLLAPSED_KEY, isCollapsed);
+        });
       }
-    }
-  });
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && isMobile() && sidebar && sidebar.classList.contains('expanded')) {
-      sidebar.classList.remove('expanded');
-      document.body.classList.remove('no-scroll');
-      if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
-    }
-  });
+      if (menuToggle) {
+        menuToggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          sidebar.classList.toggle('mobile-open');
+          overlay.classList.toggle('active');
+        });
+      }
 
-  /* ---------------- Demo data & table rendering ---------------- */
-  const demo = [
-    { receipt: '1000', email: 'alice@example.com', password: 'p@ss1', plan: 'Monthly', date: '2025-08-01', status: 'active' },
-    { receipt: '1001', email: 'bob@example.com', password: 'p@ss2', plan: 'Annual', date: '2024-10-15', status: 'expired' },
-    { receipt: '1002', email: 'carol@example.com', password: 'p@ss3', plan: 'Monthly', date: '2025-09-01', status: 'active' },
-    { receipt: '1003', email: 'dave@example.com', password: 'p@ss4', plan: 'Trial', date: '2025-07-10', status: 'cancelled' },
-    { receipt: '1004', email: 'eve@example.com', password: 'p@ss5', plan: 'Annual', date: '2025-01-02', status: 'active' },
-    { receipt: '1005', email: 'frank@example.com', password: 'p@ss6', plan: 'Monthly', date: '2024-05-20', status: 'expired' },
-    { receipt: '1006', email: 'grace@example.com', password: 'p@ss7', plan: 'Monthly', date: '2025-02-18', status: 'active' },
-    { receipt: '1007', email: 'heidi@example.com', password: 'p@ss8', plan: 'Trial', date: '2023-12-31', status: 'cancelled' }
-  ];
+      if (overlay) {
+        overlay.addEventListener('click', () => {
+          sidebar.classList.remove('mobile-open');
+          overlay.classList.remove('active');
+        });
+      }
 
-  let users = demo.slice();
+      const menuLinks = sidebar.querySelectorAll('.menu-item');
+      menuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          if (isMobile()) {
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('active');
+          }
+        });
+      });
 
-  const tbody = document.querySelector('#usersTable tbody');
-  const searchInput = document.getElementById('searchInput');
-  const statusFilter = document.getElementById('statusFilter');
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isMobile() && sidebar.classList.contains('mobile-open')) {
+          sidebar.classList.remove('mobile-open');
+          overlay.classList.remove('active');
+        }
+      });
+    })();
 
-  function renderTable(rows) {
-    tbody.innerHTML = '';
-    rows.forEach(u => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${escapeHtml(u.receipt)}</td>
-        <td>${escapeHtml(u.email)}</td>
-        <td>${escapeHtml(maskPassword(u.password))}</td>
-        <td>${escapeHtml(u.plan)}</td>
-        <td>${escapeHtml(u.date)}</td>
-        <td>${capitalize(u.status)}</td>
-        <td style="text-align:right">
-          <div class="actions">
-            <button class="pill view" data-id="${escapeHtml(u.receipt)}">View</button>
-            <button class="pill edit" data-id="${escapeHtml(u.receipt)}">Edit</button>
-          </div>
-        </td>`;
-      tbody.appendChild(tr);
-    });
-  }
+    // Customer Management
+    (function() {
+      let nextId = 1008;
+      
+      const demoUsers = [
+        { receipt: '1000', email: 'dfdfd', plan: 'free', payment: 'credit_card', password: 'pass1' },
+        { receipt: '1001', email: 'alice@example.com', plan: 'standard', payment: 'gcash', password: 'pass2' },
+        { receipt: '1002', email: 'bob@example.com', plan: 'premium', payment: 'maya', password: 'pass3' },
+        { receipt: '1003', email: 'jane.doe@example.com', plan: 'free', payment: 'paypal', password: 'pass4' },
+        { receipt: '1004', email: 'john.smith@example.com', plan: 'standard', payment: 'credit_card', password: 'pass5' },
+        { receipt: '1005', email: 'user5@example.com', plan: 'premium', payment: 'gcash', password: 'pass6' },
+        { receipt: '1006', email: 'user6@example.com', plan: 'free', payment: 'maya', password: 'pass7' },
+        { receipt: '1007', email: 'user7@example.com', plan: 'cancelled', payment: 'paypal', password: 'pass8' }
+      ];
 
-  function applyFilters() {
-    const q = (searchInput && searchInput.value || '').trim().toLowerCase();
-    const s = (statusFilter && statusFilter.value) || 'all';
-    const filtered = users.filter(u => {
-      const matchesText = !q || (u.receipt + ' ' + u.email).toLowerCase().includes(q);
-      const matchesStatus = (s === 'all') || (u.status && u.status.toLowerCase() === s.toLowerCase());
-      return matchesText && matchesStatus;
-    });
-    renderTable(filtered);
-  }
+      let users = demoUsers.slice();
 
-  searchInput.addEventListener('input', applyFilters);
-  statusFilter.addEventListener('change', applyFilters);
+      const tbody = document.querySelector('#usersTable tbody');
+      const searchInput = document.getElementById('searchInput');
+      const filterSelect = document.getElementById('filterSelect');
 
-  applyFilters();
+      function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str).replace(/[&<>"']/g, s => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[s]));
+      }
 
-  /* ------------- Modals (Add & Edit) ------------- */
-  const editModal = document.getElementById('editModal');
-  const addModal = document.getElementById('addModal');
-  const editForm = document.getElementById('editForm');
-  const addForm = document.getElementById('addForm');
+      function formatPaymentMethod(method) {
+        const methods = {
+          'credit_card': 'Credit Card',
+          'gcash': 'GCash',
+          'maya': 'Maya',
+          'paypal': 'PayPal'
+        };
+        return methods[method] || method;
+      }
 
-  // edit fields
-  const editReceipt = document.getElementById('editReceipt');
-  const editEmail = document.getElementById('editEmail');
-  const editPassword = document.getElementById('editPassword');
-  const editPlan = document.getElementById('editPlan');
-  const editStatus = document.getElementById('editStatus');
-  const confirmEdit = document.getElementById('confirmEdit');
-  const cancelEdit = document.getElementById('cancelEdit');
+      function formatPlan(plan) {
+        return plan.charAt(0).toUpperCase() + plan.slice(1);
+      }
 
-  // add fields
-  const addReceipt = document.getElementById('addReceipt');
-  const addEmail = document.getElementById('addEmail');
-  const addPassword = document.getElementById('addPassword');
-  const addPlan = document.getElementById('addPlan');
-  const addStatus = document.getElementById('addStatus');
-  const confirmAdd = document.getElementById('confirmAdd');
-  const cancelAdd = document.getElementById('cancelAdd');
-  const addUserBtn = document.getElementById('addUserBtn');
+      function renderTable(rows) {
+        tbody.innerHTML = '';
+        rows.forEach(u => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${escapeHtml(u.receipt)}</td>
+            <td>${escapeHtml(u.email)}</td>
+            <td>${escapeHtml(formatPlan(u.plan))}</td>
+            <td>${escapeHtml(formatPaymentMethod(u.payment))}</td>
+            <td>
+              <div class="actions">
+                <button class="pill view" data-id="${escapeHtml(u.receipt)}">View</button>
+                <button class="pill edit" data-id="${escapeHtml(u.receipt)}">Edit</button>
+                <button class="pill delete" data-id="${escapeHtml(u.receipt)}">Delete</button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
 
-  function showModal(modal) {
-    modal.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('no-scroll');
-    const first = modal.querySelector('input, select, textarea');
-    if (first) setTimeout(() => first.focus(), 80);
-  }
-  function hideModal(modal) {
-    modal.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('no-scroll');
-  }
+      function applyFilters() {
+        const q = (searchInput.value || '').trim().toLowerCase();
+        const f = filterSelect.value;
+      
+        const filtered = users.filter(u => {
+          const matchText = !q || (u.receipt + ' ' + u.email).toLowerCase().includes(q);
+          const matchFilter = f === 'all' || u.plan === f;
+          return matchText && matchFilter;
+        });
+        renderTable(filtered);
+      }
 
-  function openEdit(receipt) {
-    const u = users.find(x => x.receipt === receipt);
-    if (!u) return;
-    editReceipt.value = u.receipt;
-    editEmail.value = u.email;
-    editPassword.value = u.password;
-    editPlan.value = u.plan;
-    editStatus.value = u.status || '';
-    showModal(editModal);
-  }
-
-  confirmEdit.addEventListener('click', (e) => {
-    e.preventDefault();
-    const r = editReceipt.value;
-    const idx = users.findIndex(x => x.receipt === r);
-    if (idx >= 0) {
-      users[idx].email = editEmail.value.trim();
-      users[idx].password = editPassword.value;
-      users[idx].plan = editPlan.value.trim();
-      users[idx].status = editStatus.value;
       applyFilters();
-    }
-    hideModal(editModal);
-  });
+      if (searchInput) searchInput.addEventListener('input', applyFilters);
+      if (filterSelect) filterSelect.addEventListener('change', applyFilters);
 
-  cancelEdit.addEventListener('click', (e) => {
-    e.preventDefault();
-    hideModal(editModal);
-  });
+      // Modals
+      const editModal = document.getElementById('editModal');
+      const editForm = document.getElementById('editForm');
+      const editEmail = document.getElementById('editEmail');
+      const editPassword = document.getElementById('editPassword');
+      const editPlan = document.getElementById('editPlan');
+      const editPayment = document.getElementById('editPayment');
+      const editReceipt = document.getElementById('editReceipt');
+      const confirmEdit = document.getElementById('confirmEdit');
+      const cancelEdit = document.getElementById('cancelEdit');
 
-  editModal.addEventListener('click', (e) => { if (e.target === editModal) hideModal(editModal); });
+      const addModal = document.getElementById('addModal');
+      const addForm = document.getElementById('addForm');
+      const addEmail = document.getElementById('addEmail');
+      const addPassword = document.getElementById('addPassword');
+      const addPlan = document.getElementById('addPlan');
+      const addPayment = document.getElementById('addPayment');
+      const addReceipt = document.getElementById('addReceipt');
+      const confirmAdd = document.getElementById('confirmAdd');
+      const cancelAdd = document.getElementById('cancelAdd');
+      const addUserBtn = document.getElementById('addUserBtn');
 
-  /* Add flow */
-  addUserBtn.addEventListener('click', () => {
-    addReceipt.value = String(Date.now()).slice(-5);
-    addEmail.value = '';
-    addPassword.value = '';
-    addPlan.value = '';
-    addStatus.value = '';
-    showModal(addModal);
-  });
+      function showModal(modal) {
+        modal.classList.add('show');
+        document.body.classList.add('no-scroll');
+      }
 
-  confirmAdd.addEventListener('click', (e) => {
-    e.preventDefault();
-    const newUser = {
-      receipt: addReceipt.value,
-      email: addEmail.value.trim(),
-      password: addPassword.value,
-      plan: addPlan.value.trim(),
-      date: new Date().toISOString().slice(0,10),
-      status: addStatus.value || 'active'
-    };
-    users.unshift(newUser);
-    applyFilters();
-    hideModal(addModal);
-  });
+      function hideModal(modal) {
+        modal.classList.remove('show');
+        document.body.classList.remove('no-scroll');
+      }
 
-  cancelAdd.addEventListener('click', (e) => {
-    e.preventDefault();
-    hideModal(addModal);
-  });
+      function clearErrors(form) {
+        form.querySelectorAll('input, select').forEach(el => {
+          el.classList.remove('error');
+        });
+        form.querySelectorAll('.error-message').forEach(el => {
+          el.classList.remove('show');
+          el.textContent = '';
+        });
+      }
 
-  addModal.addEventListener('click', (e) => { if (e.target === addModal) hideModal(addModal); });
+      function showError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        const errorDiv = document.getElementById(fieldId + 'Error');
+        if (field) field.classList.add('error');
+        if (errorDiv) {
+          errorDiv.textContent = message;
+          errorDiv.classList.add('show');
+        }
+      }
 
-  /* Delete modal wiring (optional) */
-  const deleteModal = document.getElementById('deleteModal');
-  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-  const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-  let deleteTargetId = null;
+      function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+      }
 
-  function showDelete(message, id) {
-    deleteTargetId = id;
-    document.getElementById('deleteMessage').textContent = message;
-    deleteModal.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('no-scroll');
-  }
-  function hideDelete() {
-    deleteModal.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('no-scroll');
-    deleteTargetId = null;
-  }
+      function validateForm(email, password, plan, payment, prefix) {
+        let isValid = true;
+        clearErrors(document.getElementById(prefix + 'Form'));
 
-  confirmDeleteBtn && confirmDeleteBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (!deleteTargetId) { hideDelete(); return; }
-    users = users.filter(u => u.receipt !== deleteTargetId);
-    applyFilters();
-    hideDelete();
-  });
-  cancelDeleteBtn && cancelDeleteBtn.addEventListener('click', (e) => { e.preventDefault(); hideDelete(); });
-  deleteModal && deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) hideDelete(); });
+        if (!email || email.trim() === '') {
+          showError(prefix + 'Email', 'Email is required');
+          isValid = false;
+        } else if (!validateEmail(email)) {
+          showError(prefix + 'Email', 'Please enter a valid email address');
+          isValid = false;
+        }
 
-  /* Delegated actions for View / Edit */
-  document.addEventListener('click', (e) => {
-    const editBtn = e.target.closest && e.target.closest('.edit');
-    if (editBtn) {
-      const id = editBtn.dataset.id;
-      openEdit(id);
-      return;
-    }
-    const viewBtn = e.target.closest && e.target.closest('.view');
-    if (viewBtn) {
-      // intentionally no function yet
-      return;
-    }
-  });
+        if (!password || password.trim() === '') {
+          showError(prefix + 'Password', 'Password is required');
+          isValid = false;
+        } else if (password.length < 6) {
+          showError(prefix + 'Password', 'Password must be at least 6 characters');
+          isValid = false;
+        }
 
-  /* helpers */
-  function escapeHtml(str) {
-    if (str == null) return '';
-    return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
-  }
-  function maskPassword(p) { if (!p) return ''; return '•'.repeat(Math.min(8, p.length)); }
-  function capitalize(s) { if (!s) return ''; return s.charAt(0).toUpperCase() + s.slice(1); }
+        if (!plan || plan === '') {
+          showError(prefix + 'Plan', 'Please select a plan');
+          isValid = false;
+        }
 
-});
+        if (!payment || payment === '') {
+          showError(prefix + 'Payment', 'Please select a payment method');
+          isValid = false;
+        }
+
+        return isValid;
+      }
+
+      function openEditFor(receipt) {
+        const user = users.find(u => u.receipt === receipt);
+        if (!user) return;
+        
+        editReceipt.value = user.receipt;
+        editEmail.value = user.email;
+        editPassword.value = user.password || '';
+        editPlan.value = user.plan || '';
+        editPayment.value = user.payment || '';
+        clearErrors(editForm);
+        showModal(editModal);
+      }
+
+      confirmEdit.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        const email = editEmail.value.trim();
+        const password = editPassword.value;
+        const plan = editPlan.value;
+        const payment = editPayment.value;
+
+        if (!validateForm(email, password, plan, payment, 'edit')) {
+          return;
+        }
+
+        const receipt = editReceipt.value;
+        const idx = users.findIndex(u => u.receipt === receipt);
+        if (idx >= 0) {
+          users[idx].email = email;
+          users[idx].password = password;
+          users[idx].plan = plan;
+          users[idx].payment = payment;
+          applyFilters();
+        }
+        hideModal(editModal);
+      });
+
+      cancelEdit.addEventListener('click', () => {
+        hideModal(editModal);
+      });
+
+      editModal.addEventListener('click', (e) => {
+        if (e.target === editModal) hideModal(editModal);
+      });
+
+      addUserBtn.addEventListener('click', () => {
+        addReceipt.value = String(nextId);
+        addEmail.value = '';
+        addPassword.value = '';
+        addPlan.value = '';
+        addPayment.value = '';
+        clearErrors(addForm);
+        showModal(addModal);
+      });
+
+      confirmAdd.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        const email = addEmail.value.trim();
+        const password = addPassword.value;
+        const plan = addPlan.value;
+        const payment = addPayment.value;
+
+        if (!validateForm(email, password, plan, payment, 'add')) {
+          return;
+        }
+
+        const newUser = {
+          receipt: addReceipt.value,
+          email: email,
+          password: password,
+          plan: plan,
+          payment: payment
+        };
+        users.unshift(newUser);
+        nextId++;
+        applyFilters();
+        hideModal(addModal);
+      });
+
+      cancelAdd.addEventListener('click', () => {
+        hideModal(addModal);
+      });
+
+      addModal.addEventListener('click', (e) => {
+        if (e.target === addModal) hideModal(addModal);
+      });
+
+      // Delete modal
+      const deleteModal = document.getElementById('deleteModal');
+      const deleteMessage = document.getElementById('deleteMessage');
+      const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+      const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+      let deleteTargetId = null;
+
+      function showDeleteModal(message) {
+        deleteMessage.textContent = message || 'Are you sure you want to delete this user?';
+        showModal(deleteModal);
+        setTimeout(() => confirmDeleteBtn && confirmDeleteBtn.focus(), 80);
+      }
+
+      function hideDeleteModal() {
+        hideModal(deleteModal);
+        deleteTargetId = null;
+      }
+
+      confirmDeleteBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!deleteTargetId) { 
+          hideDeleteModal(); 
+          return; 
+        }
+        users = users.filter(u => u.receipt !== deleteTargetId);
+        applyFilters();
+        hideDeleteModal();
+      });
+
+      cancelDeleteBtn.addEventListener('click', () => {
+        hideDeleteModal();
+      });
+
+      deleteModal.addEventListener('click', (e) => {
+        if (e.target === deleteModal) hideDeleteModal();
+      });
+
+      // Table actions
+      tbody.addEventListener('click', (e) => {
+        const editBtn = e.target.closest('.edit');
+        if (editBtn) {
+          const id = editBtn.dataset.id;
+          openEditFor(id);
+          return;
+        }
+
+        const delBtn = e.target.closest('.delete');
+        if (delBtn) {
+          const id = delBtn.dataset.id;
+          deleteTargetId = id;
+          showDeleteModal('Delete user ' + id + '? This action cannot be undone.');
+          return;
+        }
+      });
+
+      // ESC key
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape') {
+          if (editModal.classList.contains('show')) hideModal(editModal);
+          if (addModal.classList.contains('show')) hideModal(addModal);
+          if (deleteModal.classList.contains('show')) hideDeleteModal();
+        }
+      });
+
+    })();
