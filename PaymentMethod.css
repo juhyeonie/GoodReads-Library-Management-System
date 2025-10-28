@@ -7,7 +7,7 @@
   --card:#fff;
   --radius:12px;
   --shadow: 0 6px 20px rgba(16,24,40,0.06);
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-family: 'Gordita', 'Segoe UI', Roboto, sans-serif; 
 }
 
 *{box-sizing:border-box}
@@ -20,7 +20,8 @@ body{
   min-height:100vh;
 }
 
-.header {
+/* HEADER */
+.header { 
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -38,16 +39,35 @@ body{
 .logo img {
     width: 200px;
 }
-.SigninButton{
-  background: rgba(15,41,66,0.95);
-  color:white;
-  border:none;
-  padding:8px 14px;
-  border-radius:6px;
-  cursor:pointer;
-  font-weight:600;
+
+.back-container {
+  width: 100%;
+  padding: 20px 40px;
 }
 
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: 0.3s ease;
+  color: #333;
+  font-family: 'Gordita', 'Segoe UI', Roboto, sans-serif;
+}
+
+.back-btn:hover {
+  background: rgba(0,0,0,0.06);
+}
+
+.back-btn:active {
+  transform: translateY(1px);
+}
 .layout{
   max-width:1200px;
   margin:36px auto;
@@ -58,7 +78,16 @@ body{
 .left{flex:1; min-width:360px}
 .right{width:420px}
 
-.step-text{color:var(--muted); font-size:13px; margin-bottom:8px}
+.step-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e3c72;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
+  margin-top: -5gpx; /* 👈 Moves it upward */
+}
 .title{font-size:30px; color: #113045; margin:6px 0 22px}
 .payment-form{display:flex; flex-direction:column; gap:14px}
 .label{font-weight:700; color:#20323e; font-size:14px}
@@ -130,3 +159,4 @@ body{
   .layout{flex-direction:column}
   .right{width:100%}
 }
+
