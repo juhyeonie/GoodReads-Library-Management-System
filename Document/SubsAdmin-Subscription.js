@@ -73,17 +73,19 @@
       });
     })();
 
-    // Modal functionality
+    // Modal functionality with dynamic features
     (function() {
       const modal = document.getElementById('editPlanModal');
       const form = document.getElementById('editPlanForm');
       const nameInput = document.getElementById('planNameInput');
       const priceInput = document.getElementById('priceInput');
-      const descInput = document.getElementById('descInput');
+      const featuresList = document.getElementById('featuresList');
+      const addFeatureBtn = document.getElementById('addFeatureBtn');
       const confirmBtn = document.getElementById('confirmEdit');
       const cancelBtn = document.getElementById('cancelEdit');
 
       let activeCard = null;
+      let featureCounter = 0;
 
       function showModal() {
         if (!modal) return;
@@ -99,6 +101,30 @@
         activeCard = null;
       }
 
+      function createFeatureItem(text = '') {
+        const div = document.createElement('div');
+        div.className = 'feature-item';
+        div.dataset.featureId = featureCounter++;
+        
+        div.innerHTML = `
+          <span class="check-icon">✔</span>
+          <input type="text" class="feature-input" placeholder="Enter feature description" value="${text}" />
+          <button type="button" class="delete-feature">Delete</button>
+        `;
+
+        div.querySelector('.delete-feature').addEventListener('click', () => {
+          div.remove();
+        });
+
+        return div;
+      }
+
+      addFeatureBtn.addEventListener('click', () => {
+        const newFeature = createFeatureItem();
+        featuresList.appendChild(newFeature);
+        newFeature.querySelector('.feature-input').focus();
+      });
+
       // Open modal when edit button is clicked
       document.addEventListener('click', (e) => {
         const btn = e.target.closest('.edit-btn');
@@ -108,13 +134,20 @@
         if (!card) return;
         activeCard = card;
 
-        const titleEl = card.querySelector('.plan-header');
-        const priceEl = card.querySelector('.price');
-        const detailsEl = card.querySelector('.details');
+        const titleEl = card.querySelector('.plan-title');
+        const priceEl = card.querySelector('.plan-price');
+        const featuresEl = card.querySelectorAll('.plan-features li');
 
         if (nameInput) nameInput.value = titleEl ? titleEl.textContent.trim() : '';
         if (priceInput) priceInput.value = priceEl ? priceEl.textContent.trim() : '';
-        if (descInput) descInput.value = detailsEl ? detailsEl.textContent.trim() : '';
+
+        // Clear and populate features
+        featuresList.innerHTML = '';
+        featuresEl.forEach(li => {
+          const featureText = li.textContent.trim();
+          const featureItem = createFeatureItem(featureText);
+          featuresList.appendChild(featureItem);
+        });
 
         showModal();
       });
@@ -124,13 +157,26 @@
         evt.preventDefault();
         if (!activeCard) return hideModal();
 
-        const titleEl = activeCard.querySelector('.plan-header');
-        const priceEl = activeCard.querySelector('.price');
-        const detailsEl = activeCard.querySelector('.details');
+        const titleEl = activeCard.querySelector('.plan-title');
+        const priceEl = activeCard.querySelector('.plan-price');
+        const featuresUl = activeCard.querySelector('.plan-features');
 
-        if (titleEl) titleEl.textContent = nameInput.value.trim() || 'Untitled';
-        if (priceEl) priceEl.textContent = priceInput.value.trim() || '';
-        if (detailsEl) detailsEl.textContent = descInput.value.trim() || '';
+        if (titleEl) titleEl.textContent = nameInput.value.trim() || 'Untitled Plan';
+        if (priceEl) priceEl.textContent = priceInput.value.trim() || '₱0 / month';
+
+        // Update features
+        if (featuresUl) {
+          featuresUl.innerHTML = '';
+          const featureInputs = featuresList.querySelectorAll('.feature-input');
+          featureInputs.forEach(input => {
+            const value = input.value.trim();
+            if (value) {
+              const li = document.createElement('li');
+              li.textContent = value;
+              featuresUl.appendChild(li);
+            }
+          });
+        }
 
         hideModal();
       });
