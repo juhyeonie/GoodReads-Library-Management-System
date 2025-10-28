@@ -1,14 +1,13 @@
 console.log('SuperAdmin-User.js loaded');
 
-// Sidebar behavior (omitted for brevity, assume this section is unchanged)
+// Sidebar behavior
 (function() {
-    // ... (Your existing sidebar code remains here) ...
     const sidebar = document.getElementById('sidebar');
     const menuToggle = document.getElementById('menuToggle');
     const collapseBtn = document.getElementById('collapseBtn');
     const mainContent = document.getElementById('mainContent');
     const overlay = document.getElementById('sidebarOverlay');
-    
+
     const COLLAPSED_KEY = 'sidebar_collapsed';
     const MOBILE_BREAKPOINT = 768;
 
@@ -114,6 +113,13 @@ console.log('SuperAdmin-User.js loaded');
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
     let deleteTargetId = null;
 
+    // --- NEW: Receipt Modal Elements ---
+    const viewReceiptModal = document.getElementById('viewReceiptModal');
+    const receiptContent = document.getElementById('receiptContent');
+    const closeReceiptBtn = document.getElementById('closeReceiptBtn');
+    // --- End New Receipt Elements ---
+
+
     // --- Utility Functions ---
     function escapeHtml(str) {
         if (str == null) return '';
@@ -121,13 +127,11 @@ console.log('SuperAdmin-User.js loaded');
             '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
         }[s]));
     }
-    
-    // Updated to match database/UI inconsistencies if needed. Use DB values directly.
+
     function formatPaymentMethod(method) {
         return method || 'N/A'; // Directly display DB value or 'N/A' if null/empty
     }
 
-    // Displays the plan name directly from the DB ("Basic Plan", "Standard Plan", etc.)
     function formatPlan(plan) {
         return plan || 'N/A';
     }
@@ -170,13 +174,13 @@ console.log('SuperAdmin-User.js loaded');
             const tr = document.createElement('tr');
             // Use AccountID from database
             tr.innerHTML = `
-              <td>${escapeHtml(u.AccountID)}</td> 
+              <td>${escapeHtml(u.AccountID)}</td>
               <td>${escapeHtml(u.Email)}</td>
               <td>${escapeHtml(formatPlan(u.Plan))}</td>
               <td>${escapeHtml(formatPaymentMethod(u.Payment_Method))}</td>
               <td>
                 <div class="actions">
-                  <button class="pill view" data-id="${escapeHtml(u.AccountID)}">View</button> 
+                  <button class="pill view" data-id="${escapeHtml(u.AccountID)}">View</button>
                   <button class="pill edit" data-id="${escapeHtml(u.AccountID)}">Edit</button>
                   <button class="pill delete" data-id="${escapeHtml(u.AccountID)}">Delete</button>
                 </div>
@@ -201,7 +205,7 @@ console.log('SuperAdmin-User.js loaded');
         if (field) field.classList.add('error');
         if (errorDiv) { errorDiv.textContent = message; errorDiv.classList.add('show'); }
     }
-    
+
     // Display server-side validation errors
     function displayServerErrors(errors, prefix) {
          clearErrors(document.getElementById(prefix + 'Form'));
@@ -209,7 +213,7 @@ console.log('SuperAdmin-User.js loaded');
              // Map backend keys to frontend IDs (adjust if needed)
              let fieldId = prefix + key.charAt(0).toUpperCase() + key.slice(1);
              if (key === 'database' || key === 'general') { // Handle general errors
-                 alert(`Server Error: ${errors[key]}`); 
+                 alert(`Server Error: ${errors[key]}`);
              } else {
                  showError(fieldId, errors[key]);
              }
@@ -225,11 +229,11 @@ console.log('SuperAdmin-User.js loaded');
         const prefix = isEdit ? 'edit' : 'add';
         clearErrors(document.getElementById(prefix + 'Form'));
 
-        if (!email) { showError(prefix + 'Email', 'Email is required'); isValid = false; } 
+        if (!email) { showError(prefix + 'Email', 'Email is required'); isValid = false; }
         else if (!validateEmail(email)) { showError(prefix + 'Email', 'Invalid email'); isValid = false; }
 
         // Password required for ADD, optional for EDIT
-        if (!isEdit && !password) { showError(prefix + 'Password', 'Password is required'); isValid = false; } 
+        if (!isEdit && !password) { showError(prefix + 'Password', 'Password is required'); isValid = false; }
         else if (password && password.length < 6) { showError(prefix + 'Password', 'Password must be >= 6 chars'); isValid = false; }
 
         if (!plan) { showError(prefix + 'Plan', 'Plan is required'); isValid = false; }
@@ -248,7 +252,7 @@ console.log('SuperAdmin-User.js loaded');
         editUserIdInput.value = user.AccountID;
         editEmail.value = user.Email;
         editPassword.value = ''; // Clear password field for security - only set if changing
-        editPlan.value = user.Plan; 
+        editPlan.value = user.Plan;
         editPayment.value = user.Payment_Method || ''; // Handle potential null
         clearErrors(editForm);
         showModal(editModal);
@@ -384,6 +388,88 @@ console.log('SuperAdmin-User.js loaded');
     deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) hideDeleteModal(); });
 
 
+    // --- NEW: Receipt View Logic ---
+    async function openReceiptModal(accountId) {
+        if (!viewReceiptModal || !receiptContent) return;
+
+        // Show loading state
+        receiptContent.innerHTML = `<p style="text-align: center; padding: 40px; color: #888;">Loading receipt...</p>`;
+        showModal(viewReceiptModal);
+
+        try {
+            const response = await fetch(`Backend/fetch_receipt.php?accountId=${accountId}`);
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to load receipt data.');
+            }
+
+            const r = data.receipt; // Receipt data object
+
+            // Build receipt HTML using template similar to Paymentreceipt.html
+            receiptContent.innerHTML = `
+                <div class="receipt-container" style="border: none; padding: 0;"> <hr class="top-line" style="border-top: 2px dashed #333; margin: 10px 0;">
+                    <h2 style="text-align: center; margin: 15px 0; font-size: 18px; font-weight: 600;">SUBSCRIPTION RECEIPT</h2>
+                    <hr class="divider" style="border-top: 2px dashed #333; margin: 10px 0;">
+
+                    <div class="section" style="margin: 15px 0; line-height: 1.7;">
+                      <p><span style="font-weight: 500;">Receipt no.</span> : ${escapeHtml(r.receiptNo)}</p>
+                      <p><span style="font-weight: 500;">Date & Time</span> : ${escapeHtml(r.dateTime)}</p>
+                      <p><span style="font-weight: 500;">Email</span> : ${escapeHtml(r.email)}</p>
+                    </div>
+
+                    <hr class="divider" style="border-top: 2px dashed #333; margin: 10px 0;">
+
+                    <div class="section" style="margin: 15px 0; line-height: 1.7;">
+                      <p><span style="font-weight: 500;">Subscription Plan</span> : ${escapeHtml(r.planName)}</p>
+                      ${r.planName !== 'Basic Plan' ? `
+                      <p><span style="font-weight: 500;">Plan Duration</span> : ${escapeHtml(r.planDuration)}</p>
+                      <p><span style="font-weight: 500;">Start Date</span> : ${escapeHtml(r.startDate)}</p>
+                      <p><span style="font-weight: 500;">Expiry Date</span> : ${escapeHtml(r.expiryDate)}</p>
+                      ` : ''}
+                    </div>
+
+                    <hr class="divider" style="border-top: 2px dashed #333; margin: 10px 0;">
+
+                    <div class="section" style="margin: 15px 0; line-height: 1.7;">
+                      <p><span style="font-weight: 500;">Amount Paid</span> : ${escapeHtml(r.amountPaid)}</p>
+                      <p><span style="font-weight: 500;">Payment Method</span> : ${escapeHtml(r.paymentMethod)}</p>
+                      ${r.planName !== 'Basic Plan' ? `
+                      <p><span style="font-weight: 500;">Payment Status</span> : ${escapeHtml(r.paymentStatus)}</p>
+                      ` : ''}
+                    </div>
+
+                    <hr class="divider" style="border-top: 2px dashed #333; margin: 10px 0;">
+
+                    <p class="note" style="font-size: 14px; text-align: center; margin: 15px 0;">
+                      ${r.planName !== 'Basic Plan' ? 'This receipt serves as proof of subscription.' : 'This user is on the Basic Plan.'}
+                    </p>
+
+                    <hr class="bottom-line" style="border-top: 2px dashed #333; margin: 10px 0;">
+
+                    <p class="footer-note" style="text-align: center; font-size: 13px; margin-top: 10px; color: #333;">
+                      * This is a system-generated receipt.
+                    </p>
+                </div>
+            `;
+
+        } catch (err) {
+            console.error("View Receipt Error:", err);
+            receiptContent.innerHTML = `<p style="text-align: center; padding: 40px; color: red;">Error: ${err.message}</p>`;
+        }
+    }
+
+    // Listener for the close button on the receipt modal
+    if (closeReceiptBtn) {
+        closeReceiptBtn.addEventListener('click', () => hideModal(viewReceiptModal));
+    }
+    // Allow clicking overlay to close receipt modal
+     if (viewReceiptModal) {
+        viewReceiptModal.addEventListener('click', (e) => { if (e.target === viewReceiptModal) hideModal(viewReceiptModal); });
+    }
+    // --- End New Receipt Logic ---
+
+
     // --- Table Action Listeners (Edit/Delete/View) ---
     tbody.addEventListener('click', (e) => {
         const targetButton = e.target.closest('button.pill');
@@ -397,8 +483,8 @@ console.log('SuperAdmin-User.js loaded');
         } else if (targetButton.classList.contains('delete')) {
             showDeleteModal(userId, user ? user.Email : userId);
         } else if (targetButton.classList.contains('view')) {
-            // Implement view logic if needed (e.g., redirect to user profile)
-            alert(`Viewing user ID: ${userId}`);
+            // --- UPDATED: Call the new function ---
+            openReceiptModal(userId);
         }
     });
 
@@ -416,6 +502,8 @@ console.log('SuperAdmin-User.js loaded');
             if (editModal.classList.contains('show')) hideModal(editModal);
             if (addModal.classList.contains('show')) hideModal(addModal);
             if (deleteModal.classList.contains('show')) hideDeleteModal();
+            // --- UPDATED ---
+            if (viewReceiptModal && viewReceiptModal.classList.contains('show')) hideModal(viewReceiptModal);
         }
     });
 
@@ -428,14 +516,14 @@ console.log('SuperAdmin-User.js loaded');
 document.addEventListener('DOMContentLoaded', () => {
     const planSelects = document.querySelectorAll('#editPlan, #addPlan');
     const filterPlanSelect = document.getElementById('filterSelect');
-    
+
     // Correct options based on your database
     const planOptions = [
         { value: 'Basic Plan', text: 'Basic Plan' },
         { value: 'Standard Plan', text: 'Standard Plan' },
         { value: 'Premium Plan', text: 'Premium Plan' }
     ];
-    
+
     // Update Add/Edit modal dropdowns
     planSelects.forEach(select => {
         // Clear existing options except the placeholder
@@ -456,12 +544,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // Add correct plan options
         planOptions.forEach(opt => {
-            // Use lowercase with space for filter value? Let's use exact DB value
-            filterPlanSelect.add(new Option(opt.text, opt.value)); 
+            filterPlanSelect.add(new Option(opt.text, opt.value));
         });
         // Add status options
         filterPlanSelect.add(new Option('Expired', 'expired'));
-        filterPlanSelect.add(new Option('Cancelled', 'cancelled')); // Assuming 'Cancelled' is a possible status
-        filterPlanSelect.add(new Option('Downgraded', 'downgraded')); // Add if needed
+        // Assuming 'Cancelled' is NOT a Plan_Status in your DB, removing it
+        // filterPlanSelect.add(new Option('Cancelled', 'cancelled')); 
+        filterPlanSelect.add(new Option('Downgraded', 'downgraded')); // Add if needed based on auth.php logic
     }
 });

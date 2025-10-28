@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GoodReads | Customer Management</title>
-  <link rel="stylesheet" href="SuperAdmin-User.css" />  
+  <link rel="stylesheet" href="SuperAdmin-User.css" />
 </head>
 <body>
 
@@ -131,7 +131,8 @@
               <option value="Gcash">GCash</option>
               <option value="Maya">Maya</option>
               <option value="Paypal">PayPal</option>
-              <option value="Free Plan">Free Plan</option> </select>
+              <option value="Free Plan">Free Plan</option>
+            </select>
             <div class="error-message" id="editPaymentError"></div>
           </div>
           <input type="hidden" id="editReceipt" name="receipt"> </form>
@@ -175,7 +176,8 @@
               <option value="Gcash">GCash</option>
               <option value="Maya">Maya</option>
               <option value="Paypal">PayPal</option>
-              <option value="Free Plan">Free Plan</option> </select>
+              <option value="Free Plan">Free Plan</option>
+            </select>
             <div class="error-message" id="addPaymentError"></div>
           </div>
           </form>
@@ -197,6 +199,22 @@
         <div class="confirm-actions">
           <button id="confirmDeleteBtn" class="btn confirm" type="button">YES, DELETE</button>
           <button id="cancelDeleteBtn" class="btn cancel" type="button">CANCEL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewReceiptModal" class="modal-overlay">
+    <div class="modal-box receipt-modal-box">
+      <div class="modal-topbar"></div>
+      <div class="modal-body receipt-modal-body">
+        <div id="receiptContent" class="receipt-content-area">
+          <p style="text-align: center; padding: 40px; color: #888;">Loading receipt...</p>
+        </div>
+      </div>
+      <div class="modal-bottombar">
+        <div class="modal-actions">
+          <button id="closeReceiptBtn" class="btn cancel" type="button">CLOSE</button>
         </div>
       </div>
     </div>
