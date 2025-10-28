@@ -1,6 +1,6 @@
 console.log('SubsAdmin-Subscription.js loaded');
 
-// Sidebar behavior
+// Sidebar behavior (omitted for brevity, assume this section is unchanged)
 (function() {
   const sidebar = document.getElementById('sidebar');
   const menuToggle = document.getElementById('menuToggle');
@@ -87,9 +87,7 @@ console.log('SubsAdmin-Subscription.js loaded');
   const cancelBtn = document.getElementById('cancelEdit');
   const plansContainer = document.querySelector('.plans');
 
-  // This will hold the original name of the plan being edited
   let originalPlanName = null;
-  // This will store all plan data from the DB
   let allPlansData = [];
 
   /**
@@ -101,48 +99,55 @@ console.log('SubsAdmin-Subscription.js loaded');
       const data = await response.json();
 
       if (!data.success) {
-        throw new Error(data.message || 'Failed to fetch plans.');
+        // UPDATED: Pass the new debug message to the catch block
+        const error = new Error(data.message || 'Failed to fetch plans.');
+        error.serverMessage = data.debug_error || 'No debug info available.';
+        throw error;
       }
 
-      allPlansData = data.plans; // Store data globally
+      allPlansData = data.plans;
       renderPlans(allPlansData);
 
     } catch (err) {
-      console.error('loadPlans error:', err);
+      console.error('loadPlans error:', err.message); // The generic message
+
+      // UPDATED: Print the precise server error
+      if (err.serverMessage) {
+        console.error('--- PRECISE SERVER ERROR ---');
+        console.error(err.serverMessage);
+        console.error('----------------------------');
+      }
+      
       plansContainer.innerHTML = `<p style="color: red;">Error: ${err.message}</p>`;
     }
   }
 
   /**
    * 2. RENDER PLANS ON THE PAGE
-   * This function builds the HTML for each plan card.
    */
   function renderPlans(plans) {
     if (!plansContainer) return;
-    plansContainer.innerHTML = ''; // Clear static/old content
+    plansContainer.innerHTML = ''; 
 
     plans.forEach(plan => {
       const planEl = document.createElement('div');
       planEl.className = 'plan-card';
       
-      // Add special classes based on plan name
-      const planKey = plan.PlanName.toLowerCase().split(' ')[0]; // 'basic plan' -> 'basic'
+      const planKey = plan.PlanName.toLowerCase().split(' ')[0];
       planEl.classList.add(planKey);
       
       if (planKey === 'standard') {
         planEl.classList.add('highlight');
       }
 
-      // Format price
       const priceText = `₱${parseFloat(plan.Price).toFixed(0)} / month`;
       
-      // Build features list
       let featuresHTML = '';
+      // This will be empty now, but that's okay for testing
       plan.features.forEach(feature => {
         featuresHTML += `<li>${escapeHTML(feature.FeatureText)}</li>`;
       });
 
-      // Set all HTML
       planEl.innerHTML = `
         ${planKey === 'standard' ? '<div class="ribbon">Most Popular</div>' : ''}
         <h3 class="plan-title">${escapeHTML(plan.PlanName)}</h3>
@@ -153,7 +158,6 @@ console.log('SubsAdmin-Subscription.js loaded');
         <button class="edit-btn">Edit</button>
       `;
 
-      // Add event listener for the new "Edit" button
       planEl.querySelector('.edit-btn').addEventListener('click', () => {
         openEditModal(plan.PlanName);
       });
@@ -166,17 +170,14 @@ console.log('SubsAdmin-Subscription.js loaded');
    * 3. OPEN AND POPULATE THE EDIT MODAL
    */
   function openEditModal(planName) {
-    // Find the plan data from our stored array
     const plan = allPlansData.find(p => p.PlanName === planName);
     if (!plan) return;
 
-    originalPlanName = plan.PlanName; // Store the original name for the update query
+    originalPlanName = plan.PlanName;
 
-    // Populate modal fields
     nameInput.value = plan.PlanName;
     priceInput.value = `₱${parseFloat(plan.Price).toFixed(0)} / month`;
 
-    // Populate features list
     featuresList.innerHTML = '';
     plan.features.forEach(feature => {
       const featureItem = createFeatureItem(feature.FeatureText, feature.FeatureID);
@@ -194,7 +195,6 @@ console.log('SubsAdmin-Subscription.js loaded');
     confirmBtn.disabled = true;
     confirmBtn.textContent = 'SAVING...';
 
-    // 1. Collect all data from the form
     const newPlanName = nameInput.value.trim();
     const newPrice = priceInput.value.trim();
     
@@ -207,7 +207,6 @@ console.log('SubsAdmin-Subscription.js loaded');
       }
     });
 
-    // 2. Prepare data for JSON payload
     const updateData = {
       originalPlanName: originalPlanName,
       newPlanName: newPlanName,
@@ -215,7 +214,6 @@ console.log('SubsAdmin-Subscription.js loaded');
       features: features
     };
 
-    // 3. Send to backend
     try {
       const response = await fetch('Backend/plan_update.php', {
         method: 'POST',
@@ -229,13 +227,12 @@ console.log('SubsAdmin-Subscription.js loaded');
         throw new Error(result.message || 'Failed to save changes.');
       }
 
-      // 4. Success: Hide modal and reload all plans from DB
       hideModal();
-      loadPlans(); // Reload the page with fresh data
+      loadPlans();
 
     } catch (err) {
       console.error('handleConfirmEdit error:', err);
-      alert(`Error: ${err.message}`); // Show error to user
+      alert(`Error: ${err.message}`);
     } finally {
       confirmBtn.disabled = false;
       confirmBtn.textContent = 'CONFIRM';
@@ -259,11 +256,9 @@ console.log('SubsAdmin-Subscription.js loaded');
     originalPlanName = null;
   }
 
-  // Creates a single feature item row in the modal
   function createFeatureItem(text = '', featureId = null) {
     const div = document.createElement('div');
     div.className = 'feature-item';
-    // Store the database ID, or mark as 'new'
     div.dataset.featureId = featureId || `new_${Date.now()}`;
     
     div.innerHTML = `
@@ -279,7 +274,6 @@ console.log('SubsAdmin-Subscription.js loaded');
     return div;
   }
 
-  // Utility to prevent XSS
   function escapeHTML(str) {
     return String(str).replace(/[&<>"']/g, s => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -289,35 +283,29 @@ console.log('SubsAdmin-Subscription.js loaded');
 
   // --- Init & Event Listeners ---
 
-  // Add listener for the "+ Add Feature" button
   addFeatureBtn.addEventListener('click', () => {
     const newFeature = createFeatureItem();
     featuresList.appendChild(newFeature);
     newFeature.querySelector('.feature-input').focus();
   });
 
-  // Main save button
   confirmBtn.addEventListener('click', handleConfirmEdit);
 
-  // Cancel button
   cancelBtn.addEventListener('click', (e) => { 
     e.preventDefault(); 
     hideModal(); 
   });
 
-  // Click overlay to close
   modal.addEventListener('click', (e) => { 
     if (e.target === modal) hideModal(); 
   });
 
-  // Escape to close
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && modal.classList.contains('show')) {
       hideModal();
     }
   });
 
-  // Prevent form submit
   form.addEventListener('submit', (e) => e.preventDefault());
 
   // Initial load
