@@ -49,8 +49,8 @@ if (!empty($errors)) {
 }
 
 try {
-    // FIX: Removed FullName from the SELECT list because the table is missing it.
-    $stmt = $pdo->prepare('SELECT AccountID, Email, Password, Role, Status, Plan, SubsEnd FROM ACCOUNT WHERE Email = ? LIMIT 1');
+    // FIX 1: Removed FullName, Added Plan_Status to SELECT
+    $stmt = $pdo->prepare('SELECT AccountID, Email, Password, Role, Plan_Status, Plan, SubsEnd FROM ACCOUNT WHERE Email = ? LIMIT 1');
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -65,7 +65,6 @@ try {
     $ok = false;
 
     // Password Verification (using password_verify for hashes, fallback for plaintext)
-    // Checks hash first, then plain-text (for legacy)
     if (password_verify($password, $stored) || $password === $stored) {
         $ok = true;
     }
@@ -81,7 +80,7 @@ try {
     $isSubscriptionExpired = false;
 
     // --- Subscription Expiration Logic (Only for Users/Customers) ---
-    if (strcasecmp($user['Role'], 'User') === 0 || strcasecmp($user['Role'], 'Customer') === 0) {
+    if (strcasecmp($user['Role'], 'Customer') === 0 || strcasecmp($user['Role'], 'User') === 0) { // Renamed from User/Customer
 
         $subsEndTimestamp = strtotime($user['SubsEnd']);
         $todayTimestamp = strtotime(date('Y-m-d'));
@@ -93,13 +92,13 @@ try {
                 $isSubscriptionExpired = true;
                 $currentPlan = 'Basic'; // Downgrade to Basic
 
-                // Update the database to reflect the new Basic plan
-                $updateStmt = $pdo->prepare('UPDATE ACCOUNT SET Plan = ?, SubsEnd = NULL, SubsStarted = NULL, Status = ? WHERE AccountID = ?');
+                // FIX 2: Updated column name from Status to Plan_Status
+                $updateStmt = $pdo->prepare('UPDATE ACCOUNT SET Plan = ?, SubsEnd = NULL, SubsStarted = NULL, Plan_Status = ? WHERE AccountID = ?');
                 $updateStmt->execute(['Basic', 'Downgraded', $user['AccountID']]);
 
                 // Update the user array for the session and response
                 $user['Plan'] = 'Basic';
-                $user['Status'] = 'Downgraded';
+                $user['Plan_Status'] = 'Downgraded';
             }
         }
     }
@@ -112,10 +111,10 @@ try {
         'AccountID' => $user['AccountID'],
         'Email'     => $user['Email'],
         'Role'      => $user['Role'],
-        'Status'    => $user['Status'],
+        // FIX 3: Updated key from Status to Plan_Status
+        'Status'    => $user['Plan_Status'], 
         'Plan'      => $user['Plan'],
-        // NOTE: FullName is removed here too to align with the table structure
-        'FullName'  => null, 
+        'FullName'  => null,
         'logged_in_at' => date('c')
     ];
 
@@ -127,11 +126,12 @@ try {
             'AccountID' => $user['AccountID'],
             'Email' => $user['Email'],
             'Role' => $user['Role'],
-            'Status' => $user['Status'],
+            // FIX 4: Updated key from Status to Plan_Status
+            'Status' => $user['Plan_Status'], 
             'Plan' => $user['Plan'], // New plan status
             'OriginalPlan' => $originalPlan, // Original plan for client-side message
             'IsExpired' => $isSubscriptionExpired, // Flag for client
-            'FullName' => null // NOTE: FullName is null since it's not in the table
+            'FullName' => null
         ]
     ]);
     exit;
