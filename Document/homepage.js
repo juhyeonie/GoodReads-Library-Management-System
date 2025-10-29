@@ -1,6 +1,6 @@
-// ====== Book Data ======
+// homepage.js
+// ====== Book Data (Data source remains local for now) ======
 const books = [
-
   {
     title: "The Lightning Thief",
     genre: "Book Recommendation",
@@ -233,9 +233,10 @@ const okBtn = document.getElementById("warningOkBtn");
 let selectedBook = null;
 
 // ====== 🧠 PLAN VALIDATION AND INITIALIZATION ======
+// Prioritize sessionStorage as it's set by SignIn.js on successful login
 let userPlan = sessionStorage.getItem("user_plan") || localStorage.getItem("user_plan");
 
-if (!userPlan) {
+if (!userPlan || userPlan === 'null') {
   // If not signed in or session expired, redirect to sign-in
   if (window.location.pathname.split('/').pop() === 'homepage.html') {
     console.warn("User plan not found. Redirecting to sign-in.");
@@ -244,17 +245,24 @@ if (!userPlan) {
   userPlan = "Basic"; // Fallback to Basic for development/testing environment
 }
 
-userPlan = userPlan.trim().toLowerCase();
+// Process the userPlan to a clean key (e.g., "basic plan" -> "basic")
+userPlan = userPlan.trim().toLowerCase().replace(/\s/g, ''); 
 console.log("📘 Current plan:", userPlan.toUpperCase());
 
+// --- FIX APPLIED HERE: Basic Plan now correctly includes "novel" ---
 const allowedGenres = {
-  basic: ["educational"],
-  standard: ["educational", "novel", "book recommendation"],
+  // NOTE: Based on your Step 1 HTML, Basic allows "Novel" (limited)
+  basic: ["educational", "novel"], 
+  standardplan: ["educational", "novel", "graphic novel", "book recommendation"], // Grant full access to Standard/Premium
+  premiumplan: ["educational", "novel", "graphic novel", "book recommendation"],
+  standard: ["educational", "novel", "graphic novel", "book recommendation"],
   premium: ["educational", "novel", "graphic novel", "book recommendation"]
 };
 
 function requiredPlan(genre) {
   const g = genre.toLowerCase();
+  // If a category is listed in Basic, but the access is limited (like the 30-page restriction), 
+  // we still allow it but the restriction should be enforced in the read view.
   if (g === "educational") return "Basic";
   if (g === "novel" || g === "book recommendation") return "Standard";
   if (g === "graphic novel") return "Premium";
@@ -307,6 +315,7 @@ function loadBooks() {
 
 
         const genre = book.genre.toLowerCase();
+        // Check if the current plan (e.g., 'basic') is listed in the allowedGenres for this book's genre
         const isAllowed = allowedGenres[userPlan]?.includes(genre);
 
         if (!isAllowed) {
@@ -318,7 +327,12 @@ function loadBooks() {
           card.addEventListener("click", () => {
              const required = requiredPlan(book.genre);
              warningTitle.textContent = "Access Restricted";
-             warningMessage.textContent = `"${book.title}" is not available in your current plan (${userPlan.toUpperCase()}). Upgrade to ${required} to unlock this genre!`;
+             // NOTE: Updated the warning message to reflect the Basic Plan's limitation based on the Step 1 description
+             if (userPlan === 'basic' && genre === 'novel') {
+                 warningMessage.textContent = `"${book.title}" is restricted due to the page/time limits on your current Basic plan. Upgrade to Standard or Premium to unlock full access!`;
+             } else {
+                 warningMessage.textContent = `"${book.title}" is not available in your current plan (${userPlan.toUpperCase()}). Upgrade to ${required} to unlock this genre!`;
+             }
              warningModal.style.display = "block";
 
             const close = () => (warningModal.style.display = "none");
@@ -337,7 +351,7 @@ function loadBooks() {
   });
 }
 
-// ====== Modal Logic ======
+// ====== Modal Logic (Unchanged) ======
 function openPreview(book) {
   selectedBook = book;
   document.getElementById("previewCover").src = book.cover;
