@@ -8,9 +8,7 @@
   const mainContent = document.getElementById('mainContent');
   const overlay = document.getElementById('sidebarOverlay');
 
-  function isMobile() { 
-    return window.innerWidth <= MOBILE_BREAKPOINT; 
-  }
+  function isMobile() { return window.innerWidth <= MOBILE_BREAKPOINT; }
 
   function updateLayout() {
     if (isMobile()) {
@@ -39,53 +37,18 @@
       localStorage.setItem(COLLAPSED_KEY, isCollapsed);
     });
   }
-
-  if (menuToggle) {
-    menuToggle.addEventListener('click', (e) => {
-      e.stopPropagation();
-      sidebar.classList.toggle('mobile-open');
-      overlay.classList.toggle('active');
-    });
-  }
-
-  if (overlay) {
-    overlay.addEventListener('click', () => {
-      sidebar.classList.remove('mobile-open');
-      overlay.classList.remove('active');
-    });
-  }
+  if (menuToggle) menuToggle.addEventListener('click', (e) => { e.stopPropagation(); sidebar.classList.toggle('mobile-open'); overlay.classList.toggle('active'); });
+  if (overlay) overlay.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); overlay.classList.remove('active'); });
 
   const menuLinks = sidebar.querySelectorAll('.menu-item');
-  menuLinks.forEach(link => {
-    link.addEventListener('click', () => {
-      if (isMobile()) {
-        sidebar.classList.remove('mobile-open');
-        overlay.classList.remove('active');
-      }
-    });
-  });
+  menuLinks.forEach(link => link.addEventListener('click', () => { if (isMobile()) { sidebar.classList.remove('mobile-open'); overlay.classList.remove('active'); } }));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isMobile() && sidebar.classList.contains('mobile-open')) { sidebar.classList.remove('mobile-open'); overlay.classList.remove('active'); } });
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && isMobile() && sidebar.classList.contains('mobile-open')) {
-      sidebar.classList.remove('mobile-open');
-      overlay.classList.remove('active');
-    }
-  });
+  /* ---------------- Data / API ---------------- */
+  const API_ROOT = '/GoodReads-Library-Management-System/Document/Backend/api/customers.php';
+  let nextId = 1000;
+  let customers = [];
 
-  /* ---------------- Demo data & rendering ---------------- */
-  let nextId = 1008;
-  const demoCustomers = [
-    { receipt: '1007', email: 'user8@example.com', plan: 'cancelled', payment: 'credit_card', password: 'pass8' },
-    { receipt: '1006', email: 'user7@example.com', plan: 'free', payment: 'maya', password: 'pass7' },
-    { receipt: '1005', email: 'user6@example.com', plan: 'premium', payment: 'gcash', password: 'pass6' },
-    { receipt: '1004', email: 'user5@example.com', plan: 'standard', payment: 'credit_card', password: 'pass5' },
-    { receipt: '1003', email: 'john.smith@example.com', plan: 'expired', payment: 'paypal', password: 'pass4' },
-    { receipt: '1002', email: 'jane.doe@example.com', plan: 'free', payment: 'paypal', password: 'pass3' },
-    { receipt: '1001', email: 'bob@example.com', plan: 'premium', payment: 'maya', password: 'pass2' },
-    { receipt: '1000', email: 'alice@example.com', plan: 'standard', payment: 'gcash', password: 'pass1' }
-  ];
-
-  let customers = demoCustomers.slice();
   const tbody = document.querySelector('#customersTable tbody');
 
   function escapeHtml(str) {
@@ -94,34 +57,119 @@
   }
 
   function formatPaymentMethod(method) {
-    const methods = {
-      'credit_card': 'Credit Card',
-      'gcash': 'GCash',
-      'maya': 'Maya',
-      'paypal': 'PayPal'
-    };
-    return methods[method] || method;
+    const methods = { 'credit_card': 'Credit Card', 'gcash': 'GCash', 'maya': 'Maya', 'paypal': 'PayPal' };
+    return methods[method] || method || '';
   }
 
   function formatPlan(plan) {
-    return (plan || '').charAt(0).toUpperCase() + (plan || '').slice(1);
+  if (!plan) return '';
+  const p = String(plan).toLowerCase().trim();
+  if (p === 'admin' || p === 'administrator') return ''; // hide admin
+  // pretty-print usual values (handles "premium plan" or "premium")
+  return p.replace(/\bplan\b/i, '').replace(/[_-]+/g,' ').trim().replace(/\b\w/g, c => c.toUpperCase());
+}
+
+
+ function normalizeRow(row) {
+  // raw values from DB (may be "Basic Plan", "Standard Plan", "Free Plan", "Premium Plan", "Expired", etc.)
+  const rawPlan = String(row.Plan ?? row.plan ?? row.Plan_Status ?? row.plan_status ?? '').trim();
+  const rawRole = String(row.Role ?? row.role ?? '').trim().toLowerCase();
+
+  // canonicalize plan -> one of: 'free', 'standard', 'premium', 'expired', 'cancelled', '' (unknown)
+  const planLower = rawPlan.toLowerCase();
+  let canonicalPlan = '';
+
+  if (!planLower) {
+    canonicalPlan = ''; // unknown
+  } else if (planLower.includes('free') || planLower.includes('basic')) {
+    canonicalPlan = 'free';
+  } else if (planLower.includes('standard')) {
+    canonicalPlan = 'standard';
+  } else if (planLower.includes('premium')) {
+    canonicalPlan = 'premium';
+  } else if (planLower.includes('expired')) {
+    canonicalPlan = 'expired';
+  } else if (planLower.includes('cancel')) { // cancelled / cancel
+    canonicalPlan = 'cancelled';
+  } else {
+    // fallback: sometimes Plan column may be empty and Plan_Status indicates 'Active' while PaymentMethod says 'Free Plan'
+    const paymentLower = String(row.Payment_Method ?? row.payment_method ?? row.payment ?? '').toLowerCase();
+    if (paymentLower.includes('free')) canonicalPlan = 'free';
+    else canonicalPlan = planLower; // keep original (but lowercase)
   }
 
-  function updateStats() {
-    const stats = { free:0, standard:0, premium:0, expired:0, cancelled:0 };
-    customers.forEach(c => {
-      if (stats.hasOwnProperty(c.plan)) stats[c.plan]++;
-    });
-    document.getElementById('freeCount').textContent = stats.free;
-    document.getElementById('standardCount').textContent = stats.standard;
-    document.getElementById('premiumCount').textContent = stats.premium;
-    document.getElementById('expiredCount').textContent = stats.expired;
-    document.getElementById('cancelledCount').textContent = stats.cancelled;
-  }
+  return {
+    receipt: String(row.AccountID ?? row.accountid ?? row.receipt ?? ''),
+    email: row.Email ?? row.email ?? '',
+    plan: canonicalPlan, // canonical value used everywhere
+    rawPlan: rawPlan,    // keep original text if you want to display it later
+    payment: (row.Payment_Method ?? row.payment_method ?? row.payment ?? '').toString(),
+    password: row.Password ?? row.password ?? '',
+    role: rawRole, // already lowercase
+    plan_status: (row.Plan_Status ?? row.plan_status ?? '').toString()
+  };
+}
 
-  function renderTable(filteredRows) {
-    const rows = filteredRows || customers;
+
+
+async function loadCustomersFromServer() {
+  try {
+    const res = await fetch(API_ROOT, { method: 'GET' });
+    if (!res.ok) throw new Error('Network response not ok: ' + res.status);
+    const data = await res.json();
+
+    customers = (data || [])
+      .map(normalizeRow)
+      .filter(c => {
+        const role = (c.role || '').toString().toLowerCase();
+        // Exclude specific admin roles (lowercase)
+        return role !== 'superadmin' && role !== 'subsadmin' && role !== 'useradmin';
+        // alternative: exclude any role containing "admin":
+        // return !role.includes('admin');
+      });
+
+    const numeric = customers.map(x => parseInt(x.receipt, 10)).filter(n => !isNaN(n));
+    nextId = numeric.length ? Math.max(...numeric) + 1 : nextId;
+    renderTable();
+  } catch (err) {
+    console.error('Failed to load customers', err);
+    customers = customers || [];
+    renderTable();
+  }
+}
+
+
+
+  /* ---------------- Rendering & Stats ---------------- */
+function updateStats() {
+  const stats = { free:0, standard:0, premium:0, expired:0, cancelled:0 };
+  customers.forEach(c => {
+    const p = (c.plan || '').toString().toLowerCase();
+
+    if (p === 'free') stats.free++;
+    else if (p === 'standard') stats.standard++;
+    else if (p === 'premium') stats.premium++;
+    else if (p === 'expired') stats.expired++;
+    else if (p === 'cancelled') stats.cancelled++;
+    else {
+      // fallback: if plan_status explicitly marked expired
+      if ((c.plan_status || '').toLowerCase() === 'expired') stats.expired++;
+    }
+  });
+
+  // update DOM
+  document.getElementById('freeCount').textContent = stats.free;
+  document.getElementById('standardCount').textContent = stats.standard;
+  document.getElementById('premiumCount').textContent = stats.premium;
+  document.getElementById('expiredCount').textContent = stats.expired;
+  document.getElementById('cancelledCount').textContent = stats.cancelled;
+}
+
+
+  function renderTable() {
     tbody.innerHTML = '';
+    // show newest first (AccountID desc)
+    const rows = customers.slice().sort((a,b) => Number(b.receipt) - Number(a.receipt));
     rows.forEach(u => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -141,11 +189,8 @@
     updateStats();
   }
 
-  function applyFilters() {
-    renderTable();
-  }
-
-  applyFilters();
+  // initial load
+  loadCustomersFromServer();
 
   /* ======= Edit Modal logic ======= */
   const editModal = document.getElementById('editModal');
@@ -157,20 +202,11 @@
   const confirmEdit = document.getElementById('confirmEdit');
   const cancelEdit = document.getElementById('cancelEdit');
 
-  function showEditModal() {
-    if (!editModal) return;
-    editModal.classList.add('show');
-    document.body.classList.add('no-scroll');
-    setTimeout(() => { editEmail && editEmail.focus(); }, 80);
-  }
-  function hideEditModal() {
-    if (!editModal) return;
-    editModal.classList.remove('show');
-    document.body.classList.remove('no-scroll');
-  }
+  function showEditModal() { if (!editModal) return; editModal.classList.add('show'); document.body.classList.add('no-scroll'); setTimeout(()=>editEmail && editEmail.focus(), 80); }
+  function hideEditModal() { if (!editModal) return; editModal.classList.remove('show'); document.body.classList.remove('no-scroll'); }
 
   function openEditFor(receipt) {
-    const u = customers.find(x => x.receipt === receipt);
+    const u = customers.find(x => String(x.receipt) === String(receipt));
     if (!u) return;
     editReceipt.value = u.receipt;
     editEmail.value = u.email;
@@ -180,28 +216,35 @@
     showEditModal();
   }
 
-  confirmEdit.addEventListener('click', (e) => {
+  confirmEdit.addEventListener('click', async (e) => {
     e.preventDefault();
-    const r = editReceipt.value;
-    const idx = customers.findIndex(x => x.receipt === r);
-    if (idx >= 0) {
-      customers[idx].email = editEmail.value.trim();
-      if (editPassword.value) customers[idx].password = editPassword.value;
-      customers[idx].plan = editPlan.value;
-      customers[idx].payment = editPayment.value;
-      renderTable();
+    const id = editReceipt.value;
+    if (!id) return;
+    const payload = {
+      email: editEmail.value.trim(),
+      plan: editPlan.value,
+      payment: editPayment.value
+    };
+    if (editPassword.value) payload.password = editPassword.value;
+    try {
+      const res = await fetch(API_ROOT + '/' + encodeURIComponent(id), {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('Update failed: ' + res.status);
+      await loadCustomersFromServer();
+      // let other pages know
+      window.dispatchEvent(new CustomEvent('customers-updated'));
+    } catch (err) {
+      console.error('Edit failed', err);
+      alert('Failed to update user — check console.');
     }
     hideEditModal();
   });
 
-  cancelEdit.addEventListener('click', (e) => {
-    e.preventDefault();
-    hideEditModal();
-  });
-
-  editModal.addEventListener('click', (e) => {
-    if (e.target === editModal) hideEditModal();
-  });
+  cancelEdit.addEventListener('click', (e)=>{ e.preventDefault(); hideEditModal(); });
+  editModal.addEventListener('click', (e)=>{ if (e.target === editModal) hideEditModal(); });
 
   /* ===== Add Modal ===== */
   const addModal = document.getElementById('addModal');
@@ -213,19 +256,21 @@
   const confirmAdd = document.getElementById('confirmAdd');
   const cancelAdd = document.getElementById('cancelAdd');
 
-  function showAddModal() {
-    if (!addModal) return;
-    addModal.classList.add('show');
-    document.body.classList.add('no-scroll');
-    setTimeout(() => addEmail && addEmail.focus(), 80);
-  }
-  function hideAddModal() {
-    if (!addModal) return;
-    addModal.classList.remove('show');
-    document.body.classList.remove('no-scroll');
-  }
+  function showAddModal() { if (!addModal) return; addModal.classList.add('show'); document.body.classList.add('no-scroll'); setTimeout(()=>addEmail && addEmail.focus(), 80); }
+  function hideAddModal() { if (!addModal) return; addModal.classList.remove('show'); document.body.classList.remove('no-scroll'); }
 
-  confirmAdd.addEventListener('click', (e) => {
+  // open add modal when clicking table-level add button (if exists)
+  const addUserBtn = document.getElementById('addUserBtn');
+  if (addUserBtn) addUserBtn.addEventListener('click', (e) => {
+    addReceipt.value = String(nextId);
+    addEmail.value = '';
+    addPassword.value = '';
+    addPlan.value = '';
+    addPayment.value = '';
+    showAddModal();
+  });
+
+  confirmAdd.addEventListener('click', async (e) => {
     e.preventDefault();
     const email = (addEmail && addEmail.value || '').trim();
     const password = (addPassword && addPassword.value || '');
@@ -236,32 +281,37 @@
       return;
     }
     const newUser = {
-      receipt: addReceipt.value || String(nextId++),
       email,
       password,
       plan,
-      payment
+      payment,
+      role: 'Customer',
+      plan_status: (plan === 'expired' ? 'Expired' : 'Active')
     };
-    customers.unshift(newUser);
-    renderTable();
-    hideAddModal();
+    try {
+      const res = await fetch(API_ROOT, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(newUser)
+      });
+      if (!res.ok) throw new Error('Add failed: ' + res.status);
+      await loadCustomersFromServer();
+      window.dispatchEvent(new CustomEvent('customers-updated'));
+      hideAddModal();
+    } catch (err) {
+      console.error('Add failed', err);
+      alert('Failed to add user — check console.');
+    }
   });
 
-  cancelAdd.addEventListener('click', (e) => {
-    e.preventDefault();
-    hideAddModal();
-  });
-
-  addModal.addEventListener('click', (e) => {
-    if (e.target === addModal) hideAddModal();
-  });
+  cancelAdd.addEventListener('click', (e)=>{ e.preventDefault(); hideAddModal(); });
+  addModal.addEventListener('click', (e)=>{ if (e.target === addModal) hideAddModal(); });
 
   /* ===== Delete modal ===== */
   const deleteModal = document.getElementById('deleteModal');
   const deleteMessage = document.getElementById('deleteMessage');
   const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
   const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-
   let deleteTargetId = null;
 
   function showDeleteModal(message, id) {
@@ -269,32 +319,29 @@
     deleteMessage.textContent = message || 'Are you sure you want to delete this user?';
     deleteModal.classList.add('show');
     document.body.classList.add('no-scroll');
-    setTimeout(() => confirmDeleteBtn && confirmDeleteBtn.focus(), 80);
+    setTimeout(()=>confirmDeleteBtn && confirmDeleteBtn.focus(), 80);
   }
-  function hideDeleteModal() {
-    deleteModal.classList.remove('show');
-    document.body.classList.remove('no-scroll');
-    deleteTargetId = null;
-  }
+  function hideDeleteModal() { deleteModal.classList.remove('show'); document.body.classList.remove('no-scroll'); deleteTargetId = null; }
 
-  confirmDeleteBtn.addEventListener('click', (e) => {
+  confirmDeleteBtn.addEventListener('click', async (e) => {
     e.preventDefault();
     if (!deleteTargetId) { hideDeleteModal(); return; }
-    customers = customers.filter(u => u.receipt !== deleteTargetId);
-    renderTable();
+    try {
+      const res = await fetch(API_ROOT + '/' + encodeURIComponent(deleteTargetId), { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete failed: ' + res.status);
+      await loadCustomersFromServer();
+      window.dispatchEvent(new CustomEvent('customers-updated'));
+    } catch (err) {
+      console.error('Delete failed', err);
+      alert('Failed to delete user — check console.');
+    }
     hideDeleteModal();
   });
 
-  cancelDeleteBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    hideDeleteModal();
-  });
+  cancelDeleteBtn.addEventListener('click', (e)=>{ e.preventDefault(); hideDeleteModal(); });
+  deleteModal.addEventListener('click', (e)=>{ if (e.target === deleteModal) hideDeleteModal(); });
 
-  deleteModal.addEventListener('click', (e) => {
-    if (e.target === deleteModal) hideDeleteModal();
-  });
-
-  /**************** Delegated table actions ****************/
+  /* Delegated table actions */
   document.addEventListener('click', (e) => {
     const editBtn = e.target.closest && e.target.closest('.edit');
     if (editBtn) {
@@ -302,7 +349,6 @@
       openEditFor(id);
       return;
     }
-
     const delBtn = e.target.closest && e.target.closest('.delete');
     if (delBtn) {
       const id = delBtn.dataset.id;
@@ -320,4 +366,26 @@
     }
   });
 
+  // Listen for updates dispatched by UserAdmin-User.js (when add/edit/delete performed there)
+  window.addEventListener('customers-updated', () => {
+    loadCustomersFromServer();
+  });
+
+  // Expose for debugging
+  window.loadCustomersFromServer = loadCustomersFromServer;
+
 })();
+
+// Logout: redirect to sign in
+document.querySelectorAll('.logout-icon').forEach(el => {
+  el.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    // optional: clear any auth-like items in localStorage/sessionStorage
+    localStorage.removeItem('auth_token');         // if you use one
+    localStorage.removeItem('sidebar_collapsed');  // keep the rest if wanted
+    sessionStorage.clear();                        // optional
+    // redirect to sign in page (adjust path if needed)
+    window.location.href = 'StartPage.html';
+  });
+});
+
