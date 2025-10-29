@@ -8,9 +8,7 @@
   const mainContent = document.getElementById('mainContent');
   const overlay = document.getElementById('sidebarOverlay');
 
-  function isMobile() { 
-    return window.innerWidth <= MOBILE_BREAKPOINT; 
-  }
+  function isMobile() { return window.innerWidth <= MOBILE_BREAKPOINT; }
 
   function updateLayout() {
     if (isMobile()) {
@@ -72,21 +70,11 @@
     }
   });
 
-  /* ---------------- Demo data & table rendering ---------------- */
-  let nextId = 1008;
-  
-  const demoUsers = [
-    { receipt: '1000', email: 'dfdfd', plan: 'free', payment: 'credit_card' },
-    { receipt: '1001', email: 'alice@example.com', plan: 'standard', payment: 'gcash' },
-    { receipt: '1002', email: 'bob@example.com', plan: 'premium', payment: 'maya' },
-    { receipt: '1003', email: 'jane.doe@example.com', plan: 'free', payment: 'paypal' },
-    { receipt: '1004', email: 'john.smith@example.com', plan: 'standard', payment: 'credit_card' },
-    { receipt: '1005', email: 'user5@example.com', plan: 'premium', payment: 'gcash' },
-    { receipt: '1006', email: 'user6@example.com', plan: 'free', payment: 'maya' },
-    { receipt: '1007', email: 'user7@example.com', plan: 'cancelled', payment: 'paypal' }
-  ];
-
-  let users = demoUsers.slice();
+  /* ---------------- Data / API ---------------- */
+  // POINT THIS to your PHP API location in XAMPP
+  const API_ROOT = '/GoodReads-Library-Management-System/Document/Backend/api/customers.php';
+  let nextId = 1000;
+  let users = [];
 
   const tbody = document.querySelector('#usersTable tbody');
   const searchInput = document.getElementById('searchInput');
@@ -104,16 +92,67 @@
       'maya': 'Maya',
       'paypal': 'PayPal'
     };
-    return methods[method] || method;
+    return methods[method] || method || '';
   }
 
   function formatPlan(plan) {
-    return plan.charAt(0).toUpperCase() + plan.slice(1);
-  }
+  if (!plan) return '';
+  const p = String(plan).toLowerCase().trim();
+  if (p === 'admin' || p === 'administrator') return ''; // hide admin
+  // pretty-print usual values (handles "premium plan" or "premium")
+  return p.replace(/\bplan\b/i, '').replace(/[_-]+/g,' ').trim().replace(/\b\w/g, c => c.toUpperCase());
+}
 
+
+ function normalizeRow(row) {
+  const roleVal = (row.Role || row.role || '').toString().toLowerCase();
+  // prefer Plan, then Plan_Status; never use Role as the plan
+  const planVal = (row.Plan ?? row.plan ?? row.Plan_Status ?? row.plan_status ?? '') || '';
+  return {
+    receipt: String(row.AccountID ?? row.accountid ?? row.receipt ?? ''),
+    email: row.Email ?? row.email ?? '',
+    plan: planVal.toString().toLowerCase(),
+    payment: (row.Payment_Method ?? row.payment_method ?? row.payment ?? '').toString().toLowerCase(),
+    password: row.Password ?? row.password ?? '',
+    role: roleVal,
+    plan_status: (row.Plan_Status ?? row.plan_status ?? '').toString()
+  };
+}
+
+
+async function loadUsersFromServer() {
+  try {
+    // correct: no trailing /customers because API_ROOT already points to customers.php
+    const r = await fetch(API_ROOT, { method: 'GET' });
+    if (!r.ok) throw new Error('Failed loading: ' + r.status);
+    const data = await r.json();
+
+    // Normalize and filter out admin roles
+    users = (data || [])
+      .map(normalizeRow)
+      .filter(u => {
+        const role = (u.role || '').toString().toLowerCase();
+        // keep only customers, exclude any admin types
+        return role !== 'admin' && role !== 'subsadmin' && role !== 'superadmin' && role !== 'useradmin';
+      });
+
+    // update nextId for new inserts
+    const numeric = users.map(x => parseInt(x.receipt, 10)).filter(n => !isNaN(n));
+    nextId = numeric.length ? Math.max(...numeric) + 1 : nextId;
+    applyFilters();
+  } catch (err) {
+    console.error('loadUsersFromServer error', err);
+    users = [];
+    applyFilters();
+  }
+}
+
+
+
+  /* ---------------- Rendering & Filters ---------------- */
   function renderTable(rows) {
     tbody.innerHTML = '';
-    rows.forEach(u => {
+    (rows || []).forEach(u => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${escapeHtml(u.receipt)}</td>
@@ -134,7 +173,6 @@
   function applyFilters() {
     const q = (searchInput && searchInput.value || '').trim().toLowerCase();
     const f = (filterSelect && filterSelect.value) || 'all';
-  
     const filtered = users.filter(u => {
       const matchText = !q || (u.receipt + ' ' + u.email).toLowerCase().includes(q);
       const matchFilter = f === 'all' || u.plan === f;
@@ -143,9 +181,11 @@
     renderTable(filtered);
   }
 
-  applyFilters();
   if (searchInput) searchInput.addEventListener('input', applyFilters);
   if (filterSelect) filterSelect.addEventListener('change', applyFilters);
+
+  // initial load
+  loadUsersFromServer();
 
   /* ======= Edit Modal ======= */
   const editModal = document.getElementById('editModal');
@@ -158,20 +198,11 @@
   const confirmEdit = document.getElementById('confirmEdit');
   const cancelEdit = document.getElementById('cancelEdit');
 
-  function showEditModal() {
-    if (!editModal) return;
-    editModal.classList.add('show');
-    document.body.classList.add('no-scroll');
-    setTimeout(() => { editEmail && editEmail.focus(); }, 80);
-  }
-  function hideEditModal() {
-    if (!editModal) return;
-    editModal.classList.remove('show');
-    document.body.classList.remove('no-scroll');
-  }
+  function showEditModal() { if (!editModal) return; editModal.classList.add('show'); document.body.classList.add('no-scroll'); setTimeout(() => { editEmail && editEmail.focus(); }, 80); }
+  function hideEditModal() { if (!editModal) return; editModal.classList.remove('show'); document.body.classList.remove('no-scroll'); }
 
   function openEditFor(receipt) {
-    const u = users.find(x => x.receipt === receipt);
+    const u = users.find(x => String(x.receipt) === String(receipt));
     if (!u) return;
     editReceipt.value = u.receipt;
     editEmail.value = u.email;
@@ -181,28 +212,34 @@
     showEditModal();
   }
 
-  confirmEdit.addEventListener('click', (e) => {
+  confirmEdit.addEventListener('click', async (e) => {
     e.preventDefault();
     const r = editReceipt.value;
-    const idx = users.findIndex(x => x.receipt === r);
-    if (idx >= 0) {
-      users[idx].email = editEmail.value.trim();
-      if (editPassword.value) users[idx].password = editPassword.value;
-      users[idx].plan = editPlan.value;
-      users[idx].payment = editPayment.value;
-      applyFilters();
+    const payload = {
+      email: editEmail.value.trim(),
+      plan: editPlan.value,
+      payment: editPayment.value
+    };
+    if (editPassword.value) payload.password = editPassword.value;
+    try {
+      const res = await fetch(API_ROOT + '/' + encodeURIComponent(r), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('Update failed');
+      await loadUsersFromServer();
+      // notify dashboard
+      window.dispatchEvent(new CustomEvent('customers-updated'));
+    } catch (err) {
+      console.error('Update error', err);
+      alert('Failed to update user — check console.');
     }
     hideEditModal();
   });
 
-  cancelEdit.addEventListener('click', (e) => {
-    e.preventDefault();
-    hideEditModal();
-  });
-
-  editModal.addEventListener('click', (e) => {
-    if (e.target === editModal) hideEditModal();
-  });
+  cancelEdit.addEventListener('click', (e) => { e.preventDefault(); hideEditModal(); });
+  editModal.addEventListener('click', (e) => { if (e.target === editModal) hideEditModal(); });
 
   /* ===== Add Modal ===== */
   const addModal = document.getElementById('addModal');
@@ -216,17 +253,8 @@
   const cancelAdd = document.getElementById('cancelAdd');
   const addUserBtn = document.getElementById('addUserBtn');
 
-  function showAddModal() {
-    if (!addModal) return;
-    addModal.classList.add('show');
-    document.body.classList.add('no-scroll');
-    setTimeout(() => addEmail && addEmail.focus(), 80);
-  }
-  function hideAddModal() {
-    if (!addModal) return;
-    addModal.classList.remove('show');
-    document.body.classList.remove('no-scroll');
-  }
+  function showAddModal() { if (!addModal) return; addModal.classList.add('show'); document.body.classList.add('no-scroll'); setTimeout(() => addEmail && addEmail.focus(), 80); }
+  function hideAddModal() { if (!addModal) return; addModal.classList.remove('show'); document.body.classList.remove('no-scroll'); }
 
   addUserBtn.addEventListener('click', (e) => {
     addReceipt.value = String(nextId);
@@ -237,38 +265,43 @@
     showAddModal();
   });
 
-  confirmAdd.addEventListener('click', (e) => {
+  confirmAdd.addEventListener('click', async (e) => {
     e.preventDefault();
     const email = (addEmail && addEmail.value || '').trim();
     const password = (addPassword && addPassword.value || '');
     const plan = (addPlan && addPlan.value || '');
     const payment = (addPayment && addPayment.value || '');
-    
     if (!email || !password || !plan || !payment) {
       alert('Please fill in all fields.');
       return;
     }
     const newUser = {
-      receipt: addReceipt.value,
       email,
       password,
       plan,
-      payment
+      payment,
+      role: 'Customer',
+      plan_status: (plan === 'expired' ? 'Expired' : 'Active')
     };
-    users.unshift(newUser);
-    nextId++;
-    applyFilters();
-    hideAddModal();
+    try {
+      const r = await fetch(API_ROOT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUser)
+      });
+      if (!r.ok) throw new Error('Add failed');
+      await loadUsersFromServer();
+      nextId++;
+      window.dispatchEvent(new CustomEvent('customers-updated'));
+      hideAddModal();
+    } catch (err) {
+      console.error('Add error', err);
+      alert('Failed to add user — check console.');
+    }
   });
 
-  cancelAdd.addEventListener('click', (e) => {
-    e.preventDefault();
-    hideAddModal();
-  });
-
-  addModal.addEventListener('click', (e) => {
-    if (e.target === addModal) hideAddModal();
-  });
+  cancelAdd.addEventListener('click', (e) => { e.preventDefault(); hideAddModal(); });
+  addModal.addEventListener('click', (e) => { if (e.target === addModal) hideAddModal(); });
 
   /* ===== Delete modal ===== */
   const deleteModal = document.getElementById('deleteModal');
@@ -291,22 +324,25 @@
     deleteTargetId = null;
   }
 
-  confirmDeleteBtn.addEventListener('click', (e) => {
+  confirmDeleteBtn.addEventListener('click', async (e) => {
     e.preventDefault();
     if (!deleteTargetId) { hideDeleteModal(); return; }
-    users = users.filter(u => u.receipt !== deleteTargetId);
-    applyFilters();
+    try {
+      const res = await fetch(API_ROOT + '/' + encodeURIComponent(deleteTargetId), {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error('Delete failed');
+      await loadUsersFromServer();
+      window.dispatchEvent(new CustomEvent('customers-updated'));
+    } catch (err) {
+      console.error('Delete error', err);
+      alert('Failed to delete user — check console.');
+    }
     hideDeleteModal();
   });
 
-  cancelDeleteBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    hideDeleteModal();
-  });
-
-  deleteModal.addEventListener('click', (e) => {
-    if (e.target === deleteModal) hideDeleteModal();
-  });
+  cancelDeleteBtn.addEventListener('click', (e) => { e.preventDefault(); hideDeleteModal(); });
+  deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) hideDeleteModal(); });
 
   /* ===== Delegated table actions ===== */
   document.addEventListener('click', (e) => {
@@ -333,5 +369,8 @@
       if (deleteModal && deleteModal.classList.contains('show')) hideDeleteModal();
     }
   });
+
+  // debug helper
+  window.reloadCustomersFromServer = loadUsersFromServer;
 
 })();
