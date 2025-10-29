@@ -1,388 +1,357 @@
 // File: SuperAdmin-Admin.js
+// (Converted to use Database)
 
 // Sidebar behavior
 (function() {
-  const sidebar = document.getElementById('sidebar');
-  const menuToggle = document.getElementById('menuToggle');
-  const collapseBtn = document.getElementById('collapseBtn');
-  const mainContent = document.getElementById('mainContent');
-  const overlay = document.getElementById('sidebarOverlay');
-  
-  const COLLAPSED_KEY = 'sidebar_collapsed';
-  const MOBILE_BREAKPOINT = 768;
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menuToggle');
+    const collapseBtn = document.getElementById('collapseBtn');
+    const mainContent = document.getElementById('mainContent');
+    const overlay = document.getElementById('sidebarOverlay');
 
-  function isMobile() {
-    return window.innerWidth <= MOBILE_BREAKPOINT;
-  }
+    const COLLAPSED_KEY = 'sidebar_collapsed';
+    const MOBILE_BREAKPOINT = 768;
 
-  function updateLayout() {
-    if (isMobile()) {
-      sidebar.classList.remove('collapsed');
-      mainContent.classList.remove('collapsed');
-      sidebar.classList.remove('mobile-open');
-      overlay.classList.remove('active');
-    } else {
-      const isCollapsed = localStorage.getItem(COLLAPSED_KEY) === 'true';
-      sidebar.classList.toggle('collapsed', isCollapsed);
-      mainContent.classList.toggle('collapsed', isCollapsed);
-      sidebar.classList.remove('mobile-open');
-      overlay.classList.remove('active');
+    function isMobile() {
+      return window.innerWidth <= MOBILE_BREAKPOINT;
     }
-  }
 
-  updateLayout();
-  window.addEventListener('resize', updateLayout);
-
-  if (collapseBtn) {
-    collapseBtn.addEventListener('click', () => {
-      if (isMobile()) return;
-      const isCollapsed = sidebar.classList.toggle('collapsed');
-      mainContent.classList.toggle('collapsed', isCollapsed);
-      localStorage.setItem(COLLAPSED_KEY, isCollapsed);
-    });
-  }
-
-  if (menuToggle) {
-    menuToggle.addEventListener('click', (e) => {
-      e.stopPropagation();
-      sidebar.classList.toggle('mobile-open');
-      overlay.classList.toggle('active');
-    });
-  }
-
-  if (overlay) {
-    overlay.addEventListener('click', () => {
-      sidebar.classList.remove('mobile-open');
-      overlay.classList.remove('active');
-    });
-  }
-
-  const menuLinks = sidebar.querySelectorAll('.menu-item');
-  menuLinks.forEach(link => {
-    link.addEventListener('click', () => {
+    function updateLayout() {
       if (isMobile()) {
+        sidebar.classList.remove('collapsed');
+        mainContent.classList.remove('collapsed');
+        sidebar.classList.remove('mobile-open');
+        overlay.classList.remove('active');
+      } else {
+        const isCollapsed = localStorage.getItem(COLLAPSED_KEY) === 'true';
+        sidebar.classList.toggle('collapsed', isCollapsed);
+        mainContent.classList.toggle('collapsed', isCollapsed);
         sidebar.classList.remove('mobile-open');
         overlay.classList.remove('active');
       }
-    });
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && isMobile() && sidebar.classList.contains('mobile-open')) {
-      sidebar.classList.remove('mobile-open');
-      overlay.classList.remove('active');
     }
-  });
+
+    updateLayout();
+    window.addEventListener('resize', updateLayout);
+
+    if (collapseBtn) {
+      collapseBtn.addEventListener('click', () => {
+        if (isMobile()) return;
+        const isCollapsed = sidebar.classList.toggle('collapsed');
+        mainContent.classList.toggle('collapsed', isCollapsed);
+        localStorage.setItem(COLLAPSED_KEY, isCollapsed);
+      });
+    }
+
+    if (menuToggle) {
+      menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sidebar.classList.toggle('mobile-open');
+        overlay.classList.toggle('active');
+      });
+    }
+
+    if (overlay) {
+      overlay.addEventListener('click', () => {
+        sidebar.classList.remove('mobile-open');
+        overlay.classList.remove('active');
+      });
+    }
 })();
 
-// Admin Management
+// --- Admin Management (DATABASE CONNECTED) ---
 (function() {
-  const demoUsers = [
-    { receipt: '1000', email: 'alice@example.com', password: 'pass123', role: 'Book Admin' },
-    { receipt: '1001', email: 'bob@example.com', password: 'pass456', role: 'Subscription Admin' },
-    { receipt: '1002', email: 'jane.doe@example.com', password: 'pass789', role: 'User Admin' },
-    { receipt: '1004', email: 'user5@example.com', password: 'pass321', role: 'Book Admin' },
-    { receipt: '1005', email: 'user6@example.com', password: 'pass654', role: 'Subscription Admin' },
-    { receipt: '1006', email: 'user7@example.com', password: 'pass987', role: 'User Admin' }
-  ];
+    let users = []; // Will hold data fetched from DB
 
-  let users = demoUsers.slice();
+    const tbody = document.querySelector('#usersTable tbody');
+    const searchInput = document.getElementById('searchInput');
+    const filterSelect = document.getElementById('filterSelect');
+    const addUserBtn = document.getElementById('addUserBtn');
 
-  const tbody = document.querySelector('#usersTable tbody');
-  const searchInput = document.getElementById('searchInput');
-  const filterSelect = document.getElementById('filterSelect');
+    // Edit Modal Elements
+    const editModal = document.getElementById('editModal');
+    const editForm = document.getElementById('editForm');
+    const editEmail = document.getElementById('editEmail');
+    const editPassword = document.getElementById('editPassword');
+    const editRole = document.getElementById('editRole');
+    const editUserIdInput = document.getElementById('editUserId'); // Matched HTML
+    const confirmEdit = document.getElementById('confirmEdit');
+    const cancelEdit = document.getElementById('cancelEdit');
 
-  function escapeHtml(str) {
-    if (str == null) return '';
-    return String(str).replace(/[&<>"']/g, s => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[s]));
-  }
+    // Add Modal Elements
+    const addModal = document.getElementById('addModal');
+    const addForm = document.getElementById('addForm');
+    const addEmail = document.getElementById('addEmail');
+    const addPassword = document.getElementById('addPassword');
+    const addRole = document.getElementById('addRole');
+    const confirmAdd = document.getElementById('confirmAdd');
+    const cancelAdd = document.getElementById('cancelAdd');
 
-  function renderTable(rows) {
-    tbody.innerHTML = '';
-    rows.forEach(u => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${escapeHtml(u.receipt)}</td>
-        <td>${escapeHtml(u.email)}</td>
-        <td>${escapeHtml(u.role || '')}</td>
-        <td>
-          <div class="actions">
-            <button class="pill view" data-id="${escapeHtml(u.receipt)}">View</button>
-            <button class="pill edit" data-id="${escapeHtml(u.receipt)}">Edit</button>
-            <button class="pill delete" data-id="${escapeHtml(u.receipt)}">Delete</button>
-          </div>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function applyFilters() {
-    const searchTerm = (searchInput.value || '').trim().toLowerCase();
-    const filterValue = filterSelect.value;
-
-    const filtered = users.filter(u => {
-      const matchesSearch = !searchTerm || 
-        (u.receipt + ' ' + u.email + ' ' + (u.role || '')).toLowerCase().includes(searchTerm);
-      const matchesRole = filterValue === 'all' || u.role === filterValue;
-      return matchesSearch && matchesRole;
-    });
-
-    renderTable(filtered);
-  }
-
-  applyFilters();
-  if (searchInput) searchInput.addEventListener('input', applyFilters);
-  if (filterSelect) filterSelect.addEventListener('change', applyFilters);
-
-  // Password toggle functionality
-  document.querySelectorAll('.toggle-password').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const targetId = this.getAttribute('data-target');
-      const input = document.getElementById(targetId);
-      const eyeOpen = this.querySelectorAll('.eye-open');
-      const eyeClosed = this.querySelector('.eye-closed');
-      
-      if (input.type === 'password') {
-        input.type = 'text';
-        eyeOpen.forEach(path => path.style.display = 'none');
-        eyeClosed.style.display = 'block';
-      } else {
-        input.type = 'password';
-        eyeOpen.forEach(path => path.style.display = 'block');
-        eyeClosed.style.display = 'none';
-      }
-    });
-  });
-
-  // Modals
-  const editModal = document.getElementById('editModal');
-  const editForm = document.getElementById('editForm');
-  const editEmail = document.getElementById('editEmail');
-  const editPassword = document.getElementById('editPassword');
-  const editRole = document.getElementById('editRole');
-  const editReceipt = document.getElementById('editReceipt');
-  const confirmEdit = document.getElementById('confirmEdit');
-  const cancelEdit = document.getElementById('cancelEdit');
-
-  const addModal = document.getElementById('addModal');
-  const addForm = document.getElementById('addForm');
-  const addEmail = document.getElementById('addEmail');
-  const addPassword = document.getElementById('addPassword');
-  const addRole = document.getElementById('addRole');
-  const addReceipt = document.getElementById('addReceipt');
-  const confirmAdd = document.getElementById('confirmAdd');
-  const cancelAdd = document.getElementById('cancelAdd');
-  const addUserBtn = document.getElementById('addUserBtn');
-
-  function showModal(modal) {
-    modal.classList.add('show');
-    document.body.classList.add('no-scroll');
-  }
-
-  function hideModal(modal) {
-    modal.classList.remove('show');
-    document.body.classList.remove('no-scroll');
-  }
-
-  function clearErrors(form) {
-    form.querySelectorAll('input, select').forEach(el => {
-      el.classList.remove('error');
-    });
-    form.querySelectorAll('.error-message').forEach(el => {
-      el.classList.remove('show');
-      el.textContent = '';
-    });
-  }
-
-  function showError(fieldId, message) {
-    const field = document.getElementById(fieldId);
-    const errorDiv = document.getElementById(fieldId + 'Error');
-    if (field) field.classList.add('error');
-    if (errorDiv) {
-      errorDiv.textContent = message;
-      errorDiv.classList.add('show');
-    }
-  }
-
-  function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  }
-
-  function validateForm(email, password, role, prefix) {
-    let isValid = true;
-    clearErrors(document.getElementById(prefix + 'Form'));
-
-    if (!email || email.trim() === '') {
-      showError(prefix + 'Email', 'Email is required');
-      isValid = false;
-    } else if (!validateEmail(email)) {
-      showError(prefix + 'Email', 'Please enter a valid email address');
-      isValid = false;
-    }
-
-    if (!password || password.trim() === '') {
-      showError(prefix + 'Password', 'Password is required');
-      isValid = false;
-    } else if (password.length < 6) {
-      showError(prefix + 'Password', 'Password must be at least 6 characters');
-      isValid = false;
-    }
-
-    if (!role || role === '') {
-      showError(prefix + 'Role', 'Please select a role');
-      isValid = false;
-    }
-
-    return isValid;
-  }
-
-  function openEditFor(receipt) {
-    const user = users.find(u => u.receipt === receipt);
-    if (!user) return;
+    // Delete Modal Elements
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteMessage = document.getElementById('deleteMessage');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    let deleteTargetId = null;
     
-    editReceipt.value = user.receipt;
-    editEmail.value = user.email;
-    editPassword.value = user.password || '';
-    editRole.value = user.role || '';
-    clearErrors(editForm);
-    showModal(editModal);
-  }
+    // Password toggle functionality
+    document.querySelectorAll('.toggle-password').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const targetId = this.getAttribute('data-target');
+          const input = document.getElementById(targetId);
+          if (!input) return;
+          const eyeOpen = this.querySelectorAll('.eye-open');
+          const eyeClosed = this.querySelector('.eye-closed');
+          
+          if (input.type === 'password') {
+            input.type = 'text';
+            eyeOpen.forEach(path => path.style.display = 'none');
+            if(eyeClosed) eyeClosed.style.display = 'block';
+          } else {
+            input.type = 'password';
+            eyeOpen.forEach(path => path.style.display = 'block');
+            if(eyeClosed) eyeClosed.style.display = 'none';
+          }
+        });
+    });
 
-  confirmEdit.addEventListener('click', (e) => {
-    e.preventDefault();
-    
-    const email = editEmail.value.trim();
-    const password = editPassword.value;
-    const role = editRole.value;
+    // --- Utility Functions ---
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str).replace(/[&<>"']/g, s => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[s]));
+     }
+    function formatRole(role) {
+        return role || 'N/A';
+     }
 
-    if (!validateForm(email, password, role, 'edit')) {
-      return;
-    }
+    // --- Core Data Fetching & Rendering ---
+    async function loadUsers() {
+        const searchTerm = searchInput.value.trim();
+        const filterValue = filterSelect.value;
 
-    const receipt = editReceipt.value;
-    const idx = users.findIndex(u => u.receipt === receipt);
-    if (idx >= 0) {
-      users[idx].email = email;
-      users[idx].password = password;
-      users[idx].role = role;
-      applyFilters();
-    }
-    hideModal(editModal);
-  });
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        if (filterValue) params.append('filter', filterValue);
 
-  cancelEdit.addEventListener('click', () => {
-    hideModal(editModal);
-  });
+        try {
+            // Use the new admin_fetch.php endpoint
+            const response = await fetch(`Backend/admin_fetch.php?${params.toString()}`);
+            const data = await response.json();
+            if (!data.success) throw new Error(data.message || 'Failed to fetch.');
+            users = data.users;
+            renderTable(users);
+        } catch (err) {
+            console.error("Load Admins Error:", err);
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: red;">Error: ${err.message}</td></tr>`;
+        }
+     }
+     
+    function renderTable(rows) {
+        tbody.innerHTML = '';
+        if (!rows || rows.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No admins found.</td></tr>`;
+            return;
+        }
+        rows.forEach(u => {
+            const tr = document.createElement('tr');
+            // Render columns for ID, Email, Role, Actions
+            tr.innerHTML = `
+              <td>${escapeHtml(u.AccountID)}</td>
+              <td>${escapeHtml(u.Email)}</td>
+              <td>${escapeHtml(formatRole(u.Role))}</td>
+              <td>
+                <div class="actions">
+                  <button class="pill edit" data-id="${escapeHtml(u.AccountID)}">Edit</button>
+                  <button class="pill delete" data-id="${escapeHtml(u.AccountID)}">Delete</button>
+                </div>
+              </td>
+            `;
+            tbody.appendChild(tr);
+        });
+     }
 
-  editModal.addEventListener('click', (e) => {
-    if (e.target === editModal) hideModal(editModal);
-  });
+    // --- Modal Handling ---
+    function showModal(modal) { if(modal){ modal.classList.add('show'); document.body.classList.add('no-scroll'); }}
+    function hideModal(modal) { if(modal){ modal.classList.remove('show'); document.body.classList.remove('no-scroll'); }}
+    function clearErrors(form) {
+        form.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+        form.querySelectorAll('.error-message').forEach(el => { el.textContent = ''; el.classList.remove('show'); });
+     }
+    function showError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        const errorDiv = document.getElementById(fieldId + 'Error');
+        if (field) field.classList.add('error');
+        if (errorDiv) { errorDiv.textContent = message; errorDiv.classList.add('show'); }
+     }
+    function displayServerErrors(errors, prefix) {
+         clearErrors(document.getElementById(prefix + 'Form'));
+         for (const key in errors) {
+             let fieldId = prefix + key.charAt(0).toUpperCase() + key.slice(1);
+             if (key === 'database' || key === 'general') { alert(`Server Error: ${errors[key]}`); }
+             else { showError(fieldId, errors[key]); }
+         }
+     }
+    function validateEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
 
-  addUserBtn.addEventListener('click', () => {
-    addReceipt.value = String(Date.now()).slice(-5);
-    addEmail.value = '';
-    addPassword.value = '';
-    addRole.value = '';
-    clearErrors(addForm);
-    showModal(addModal);
-  });
+    function validateForm(email, password, role, isEdit = false) {
+        let isValid = true;
+        const prefix = isEdit ? 'edit' : 'add';
+        clearErrors(document.getElementById(prefix + 'Form'));
 
-  confirmAdd.addEventListener('click', (e) => {
-    e.preventDefault();
-    
-    const email = addEmail.value.trim();
-    const password = addPassword.value;
-    const role = addRole.value;
+        if (!email || !validateEmail(email)) { showError(prefix + 'Email', 'Invalid email'); isValid = false; }
+        if (!isEdit && !password) { showError(prefix + 'Password', 'Password required'); isValid = false; }
+        else if (password && password.length < 6) { showError(prefix + 'Password', 'Password >= 6 chars'); isValid = false; }
+        if (!role) { showError(prefix + 'Role', 'Role required'); isValid = false; }
+        return isValid;
+     }
 
-    if (!validateForm(email, password, role, 'add')) {
-      return;
-    }
+    // --- Edit User Logic ---
+    function openEditModal(userId) {
+        const user = users.find(u => u.AccountID == userId);
+        if (!user || !editModal) return;
+        editUserIdInput.value = user.AccountID;
+        editEmail.value = user.Email;
+        editPassword.value = ''; // Clear password field
+        editRole.value = user.Role;
+        clearErrors(editForm);
+        showModal(editModal);
+     }
 
-    const newUser = {
-      receipt: addReceipt.value,
-      email: email,
-      password: password,
-      role: role
-    };
-    users.unshift(newUser);
-    applyFilters();
-    hideModal(addModal);
-  });
+    confirmEdit.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const userId = editUserIdInput.value;
+        const email = editEmail.value.trim();
+        const password = editPassword.value;
+        const role = editRole.value;
 
-  cancelAdd.addEventListener('click', () => {
-    hideModal(addModal);
-  });
+        if (!validateForm(email, password, role, true)) return;
 
-  addModal.addEventListener('click', (e) => {
-    if (e.target === addModal) hideModal(addModal);
-  });
+        confirmEdit.disabled = true; confirmEdit.textContent = 'SAVING...';
+        try {
+            // Use the new admin_update.php endpoint
+            const response = await fetch('Backend/admin_update.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, email, password, role })
+            });
+            const result = await response.json();
+            if (!result.success) {
+                 if (result.errors) displayServerErrors(result.errors, 'edit');
+                 else throw new Error(result.message || 'Failed.');
+            } else {
+                hideModal(editModal);
+                loadUsers();
+            }
+        } catch (err) {
+            console.error("Update Admin Error:", err); alert(`Error: ${err.message}`);
+        } finally {
+            confirmEdit.disabled = false; confirmEdit.textContent = 'CONFIRM';
+        }
+     });
 
-  // Delete modal
-  const deleteModal = document.getElementById('deleteModal');
-  const deleteMessage = document.getElementById('deleteMessage');
-  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-  const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-  let deleteTargetId = null;
+    cancelEdit.addEventListener('click', () => hideModal(editModal));
+    editModal.addEventListener('click', (e) => { if (e.target === editModal) hideModal(editModal); });
 
-  function showDeleteModal(message) {
-    deleteMessage.textContent = message || 'Are you sure you want to delete this admin?';
-    showModal(deleteModal);
-    setTimeout(() => confirmDeleteBtn && confirmDeleteBtn.focus(), 80);
-  }
+    // --- Add User Logic ---
+    addUserBtn.addEventListener('click', () => {
+        addForm.reset(); clearErrors(addForm); showModal(addModal);
+     });
+    confirmAdd.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const email = addEmail.value.trim();
+        const password = addPassword.value;
+        const role = addRole.value;
 
-  function hideDeleteModal() {
-    hideModal(deleteModal);
-    deleteTargetId = null;
-  }
+        if (!validateForm(email, password, role, false)) return;
 
-  confirmDeleteBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (!deleteTargetId) { 
-      hideDeleteModal(); 
-      return; 
-    }
-    users = users.filter(u => u.receipt !== deleteTargetId);
-    applyFilters();
-    hideDeleteModal();
-  });
+        confirmAdd.disabled = true; confirmAdd.textContent = 'ADDING...';
+        try {
+            // Use the new admin_add.php endpoint
+            const response = await fetch('Backend/admin_add.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password, role })
+            });
+            const result = await response.json();
+            if (!result.success) {
+                 if (result.errors) displayServerErrors(result.errors, 'add');
+                 else throw new Error(result.message || 'Failed.');
+            } else {
+                hideModal(addModal);
+                loadUsers();
+            }
+        } catch (err) {
+            console.error("Add Admin Error:", err); alert(`Error: ${err.message}`);
+        } finally {
+            confirmAdd.disabled = false; confirmAdd.textContent = 'CONFIRM';
+        }
+     });
+    cancelAdd.addEventListener('click', () => hideModal(addModal));
+    addModal.addEventListener('click', (e) => { if (e.target === addModal) hideModal(addModal); });
 
-  cancelDeleteBtn.addEventListener('click', () => {
-    hideDeleteModal();
-  });
+    // --- Delete User Logic ---
+    function showDeleteModal(userId, userEmail) {
+        deleteTargetId = userId;
+        deleteMessage.textContent = `Delete admin ${escapeHtml(userEmail || userId)}? This cannot be undone.`;
+        showModal(deleteModal);
+        setTimeout(() => confirmDeleteBtn?.focus(), 80);
+     }
+    function hideDeleteModal() {
+        hideModal(deleteModal);
+        deleteTargetId = null;
+     }
+    confirmDeleteBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (!deleteTargetId) { hideDeleteModal(); return; }
+        confirmDeleteBtn.disabled = true; confirmDeleteBtn.textContent = 'DELETING...';
+        try {
+            // Use the new admin_delete.php endpoint
+            const response = await fetch('Backend/admin_delete.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: deleteTargetId })
+            });
+            const result = await response.json();
+            if (!result.success) throw new Error(result.message || 'Failed.');
+            hideDeleteModal();
+            loadUsers();
+        } catch (err) {
+            console.error("Delete Admin Error:", err); alert(`Error: ${err.message}`);
+        } finally {
+            confirmDeleteBtn.disabled = false; confirmDeleteBtn.textContent = 'YES, DELETE';
+        }
+     });
+    cancelDeleteBtn.addEventListener('click', hideDeleteModal);
+    deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) hideDeleteModal(); });
 
-  deleteModal.addEventListener('click', (e) => {
-    if (e.target === deleteModal) hideDeleteModal();
-  });
+    // --- Table Action Listeners ---
+    tbody.addEventListener('click', (e) => {
+        const btn = e.target.closest('button.pill');
+        if (!btn) return;
+        const userId = btn.dataset.id;
+        const user = users.find(u => u.AccountID == userId);
+        if (btn.classList.contains('edit')) openEditModal(userId);
+        else if (btn.classList.contains('delete')) showDeleteModal(userId, user?.Email);
+        // No 'view' action for admins
+     });
 
-  // Table actions
-  tbody.addEventListener('click', (e) => {
-    const editBtn = e.target.closest('.edit');
-    if (editBtn) {
-      const id = editBtn.dataset.id;
-      openEditFor(id);
-      return;
-    }
+    // --- Search & Filter Listeners ---
+    let searchTimeout;
+    searchInput.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(loadUsers, 300); });
+    filterSelect.addEventListener('change', loadUsers);
 
-    const delBtn = e.target.closest('.delete');
-    if (delBtn) {
-      const id = delBtn.dataset.id;
-      deleteTargetId = id;
-      showDeleteModal('Delete admin ' + id + '? This action cannot be undone.');
-      return;
-    }
-  });
+    // --- Global Key Listener ---
+    document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape') {
+            if (editModal?.classList.contains('show')) hideModal(editModal);
+            if (addModal?.classList.contains('show')) hideModal(addModal);
+            if (deleteModal?.classList.contains('show')) hideDeleteModal();
+        }
+     });
 
-  // ESC key
-  document.addEventListener('keydown', (ev) => {
-    if (ev.key === 'Escape') {
-      if (editModal.classList.contains('show')) hideModal(editModal);
-      if (addModal.classList.contains('show')) hideModal(addModal);
-      if (deleteModal.classList.contains('show')) hideDeleteModal();
-    }
-  });
+    // --- Initial Load ---
+    loadUsers();
 
-})();
+})(); // End Main IIFE
