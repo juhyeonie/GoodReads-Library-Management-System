@@ -1,4 +1,4 @@
-// js/membership-step1.js
+// Step2.js
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('signupStep1');
   const email = document.getElementById('email');
@@ -8,25 +8,32 @@ document.addEventListener('DOMContentLoaded', () => {
   const serverMsg = document.getElementById('server-msg');
   const nextBtn = document.getElementById('nextBtn');
 
-  // Clear any autofilled values on page load
+  // --- Read the plan selected in Step 1 ---
+  const selectedPlan = localStorage.getItem('selectedPlan');
+
+  // If no plan was selected, send user back to Step 1
+  if (!selectedPlan) {
+    alert('Please select a plan first.');
+    window.location.href = 'Step1.html';
+    return;
+  }
+  
+  // Update button text for Basic Plan
+  if (selectedPlan === 'Basic Plan' || selectedPlan === 'Basic') {
+    nextBtn.textContent = 'Complete Sign Up';
+  }
+
   email.value = '';
   password.value = '';
-  
-  // Also clear sessionStorage if coming fresh to this page
-  // (optional - comment out if you want to preserve data on back button)
-  // sessionStorage.removeItem('signup_email');
-  // sessionStorage.removeItem('signup_password');
 
   const show = (el,msg)=>{ el.textContent = msg; el.style.display='block'; };
   const hide = el=>{ el.textContent=''; el.style.display='none'; };
 
-  // debounce helper to avoid spamming server
   function debounce(fn, wait=350){
     let t;
     return (...args) => { clearTimeout(t); t = setTimeout(()=>fn(...args), wait); };
   }
 
-  // Async check to server if email exists
   async function checkEmailExists(emailValue) {
     try {
       const fd = new FormData();
@@ -41,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // keep latest check promise to avoid race conditions
   let lastCheckedEmail = '';
   let lastCheckResult = null;
 
@@ -49,35 +55,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!value) return;
     lastCheckedEmail = value;
     const r = await checkEmailExists(value);
-    // still interested only if email unchanged
     if (lastCheckedEmail !== value) return;
     lastCheckResult = r;
     if (r && r.exists === true) {
       show(errEmail, 'This email is already registered. Please sign in or use another email.');
     } else {
-      // only clear if current field matches the validated value
       if (email.value.trim() === value) hide(errEmail);
     }
   }, 350);
 
-  // basic validation
   function validateLocal() {
     let ok=true;
     hide(errEmail); hide(errPassword); hide(serverMsg);
-
     const em = email.value.trim();
     const pw = password.value;
 
     if (!em) { show(errEmail,'Enter your email.'); ok=false; }
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { show(errEmail,'Enter a valid email.'); ok=false; }
-
     if (!pw) { show(errPassword,'Enter a password.'); ok=false; }
     else if (pw.length < 8) { show(errPassword,'Password must be at least 8 characters.'); ok=false; }
-
     return ok;
   }
 
-  // live check on email input (debounced)
   email.addEventListener('input', (e) => {
     const v = email.value.trim();
     hide(errEmail);
@@ -87,30 +86,19 @@ document.addEventListener('DOMContentLoaded', () => {
     debouncedCheck(v);
   });
 
+  // --- FORM SUBMIT LOGIC (UPDATED) ---
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!validateLocal()) return;
 
     const em = email.value.trim();
+    const pw = password.value;
 
-    // If we already have a fresh check result for this email, use it
-    if (lastCheckResult && lastCheckedEmail === em) {
-      if (lastCheckResult.error) {
-        show(serverMsg, 'Could not verify email. Try again later.');
-        return;
-      }
-      if (lastCheckResult.exists === true) {
-        show(errEmail, 'This email is already registered. Please sign in or use another email.');
-        return;
-      }
-      // not exists => proceed
-    } else {
-      // No cached check: do a synchronous check before proceeding
+    // Final check for email existence
+    if (!lastCheckResult || lastCheckedEmail !== em) {
       const r = await checkEmailExists(em);
       if (r && r.exists === true) {
         show(errEmail, 'This email is already registered. Please sign in or use another email.');
-        lastCheckResult = r;
-        lastCheckedEmail = em;
         return;
       }
       if (r && r.error) {
@@ -118,12 +106,58 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
     }
+    
+    // Clear any old temp data
+    sessionStorage.removeItem('signup_email');
+    sessionStorage.removeItem('signup_password');
+    sessionStorage.removeItem('signup_plan');
+    
+    // --- CONDITIONAL LOGIC ---
+    if (selectedPlan === 'Basic Plan' || selectedPlan === 'Basic') {
+      // --- HANDLE BASIC PLAN: Create account and redirect to homepage ---
+      nextBtn.disabled = true;
+      nextBtn.textContent = 'Creating Account...';
 
-    // Save credentials in sessionStorage (temporary until final confirm)
-    sessionStorage.setItem('signup_email', em);
-    sessionStorage.setItem('signup_password', password.value); // keep plain until server hashes
+      const fd = new FormData();
+      fd.append('email', em);
+      fd.append('password', pw);
+      fd.append('plan', 'Basic Plan'); // Use the full plan name
+      
+      try {
+        const res = await fetch('Backend/signup.php', { method: 'POST', body: fd });
+        const json = await res.json();
+        
+        if (!res.ok || !json.success) {
+          throw new Error(json.message || 'Could not create account.');
+        }
 
-    // go to plan selection
-    window.location.href = 'MembershipPlan.html';
+        // --- SUCCESS ---
+        // Log the user in
+        sessionStorage.setItem('user_plan', 'basic plan'); 
+        localStorage.removeItem('selectedPlan'); // Clean up
+        
+        // Redirect to homepage
+        window.location.href = 'homepage.html'; 
+
+      } catch (err) {
+        show(serverMsg, err.message);
+        nextBtn.disabled = false;
+        nextBtn.textContent = 'Complete Sign Up';
+      }
+
+    } else {
+      // --- HANDLE PAID PLANS: Save to session and redirect to PaymentMethod.html ---
+      sessionStorage.setItem('signup_email', em);
+      sessionStorage.setItem('signup_password', pw);
+      
+      // Store the full plan name
+      let fullPlanName = selectedPlan;
+      if (selectedPlan === 'Standard') fullPlanName = 'Standard Plan';
+      if (selectedPlan === 'Premium') fullPlanName = 'Premium Plan';
+      
+      sessionStorage.setItem('signup_plan', fullPlanName);
+      
+      window.location.href = 'PaymentMethod.html';
+    }
   });
 });
