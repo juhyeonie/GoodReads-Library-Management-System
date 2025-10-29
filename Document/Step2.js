@@ -8,13 +8,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const serverMsg = document.getElementById('server-msg');
   const nextBtn = document.getElementById('nextBtn');
 
-  // --- Read the plan selected in Step 1 ---
+  // --- Read the plan selected from StartPage.html or Step1.html ---
   const selectedPlan = localStorage.getItem('selectedPlan');
 
-  // If no plan was selected, send user back to Step 1
+  // If no plan was selected, redirect back to a selection page
   if (!selectedPlan) {
     alert('Please select a plan first.');
-    window.location.href = 'Step1.html';
+    
+    // Check the referrer to provide a better redirect path
+    const referrer = document.referrer;
+    if (referrer && referrer.includes('StartPage.html')) {
+        window.location.href = 'StartPage.html'; 
+    } else {
+        window.location.href = 'Step1.html'; 
+    }
     return;
   }
   
@@ -86,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     debouncedCheck(v);
   });
 
-  // --- FORM SUBMIT LOGIC (UPDATED) ---
+  // --- FORM SUBMIT LOGIC ---
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!validateLocal()) return;
@@ -121,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const fd = new FormData();
       fd.append('email', em);
       fd.append('password', pw);
-      fd.append('plan', 'Basic Plan'); // Use the full plan name
+      fd.append('plan', 'Basic Plan'); // Use the full plan name for signup.php
       
       try {
         const res = await fetch('Backend/signup.php', { method: 'POST', body: fd });
@@ -132,9 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- SUCCESS ---
-        // Log the user in
         sessionStorage.setItem('user_plan', 'basic plan'); 
-        localStorage.removeItem('selectedPlan'); // Clean up
+        localStorage.removeItem('selectedPlan'); // Clean up local storage
         
         // Redirect to homepage
         window.location.href = 'homepage.html'; 
