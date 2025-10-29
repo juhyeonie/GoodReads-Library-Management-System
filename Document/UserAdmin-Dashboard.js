@@ -385,7 +385,7 @@ document.querySelectorAll('.logout-icon').forEach(el => {
     localStorage.removeItem('sidebar_collapsed');  // keep the rest if wanted
     sessionStorage.clear();                        // optional
     // redirect to sign in page (adjust path if needed)
-    window.location.href = 'SignIn.html';
+    window.location.href = 'StartPage.html';
   });
 });
 
