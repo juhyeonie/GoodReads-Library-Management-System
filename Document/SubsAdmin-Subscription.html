@@ -53,37 +53,43 @@
       </div>
 
       <section class="plans">
-        <div class="plan-card">
-          <div class="plan-header">Free</div>
-          <div class="plan-body">
-            <p class="price-label">Monthly price</p>
-            <p class="price">PHP 100.00</p>
-            <hr />
-            <p class="details">Access our collection of Educational Books.</p>
-            <button class="edit-btn">Edit plan</button>
-          </div>
+        <!-- Basic Plan -->
+        <div class="plan-card basic" data-plan="basic">
+          <h3 class="plan-title">Basic Plan</h3>
+          <p class="plan-price">₱0 / month</p>
+          <ul class="plan-features">
+            <li>Access to limited books or categories (Novel)</li>
+            <li>Daily reading time limit (60 minutes per day)</li>
+            <li>Limited pages per book (first 30 pages only)</li>
+          </ul>
+          <button class="edit-btn">Edit</button>
         </div>
 
-        <div class="plan-card">
-          <div class="plan-header">Standard</div>
-          <div class="plan-body">
-            <p class="price-label">Monthly price</p>
-            <p class="price">PHP 150.00</p>
-            <hr />
-            <p class="details">Access Educational Books and Novels.</p>
-            <button class="edit-btn">Edit plan</button>
-          </div>
+        <!-- Standard Plan -->
+        <div class="plan-card standard highlight" data-plan="standard">
+          <div class="ribbon">Most Popular</div>
+          <h3 class="plan-title">Standard Plan</h3>
+          <p class="plan-price">₱199 / month</p>
+          <ul class="plan-features">
+            <li>Unlimited reading time</li>
+            <li>Access to all general categories (Educational, Novel, Graphic Novel)</li>
+            <li>Light customization (change reader theme)</li>
+          </ul>
+          <button class="edit-btn">Edit</button>
         </div>
 
-        <div class="plan-card">
-          <div class="plan-header">Premium</div>
-          <div class="plan-body">
-            <p class="price-label">Monthly price</p>
-            <p class="price">PHP 250.00</p>
-            <hr />
-            <p class="details">Access Educational Books, Novels, and Graphic Novels.</p>
-            <button class="edit-btn">Edit plan</button>
-          </div>
+        <!-- Premium Plan -->
+        <div class="plan-card premium" data-plan="premium">
+          <h3 class="plan-title">Premium Plan</h3>
+          <p class="plan-price">₱299 / month</p>
+          <ul class="plan-features">
+            <li>Unlimited reading time</li>
+            <li>Access to all general categories (Educational, Novel, Graphic Novel)</li>
+            <li>Light customization (change reader theme)</li>
+            <li>Bookmark feature (save reading progress)</li>
+            <li>Like & dislike system (engage with the community)</li>
+          </ul>
+          <button class="edit-btn">Edit</button>
         </div>
       </section>
     </main>
@@ -95,20 +101,26 @@
       <div class="modal-topbar"></div>
 
       <div class="modal-body">
-        <h2 id="editPlanTitle" class="modal-title">Edit plan details</h2>
+        <h2 id="editPlanTitle" class="modal-title">Edit Plan Details</h2>
 
         <form id="editPlanForm" class="edit-plan-form" autocomplete="off">
-          <label class="field">
-            <input id="planNameInput" name="name" type="text" placeholder="Plan name" />
-          </label>
+          <div class="field">
+            <label class="field-label">Plan Name</label>
+            <input id="planNameInput" name="name" type="text" placeholder="Enter plan name" />
+          </div>
 
-          <label class="field">
-            <input id="priceInput" name="price" type="text" placeholder="Price" />
-          </label>
+          <div class="field">
+            <label class="field-label">Monthly Price</label>
+            <input id="priceInput" name="price" type="text" placeholder="Enter price (e.g., ₱199 / month)" />
+          </div>
 
-          <label class="field">
-            <textarea id="descInput" name="description" placeholder="Description" rows="3"></textarea>
-          </label>
+          <div class="features-section">
+            <h3>Features</h3>
+            <div id="featuresList"></div>
+            <button type="button" class="add-feature-btn" id="addFeatureBtn">
+              + Add Feature
+            </button>
+          </div>
         </form>
       </div>
 

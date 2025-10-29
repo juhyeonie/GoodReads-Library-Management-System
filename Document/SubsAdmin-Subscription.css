@@ -2,7 +2,7 @@
   font-family: 'Gordita';
   src: url('fonts/Gordita.ttf') format('truetype');
 }
-/* ===== Reset & Base ===== */
+
 * { box-sizing: border-box; margin:0; padding:0; }
 html,body { height:100%; }
 body {
@@ -11,10 +11,9 @@ body {
   color:#222;
 }
 
-/* ===== App layout ===== */
 .app { display:flex; min-height:100vh; width:100%; }
 
-/* Sidebar - YouTube-style behavior */
+/* Sidebar */
 .sidebar {
   width: 280px;
   background: linear-gradient(180deg,#1b3c53 0%, #6f6b9b 100%);
@@ -32,9 +31,7 @@ body {
   overflow-y: auto;
 }
 
-.sidebar.collapsed {
-  width: 72px;
-}
+.sidebar.collapsed { width: 72px; }
 
 @media (max-width: 768px) {
   .sidebar {
@@ -54,9 +51,7 @@ body {
   padding: 28px 18px;
 }
 
-.sidebar.collapsed .sidebar-top {
-  padding: 20px 8px;
-}
+.sidebar.collapsed .sidebar-top { padding: 20px 8px; }
 
 .collapse-btn {
   display:inline-block; 
@@ -102,13 +97,8 @@ body {
   transition: width 0.2s ease, opacity 0.2s ease;
 }
 
-.sidebar.collapsed .logo-img {
-  display: none;
-}
-
-.sidebar.collapsed .logo-pic {
-  display: block;
-}
+.sidebar.collapsed .logo-img { display: none; }
+.sidebar.collapsed .logo-pic { display: block; }
 
 .menu { 
   margin-top: 12px; 
@@ -184,18 +174,14 @@ body {
   z-index: 1000;
 }
 
-.sidebar.collapsed .menu-item:hover::after {
-  opacity: 1;
-}
+.sidebar.collapsed .menu-item:hover::after { opacity: 1; }
 
 .sidebar-bottom {
   padding: 16px 18px 28px;
   border-top: 1px solid rgba(255,255,255,0.06);
 }
 
-.sidebar.collapsed .sidebar-bottom {
-  padding: 16px 8px 20px;
-}
+.sidebar.collapsed .sidebar-bottom { padding: 16px 8px 20px; }
 
 .user {
   display:flex;
@@ -210,16 +196,14 @@ body {
   gap: 8px;
 }
 
-.sidebar.collapsed .username {
-  display: none;
-}
+.sidebar.collapsed .username { display: none; }
 
 .logout-icon img { 
   width:28px; 
   height:28px; 
 }
 
-/* ===== Main content ===== */
+/* Main content */
 .main-content {
   margin-left: 280px;
   padding: 28px 34px;
@@ -263,9 +247,7 @@ body {
 }
 
 @media (max-width: 768px) {
-  .menu-toggle {
-    display: block;
-  }
+  .menu-toggle { display: block; }
 }
 
 .sidebar-overlay {
@@ -280,95 +262,169 @@ body {
 }
 
 @media (max-width: 768px) {
-  .sidebar-overlay.active {
-    display: block;
-  }
+  .sidebar-overlay.active { display: block; }
 }
 
-/* ===== Top area ===== */
+/* Top area */
 .topbar { 
-  margin-bottom:24px; 
+  margin-bottom:40px; 
 }
 
 .topbar h1 { 
   color:#1b3c53; 
-  font-size:28px;
 }
 
-/* ===== Subscription Plans Styles ===== */
+/* NEW Plan Cards Design - Matching Step 1 */
 .plans {
   display:flex; 
   justify-content:center; 
-  gap:25px; 
+  gap:30px; 
   flex-wrap:wrap;
+  padding: 20px;
 }
 
 .plan-card {
-  width:260px; 
-  height:440px; 
-  background:#fff; 
-  border:1px solid #d1d1d1; 
-  border-radius:8px;
-  transition: transform .2s ease, box-shadow .2s ease;
+  background: #fff;
+  color: #1e3c72;
+  border-radius: 16px;
+  width: 300px;
+  padding: 40px 30px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-align: center;
 }
 
-.plan-card:hover { 
-  transform:translateY(-3px); 
-  box-shadow:0 4px 12px rgba(0,0,0,.12); 
+.plan-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }
 
-.plan-header { 
-  background: linear-gradient(90deg,#1b3c53,#908daf); 
-  color:#fff; 
-  font-size:18px; 
-  font-weight:500; 
-  padding:12px 15px; 
-  margin:8px; 
-  border-radius:8px; 
-  height:75px; 
-  display:flex; 
-  align-items:center; 
+.plan-card.highlight {
+  border: 2px solid #1e90ff;
+  transform: scale(1.05);
 }
 
-.plan-body { 
-  padding:18px 15px; 
+.plan-card.highlight:hover {
+  transform: scale(1.05) translateY(-10px);
 }
 
-.price-label{ 
-  font-size:14px; 
-  color:#888; 
+.ribbon {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: #1e90ff;
+  color: white;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+  font-weight: 600;
 }
 
-.price{ 
-  font-size:15px; 
-  font-weight:500; 
-  margin:5px 0 10px; 
+.plan-card.premium {
+  background: linear-gradient(to bottom right, #1e3c72, #2a5298);
+  color: white;
 }
 
-.plan-body hr{ 
-  border:none; 
-  border-top:1px solid #ddd; 
-  margin:8px 0 10px; 
+.plan-title {
+  font-size: 22px;
+  margin-bottom: 10px;
+  color: #0c1d3a;
+  font-weight: 600;
 }
 
-.details{ 
-  font-size:14px; 
-  color:#333; 
-  margin-bottom:25px; 
+.plan-card.premium .plan-title {
+  color: white;
 }
 
-.edit-btn{ 
-  background:#1b3c53; 
-  color:#fff; 
-  border:none; 
-  padding:8px 14px; 
-  border-radius:4px; 
-  cursor:pointer; 
-  font-size:13px;
+.plan-card.basic .plan-price {
+  font-size: 20px;
+  font-weight: bold;
+  color: #2d6a4f;
+  margin-bottom: 20px;
 }
 
-.edit-btn:hover{ 
-  opacity:0.95; 
+.plan-card.standard .plan-price {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1e90ff;
+  margin-bottom: 20px;
+}
+
+.plan-card.premium .plan-price {
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffdb58;
+  margin-bottom: 20px;
+}
+
+.plan-features {
+  list-style: none;
+  text-align: left;
+  margin: 0 auto 30px auto;
+  max-width: 250px;
+}
+
+.plan-features li {
+  margin: 10px 0;
+  position: relative;
+  padding-left: 25px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1e3c72;
+}
+
+.plan-card.premium .plan-features li {
+  color: white;
+}
+
+.plan-card.basic .plan-features li::before {
+  content: "✔";
+  position: absolute;
+  left: 0;
+  color: #2d6a4f;
+  font-weight: bold;
+}
+
+.plan-card.standard .plan-features li::before {
+  content: "✔";
+  position: absolute;
+  left: 0;
+  color: #1e90ff;
+  font-weight: bold;
+}
+
+.plan-card.premium .plan-features li::before {
+  content: "✔";
+  position: absolute;
+  left: 0;
+  color: #ffdb58;
+  font-weight: bold;
+}
+
+.edit-btn {
+  background: #1e90ff;
+  border: none;
+  color: white;
+  padding: 12px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.edit-btn:hover {
+  background: #0c70d4;
+}
+
+.plan-card.premium .edit-btn {
+  background: #ffdb58;
+  color: #1e3c72;
+}
+
+.plan-card.premium .edit-btn:hover {
+  background: #ffd02a;
 }
 
 /* Modal styles */
@@ -388,16 +444,17 @@ body {
 }
 
 .modal-box {
-  width: 680px;
+  width: 700px;
   max-width: calc(100% - 48px);
   background: #fff;
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 18px 42px rgba(16,24,40,0.3);
   display: flex;
   flex-direction: column;
   position: relative;
   animation: fadeIn .18s ease;
+  max-height: 90vh;
 }
 
 .modal-topbar {
@@ -407,6 +464,8 @@ body {
 
 .modal-body {
   padding: 34px 40px 22px 40px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .modal-title {
@@ -417,7 +476,15 @@ body {
 }
 
 .edit-plan-form .field { 
-  margin-bottom:14px; 
+  margin-bottom:18px; 
+}
+
+.edit-plan-form label.field-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #456882;
+  margin-bottom: 6px;
 }
 
 .edit-plan-form input,
@@ -437,6 +504,76 @@ body {
   min-height:72px; 
 }
 
+.features-section {
+  margin-top: 24px;
+}
+
+.features-section h3 {
+  font-size: 16px;
+  color: #456882;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.feature-item .check-icon {
+  color: #1e90ff;
+  font-weight: bold;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.feature-item input {
+  flex: 1;
+  border: 1px solid #ddd;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.feature-item .delete-feature {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.feature-item .delete-feature:hover {
+  background: #c82333;
+}
+
+.add-feature-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.add-feature-btn:hover {
+  background: #218838;
+}
+
 .modal-bottombar {
   height: 62px;
   background: linear-gradient(90deg, #1b3c53 0%, #908daf 100%);
@@ -453,7 +590,7 @@ body {
 
 .btn {
   border: none;
-  padding: 8px 12px;
+  padding: 10px 20px;
   border-radius: 6px;
   font-weight:700;
   cursor: pointer;
@@ -465,9 +602,17 @@ body {
   color: #1b3c53;
 }
 
+.btn.confirm:hover {
+  background: #f0f0f0;
+}
+
 .btn.cancel {
   background: rgba(255,255,255,0.14);
   color: #fff;
+}
+
+.btn.cancel:hover {
+  background: rgba(255,255,255,0.24);
 }
 
 body.no-scroll {
@@ -482,33 +627,16 @@ body.no-scroll {
 @media (max-width: 1200px) {
   .plan-card{ 
     width:100%; 
-    max-width:360px; 
+    max-width:320px; 
   }
 }
 
 @media (max-width: 720px) {
   .modal-box { 
-    width: 560px; 
+    width: 90%; 
   }
   
   .modal-body { 
     padding: 22px; 
-  }
-}
-
-@media (max-width: 600px) {
-  .plan-card{ 
-    max-width:320px; 
-  }
-}
-
-@media (max-width: 420px) {
-  .modal-box { 
-    width: 100%; 
-    padding:0; 
-  }
-  
-  .modal-body { 
-    padding: 18px; 
   }
 }
