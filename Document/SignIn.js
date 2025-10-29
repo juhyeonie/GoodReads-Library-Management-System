@@ -40,6 +40,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const redirectToHomepage = () => {
       window.location.href = 'homepage.html';
   };
+  
+  // --- NEW Helper to create the correct storage key ---
+  const getStorageKey = (planName) => {
+      if (!planName) return 'basic';
+      const cleanPlan = planName.toString().toLowerCase().replace(/\s/g, '');
+      if (cleanPlan === 'basicplan') return 'basic'; // FIX: maps 'basicplan' to 'basic'
+      return cleanPlan;
+  };
+
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -73,11 +82,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const user = json.user;
       const role = user?.Role ? user.Role.toString().toLowerCase() : '';
-      const plan = user?.Plan ? user.Plan.toString().toLowerCase() : 'basic';
+      const plan = user?.Plan ? user.Plan.toString().toLowerCase() : 'basic plan'; // 'basic plan'
       
       // 1. Store CURRENT user plan in session storage for homepage access control
-      sessionStorage.setItem('user_plan', plan);
-      console.log('📘 User plan stored:', plan);
+      // --- FIX APPLIED HERE ---
+      const storageKey = getStorageKey(plan); 
+      sessionStorage.setItem('user_plan', storageKey); // Stores 'basic', 'standardplan', etc.
+      console.log('📘 User plan stored:', storageKey); 
       
       // Clear previous plan expiration flags
       sessionStorage.removeItem('is_plan_expired');
