@@ -23,17 +23,19 @@
     <div class="Signin-Box">
       <h1>Sign in</h1>
 
-      <form id="signinForm" novalidate>
+      <form id="signinForm" novalidate autocomplete="off">
+        <!-- Hidden fake fields to trick browser autofill -->
+        <input type="text" name="fake-email" style="position:absolute;top:-9999px;" tabindex="-1" autocomplete="off">
+        <input type="password" name="fake-password" style="position:absolute;top:-9999px;" tabindex="-1" autocomplete="off">
+        
         <div class="input-group">
-          <input type="email" name="email" id="email" placeholder="" required>
-          <label for="email">Email</label>
-          <div class="error" id="err-email" style="display:none;color:#c33;font-size:0.9rem"></div>
+          <input type="text" name="email" id="email" placeholder="Email" autocomplete="off" required>
+          <div class="error" id="err-email" style="display:none;color:#c33;font-size:0.9rem;margin-top:0.25rem;"></div>
         </div>
 
         <div class="input-group">
-          <input type="password" name="password" id="password" placeholder="" required>
-          <label for="password">Password</label>
-          <div class="error" id="err-password" style="display:none;color:#c33;font-size:0.9rem"></div>
+          <input type="password" name="password" id="password" placeholder="Password" autocomplete="new-password" required>
+          <div class="error" id="err-password" style="display:none;color:#c33;font-size:0.9rem;margin-top:0.25rem;"></div>
         </div>
 
         <button type="submit" class="Signin-Btn">Sign in</button>
@@ -46,6 +48,6 @@
     </div>
   </div>
 
-  <script src="Validate-SignIn.js"></script>
+  <script src="SignIn.js"></script>
 </body>
 </html>

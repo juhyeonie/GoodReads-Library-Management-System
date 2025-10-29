@@ -57,15 +57,15 @@
 
         <div class="search-panel">
           <div class="search-container">
-            <input id="searchInput" type="text" placeholder="Search admins..." />
+            <input id="searchInput" type="text" placeholder="Search ID / email..." />
             <button class="search-btn" aria-label="Search">
               <img src="search.png" alt="Search" />
             </button>
           </div>
           <select id="filterSelect" class="filter-select">
-            <option value="all">All</option>
-            <option value="Subscription Admin">Subscription Admin</option>
-            <option value="User Admin">User Admin</option>
+            <option value="all">All Roles</option>
+            <option value="SubsAdmin">Subscription Admin</option>
+            <option value="UserAdmin">User Admin</option>
           </select>
         </div>
       </div>
@@ -81,7 +81,7 @@
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Username</th>
+                <th>Email</th>
                 <th>Role</th>
                 <th>Actions</th>
               </tr>
@@ -95,7 +95,6 @@
     </main>
   </div>
 
-  <!-- Edit Modal -->
   <div id="editModal" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-topbar"></div>
@@ -103,11 +102,13 @@
         <h2 class="modal-title">Edit admin details</h2>
         <form id="editForm" class="user-form">
           <div class="field">
+            <label class="field-label">Email</label>
             <input id="editEmail" name="email" type="email" placeholder="Email" />
             <div class="error-message" id="editEmailError"></div>
           </div>
           <div class="field password-field">
-            <input id="editPassword" name="password" type="password" placeholder="Password" />
+            <label class="field-label">Password</label>
+            <input id="editPassword" name="password" type="password" placeholder="Password (leave blank to keep current)" />
             <button type="button" class="toggle-password" data-target="editPassword" aria-label="Toggle password visibility">
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path class="eye-open" d="M12 5C5.63636 5 2 12 2 12C2 12 5.63636 19 12 19C18.3636 19 22 12 22 12C22 12 18.3636 5 12 5Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -118,14 +119,15 @@
             <div class="error-message" id="editPasswordError"></div>
           </div>
           <div class="field">
+            <label class="field-label">Role</label>
             <select id="editRole" name="role">
               <option value="">Select Role</option>
-              <option value="Subscription Admin">Subscription Admin</option>
-              <option value="User Admin">User Admin</option>
+              <option value="SubsAdmin">Subscription Admin</option>
+              <option value="UserAdmin">User Admin</option>
             </select>
             <div class="error-message" id="editRoleError"></div>
           </div>
-          <input type="hidden" id="editReceipt" name="receipt">
+          <input type="hidden" id="editUserId" name="userId">
         </form>
       </div>
       <div class="modal-bottombar">
@@ -137,7 +139,6 @@
     </div>
   </div>
 
-  <!-- Add Modal -->
   <div id="addModal" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-topbar"></div>
@@ -145,10 +146,12 @@
         <h2 class="modal-title">Add a new admin</h2>
         <form id="addForm" class="user-form">
           <div class="field">
+            <label class="field-label">Email</label>
             <input id="addEmail" name="email" type="email" placeholder="Email" />
             <div class="error-message" id="addEmailError"></div>
           </div>
           <div class="field password-field">
+            <label class="field-label">Password</label>
             <input id="addPassword" name="password" type="password" placeholder="Password" />
             <button type="button" class="toggle-password" data-target="addPassword" aria-label="Toggle password visibility">
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -160,14 +163,14 @@
             <div class="error-message" id="addPasswordError"></div>
           </div>
           <div class="field">
+            <label class="field-label">Role</label>
             <select id="addRole" name="role">
               <option value="">Select Role</option>
-              <option value="Subscription Admin">Subscription Admin</option>
-              <option value="User Admin">User Admin</option>
+              <option value="SubsAdmin">Subscription Admin</option>
+              <option value="UserAdmin">User Admin</option>
             </select>
             <div class="error-message" id="addRoleError"></div>
           </div>
-          <input type="hidden" id="addReceipt" name="receipt">
         </form>
       </div>
       <div class="modal-bottombar">
@@ -179,7 +182,6 @@
     </div>
   </div>
 
-  <!-- Delete Modal -->
   <div id="deleteModal" class="modal-overlay">
     <div class="confirm-box">
       <div>
@@ -193,7 +195,7 @@
     </div>
   </div>
 
- <script src="UserAdmin-Admin.js"></script>
+ <script src="SuperAdmin-Admin.js"></script>
     
 </body>
 </html>

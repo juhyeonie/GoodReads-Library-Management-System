@@ -94,21 +94,19 @@
               </tr>
             </thead>
             <tbody>
-              <!-- JS injected rows -->
-            </tbody>
+              </tbody>
           </table>
         </div>
       </section>
     </main>
   </div>
 
-  <!-- Edit user modal -->
   <div id="editUserModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="editUserTitle">
     <div class="modal-box" role="document">
       <div class="modal-topbar"></div>
 
       <div class="modal-body">
-        <h2 id="editUserTitle" class="modal-title">Edit user details</h2>
+        <h2 id="editUserTitle" class="modal-title">Edit user plan</h2>
 
         <form id="editUserForm" class="edit-plan-form" autocomplete="off">
           <div class="field">
@@ -118,19 +116,9 @@
           <div class="field">
             <select id="userPlan" name="plan" required>
               <option value="">Select Plan</option>
-              <option value="free">Free</option>
-              <option value="standard">Standard</option>
-              <option value="premium">Premium</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <select id="userPayment" name="payment" required>
-              <option value="">Select Payment Method</option>
-              <option value="credit_card">Credit Card</option>
-              <option value="gcash">GCash</option>
-              <option value="maya">Maya</option>
-              <option value="paypal">PayPal</option>
+              <option value="Basic Plan">Basic Plan</option>
+              <option value="Standard Plan">Standard Plan</option>
+              <option value="Premium Plan">Premium Plan</option>
             </select>
           </div>
 
@@ -147,6 +135,23 @@
     </div>
   </div>
 
-  <script src="SubsAdmin-UserSubscription.js"></script>
+  <div id="viewReceiptModal" class="modal-overlay">
+    <div class="modal-box receipt-modal-box">
+      <div class="modal-topbar"></div>
+      <div class="modal-body receipt-modal-body">
+        <div id="receiptContent" class="receipt-content-area">
+          <p style="text-align: center; padding: 40px; color: #888;">Loading receipt...</p>
+        </div>
+      </div>
+      <div class="modal-bottombar">
+        <div class="modal-actions">
+          <button id="closeReceiptBtn" class="btn cancel" type="button">CLOSE</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="SubsAdmin-Dashboard.js"></script>
 </body>
 </html>

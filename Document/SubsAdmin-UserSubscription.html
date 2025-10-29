@@ -53,18 +53,20 @@
 
         <div class="search-panel">
           <div class="userSearch">
-            <input id="userSearch" type="search" placeholder="Search by email..." />
+            <input id="userSearch" type="search" placeholder="Search by Account ID or email..." />
             <button class="search-btn" aria-label="Search">
               <img src="search.png" alt="Search" />
             </button>
           </div>
 
           <select id="planFilter" aria-label="Filter by plan">
-            <option value="all">All</option>
-            <option value="free">Free</option>
-            <option value="standard">Standard</option>
-            <option value="premium">Premium</option>
-          </select>
+            <option value="all">All Plans/Statuses</option>
+            <option value="Basic Plan">Basic Plan</option>
+            <option value="Standard Plan">Standard Plan</option>
+            <option value="Premium Plan">Premium Plan</option>
+            <option value="expired">Expired Status</option>
+            <option value="downgraded">Downgraded Status</option>
+            </select>
         </div>
       </div>
 
@@ -80,47 +82,35 @@
             </tr>
           </thead>
           <tbody>
-            <!-- Populated by JavaScript -->
-          </tbody>
+            </tbody>
         </table>
       </div>
     </main>
   </div>
 
-  <!-- Edit user modal -->
   <div id="editUserModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="editUserTitle">
     <div class="modal-box" role="document">
       <div class="modal-topbar"></div>
-
       <div class="modal-body">
-        <h2 id="editUserTitle" class="modal-title">Edit user details</h2>
+        <h2 id="editUserTitle" class="modal-title">Edit user subscription</h2>
 
         <form id="editUserForm" class="edit-plan-form" autocomplete="off">
           <div class="field">
+             <label class="field-label">Email (Read-only)</label>
             <input id="userEmail" name="email" type="email" placeholder="Email" readonly style="background:#f5f5f5; color:#888; cursor:not-allowed;" />
           </div>
 
           <div class="field">
+             <label class="field-label">Subscription Plan</label>
             <select id="userPlan" name="plan" required>
               <option value="">Select Plan</option>
-              <option value="free">Free</option>
-              <option value="standard">Standard</option>
-              <option value="premium">Premium</option>
+              <option value="Basic Plan">Basic Plan</option>
+              <option value="Standard Plan">Standard Plan</option>
+              <option value="Premium Plan">Premium Plan</option>
             </select>
           </div>
 
-          <div class="field">
-            <select id="userPayment" name="payment" required>
-              <option value="">Select Payment Method</option>
-              <option value="credit_card">Credit Card</option>
-              <option value="gcash">GCash</option>
-              <option value="maya">Maya</option>
-              <option value="paypal">PayPal</option>
-            </select>
-          </div>
-
-          <input type="hidden" id="userId" name="id" />
-        </form>
+          <input type="hidden" id="userId" name="id" /> </form>
       </div>
 
       <div class="modal-bottombar">
@@ -131,6 +121,23 @@
       </div>
     </div>
   </div>
+
+  <div id="viewReceiptModal" class="modal-overlay">
+    <div class="modal-box receipt-modal-box">
+      <div class="modal-topbar"></div>
+      <div class="modal-body receipt-modal-body">
+        <div id="receiptContent" class="receipt-content-area">
+          <p style="text-align: center; padding: 40px; color: #888;">Loading receipt...</p>
+        </div>
+      </div>
+      <div class="modal-bottombar">
+        <div class="modal-actions">
+          <button id="closeReceiptBtn" class="btn cancel" type="button">CLOSE</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   <script src="SubsAdmin-UserSubscription.js"></script>
 </body>

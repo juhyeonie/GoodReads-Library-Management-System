@@ -1,4 +1,5 @@
-console.log('SuperAdmin-User.js loaded');
+// File: SuperAdmin-Admin.js
+// (Converted to use Database)
 
 // Sidebar behavior
 (function() {
@@ -56,26 +57,9 @@ console.log('SuperAdmin-User.js loaded');
         overlay.classList.remove('active');
       });
     }
-
-    const menuLinks = sidebar.querySelectorAll('.menu-item');
-    menuLinks.forEach(link => {
-      link.addEventListener('click', () => {
-        if (isMobile()) {
-          sidebar.classList.remove('mobile-open');
-          overlay.classList.remove('active');
-        }
-      });
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && isMobile() && sidebar.classList.contains('mobile-open')) {
-        sidebar.classList.remove('mobile-open');
-        overlay.classList.remove('active');
-      }
-    });
 })();
 
-// --- Customer Management (DATABASE CONNECTED) ---
+// --- Admin Management (DATABASE CONNECTED) ---
 (function() {
     let users = []; // Will hold data fetched from DB
 
@@ -89,9 +73,8 @@ console.log('SuperAdmin-User.js loaded');
     const editForm = document.getElementById('editForm');
     const editEmail = document.getElementById('editEmail');
     const editPassword = document.getElementById('editPassword');
-    const editPlan = document.getElementById('editPlan');
-    // REMOVED: const editPayment = document.getElementById('editPayment');
-    const editUserIdInput = document.getElementById('editReceipt');
+    const editRole = document.getElementById('editRole');
+    const editUserIdInput = document.getElementById('editUserId'); // Matched HTML
     const confirmEdit = document.getElementById('confirmEdit');
     const cancelEdit = document.getElementById('cancelEdit');
 
@@ -100,8 +83,7 @@ console.log('SuperAdmin-User.js loaded');
     const addForm = document.getElementById('addForm');
     const addEmail = document.getElementById('addEmail');
     const addPassword = document.getElementById('addPassword');
-    const addPlan = document.getElementById('addPlan');
-    const addPayment = document.getElementById('addPayment');
+    const addRole = document.getElementById('addRole');
     const confirmAdd = document.getElementById('confirmAdd');
     const cancelAdd = document.getElementById('cancelAdd');
 
@@ -111,11 +93,27 @@ console.log('SuperAdmin-User.js loaded');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
     let deleteTargetId = null;
-
-    // Receipt Modal Elements - Ensure these exist in your HTML
-    const viewReceiptModal = document.getElementById('viewReceiptModal');
-    const receiptContent = document.getElementById('receiptContent');
-    const closeReceiptBtn = document.getElementById('closeReceiptBtn');
+    
+    // Password toggle functionality
+    document.querySelectorAll('.toggle-password').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const targetId = this.getAttribute('data-target');
+          const input = document.getElementById(targetId);
+          if (!input) return;
+          const eyeOpen = this.querySelectorAll('.eye-open');
+          const eyeClosed = this.querySelector('.eye-closed');
+          
+          if (input.type === 'password') {
+            input.type = 'text';
+            eyeOpen.forEach(path => path.style.display = 'none');
+            if(eyeClosed) eyeClosed.style.display = 'block';
+          } else {
+            input.type = 'password';
+            eyeOpen.forEach(path => path.style.display = 'block');
+            if(eyeClosed) eyeClosed.style.display = 'none';
+          }
+        });
+    });
 
     // --- Utility Functions ---
     function escapeHtml(str) {
@@ -124,11 +122,8 @@ console.log('SuperAdmin-User.js loaded');
             '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
         }[s]));
      }
-    function formatPaymentMethod(method) {
-        return method || 'N/A';
-     }
-    function formatPlan(plan) {
-        return plan || 'N/A';
+    function formatRole(role) {
+        return role || 'N/A';
      }
 
     // --- Core Data Fetching & Rendering ---
@@ -141,32 +136,33 @@ console.log('SuperAdmin-User.js loaded');
         if (filterValue) params.append('filter', filterValue);
 
         try {
-            const response = await fetch(`Backend/user_fetch.php?${params.toString()}`);
+            // Use the new admin_fetch.php endpoint
+            const response = await fetch(`Backend/admin_fetch.php?${params.toString()}`);
             const data = await response.json();
             if (!data.success) throw new Error(data.message || 'Failed to fetch.');
             users = data.users;
             renderTable(users);
         } catch (err) {
-            console.error("Load Users Error:", err);
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: red;">Error: ${err.message}</td></tr>`;
+            console.error("Load Admins Error:", err);
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: red;">Error: ${err.message}</td></tr>`;
         }
      }
+     
     function renderTable(rows) {
         tbody.innerHTML = '';
         if (!rows || rows.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No customers found.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No admins found.</td></tr>`;
             return;
         }
         rows.forEach(u => {
             const tr = document.createElement('tr');
+            // Render columns for ID, Email, Role, Actions
             tr.innerHTML = `
               <td>${escapeHtml(u.AccountID)}</td>
               <td>${escapeHtml(u.Email)}</td>
-              <td>${escapeHtml(formatPlan(u.Plan))}</td>
-              <td>${escapeHtml(formatPaymentMethod(u.Payment_Method))}</td>
+              <td>${escapeHtml(formatRole(u.Role))}</td>
               <td>
                 <div class="actions">
-                  <button class="pill view" data-id="${escapeHtml(u.AccountID)}">View</button>
                   <button class="pill edit" data-id="${escapeHtml(u.AccountID)}">Edit</button>
                   <button class="pill delete" data-id="${escapeHtml(u.AccountID)}">Delete</button>
                 </div>
@@ -199,7 +195,7 @@ console.log('SuperAdmin-User.js loaded');
      }
     function validateEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
 
-    function validateForm(email, password, plan, isEdit = false) {
+    function validateForm(email, password, role, isEdit = false) {
         let isValid = true;
         const prefix = isEdit ? 'edit' : 'add';
         clearErrors(document.getElementById(prefix + 'Form'));
@@ -207,8 +203,7 @@ console.log('SuperAdmin-User.js loaded');
         if (!email || !validateEmail(email)) { showError(prefix + 'Email', 'Invalid email'); isValid = false; }
         if (!isEdit && !password) { showError(prefix + 'Password', 'Password required'); isValid = false; }
         else if (password && password.length < 6) { showError(prefix + 'Password', 'Password >= 6 chars'); isValid = false; }
-        if (!plan) { showError(prefix + 'Plan', 'Plan required'); isValid = false; }
-        // REMOVED Payment validation for edit form
+        if (!role) { showError(prefix + 'Role', 'Role required'); isValid = false; }
         return isValid;
      }
 
@@ -219,8 +214,7 @@ console.log('SuperAdmin-User.js loaded');
         editUserIdInput.value = user.AccountID;
         editEmail.value = user.Email;
         editPassword.value = ''; // Clear password field
-        editPlan.value = user.Plan;
-        // REMOVED: editPayment logic
+        editRole.value = user.Role;
         clearErrors(editForm);
         showModal(editModal);
      }
@@ -230,19 +224,17 @@ console.log('SuperAdmin-User.js loaded');
         const userId = editUserIdInput.value;
         const email = editEmail.value.trim();
         const password = editPassword.value;
-        const plan = editPlan.value;
-        // REMOVED: const payment = editPayment.value;
+        const role = editRole.value;
 
-        // REMOVED payment from validation
-        if (!validateForm(email, password, plan, true)) return;
+        if (!validateForm(email, password, role, true)) return;
 
         confirmEdit.disabled = true; confirmEdit.textContent = 'SAVING...';
         try {
-            const response = await fetch('Backend/user_update.php', { // Ensure using correct update script
+            // Use the new admin_update.php endpoint
+            const response = await fetch('Backend/admin_update.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                // REMOVED payment from body
-                body: JSON.stringify({ userId, email, password, plan })
+                body: JSON.stringify({ userId, email, password, role })
             });
             const result = await response.json();
             if (!result.success) {
@@ -253,7 +245,7 @@ console.log('SuperAdmin-User.js loaded');
                 loadUsers();
             }
         } catch (err) {
-            console.error("Update User Error:", err); alert(`Error: ${err.message}`);
+            console.error("Update Admin Error:", err); alert(`Error: ${err.message}`);
         } finally {
             confirmEdit.disabled = false; confirmEdit.textContent = 'CONFIRM';
         }
@@ -270,19 +262,17 @@ console.log('SuperAdmin-User.js loaded');
         e.preventDefault();
         const email = addEmail.value.trim();
         const password = addPassword.value;
-        const plan = addPlan.value;
-        const payment = addPayment.value; // Still need payment for adding
+        const role = addRole.value;
 
-        // Add payment back to validation for the add form
-        if (!validateForm(email, password, plan, false)) return; // Basic client check
-        if (!payment) { showError('addPayment', 'Payment required'); return; } // Add payment check
+        if (!validateForm(email, password, role, false)) return;
 
         confirmAdd.disabled = true; confirmAdd.textContent = 'ADDING...';
         try {
-            const response = await fetch('Backend/user_add.php', {
+            // Use the new admin_add.php endpoint
+            const response = await fetch('Backend/admin_add.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password, plan, payment })
+                body: JSON.stringify({ email, password, role })
             });
             const result = await response.json();
             if (!result.success) {
@@ -293,7 +283,7 @@ console.log('SuperAdmin-User.js loaded');
                 loadUsers();
             }
         } catch (err) {
-            console.error("Add User Error:", err); alert(`Error: ${err.message}`);
+            console.error("Add Admin Error:", err); alert(`Error: ${err.message}`);
         } finally {
             confirmAdd.disabled = false; confirmAdd.textContent = 'CONFIRM';
         }
@@ -304,7 +294,7 @@ console.log('SuperAdmin-User.js loaded');
     // --- Delete User Logic ---
     function showDeleteModal(userId, userEmail) {
         deleteTargetId = userId;
-        deleteMessage.textContent = `Delete user ${escapeHtml(userEmail || userId)}? This cannot be undone.`;
+        deleteMessage.textContent = `Delete admin ${escapeHtml(userEmail || userId)}? This cannot be undone.`;
         showModal(deleteModal);
         setTimeout(() => confirmDeleteBtn?.focus(), 80);
      }
@@ -317,7 +307,8 @@ console.log('SuperAdmin-User.js loaded');
         if (!deleteTargetId) { hideDeleteModal(); return; }
         confirmDeleteBtn.disabled = true; confirmDeleteBtn.textContent = 'DELETING...';
         try {
-            const response = await fetch('Backend/user_delete.php', {
+            // Use the new admin_delete.php endpoint
+            const response = await fetch('Backend/admin_delete.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: deleteTargetId })
@@ -327,76 +318,13 @@ console.log('SuperAdmin-User.js loaded');
             hideDeleteModal();
             loadUsers();
         } catch (err) {
-            console.error("Delete User Error:", err); alert(`Error: ${err.message}`);
+            console.error("Delete Admin Error:", err); alert(`Error: ${err.message}`);
         } finally {
             confirmDeleteBtn.disabled = false; confirmDeleteBtn.textContent = 'YES, DELETE';
         }
      });
     cancelDeleteBtn.addEventListener('click', hideDeleteModal);
     deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) hideDeleteModal(); });
-
-    // --- Receipt View Logic ---
-    async function openReceiptModal(accountId) {
-        // Ensure modal elements exist
-        if (!viewReceiptModal || !receiptContent) {
-            console.error("Receipt modal elements not found in HTML.");
-            alert("Receipt modal structure is missing. Please check HTML IDs.");
-            return;
-        }
-
-        receiptContent.innerHTML = `<p style="text-align: center; padding: 40px; color: #888;">Loading receipt...</p>`;
-        showModal(viewReceiptModal);
-
-        try {
-            const response = await fetch(`Backend/fetch_receipt.php?accountId=${accountId}`);
-            const data = await response.json();
-            if (!data.success) throw new Error(data.message || 'Failed to load receipt.');
-
-            const r = data.receipt;
-            receiptContent.innerHTML = `
-                <div class="receipt-container" style="border: none; padding: 0;">
-                    <hr class="top-line" style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <h2 style="text-align: center; margin: 15px 0; font-size: 18px; font-weight: 600;">SUBSCRIPTION RECEIPT</h2>
-                    <hr class="divider" style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <div class="section" style="margin: 15px 0; line-height: 1.7;">
-                      <p><span style="font-weight: 500;">Receipt no.</span> : ${escapeHtml(r.receiptNo)}</p>
-                      <p><span style="font-weight: 500;">Date & Time</span> : ${escapeHtml(r.dateTime)}</p>
-                      <p><span style="font-weight: 500;">Email</span> : ${escapeHtml(r.email)}</p>
-                    </div>
-                    <hr class="divider" style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <div class="section" style="margin: 15px 0; line-height: 1.7;">
-                      <p><span style="font-weight: 500;">Subscription Plan</span> : ${escapeHtml(r.planName)}</p>
-                      ${r.planName !== 'Basic Plan' ? `
-                      <p><span style="font-weight: 500;">Plan Duration</span> : ${escapeHtml(r.planDuration)}</p>
-                      <p><span style="font-weight: 500;">Start Date</span> : ${escapeHtml(r.startDate)}</p>
-                      <p><span style="font-weight: 500;">Expiry Date</span> : ${escapeHtml(r.expiryDate)}</p>
-                      ` : ''}
-                    </div>
-                    <hr class="divider" style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <div class="section" style="margin: 15px 0; line-height: 1.7;">
-                      <p><span style="font-weight: 500;">Amount Paid</span> : ${escapeHtml(r.amountPaid)}</p>
-                      <p><span style="font-weight: 500;">Payment Method</span> : ${escapeHtml(r.paymentMethod)}</p>
-                      ${r.planName !== 'Basic Plan' ? `
-                      <p><span style="font-weight: 500;">Payment Status</span> : ${escapeHtml(r.paymentStatus)}</p>
-                      ` : ''}
-                    </div>
-                    <hr class="divider" style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <p class="note" style="font-size: 14px; text-align: center; margin: 15px 0;">
-                      ${r.planName !== 'Basic Plan' ? 'Proof of subscription.' : 'User is on Basic Plan.'}
-                    </p>
-                    <hr class="bottom-line" style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <p class="footer-note" style="text-align: center; font-size: 13px; margin-top: 10px; color: #333;">
-                      * System-generated receipt.
-                    </p>
-                </div>
-            `;
-        } catch (err) {
-            console.error("View Receipt Error:", err);
-            receiptContent.innerHTML = `<p style="text-align: center; padding: 40px; color: red;">Error: ${err.message}</p>`;
-        }
-     }
-    if (closeReceiptBtn) { closeReceiptBtn.addEventListener('click', () => hideModal(viewReceiptModal)); }
-    if (viewReceiptModal) { viewReceiptModal.addEventListener('click', (e) => { if (e.target === viewReceiptModal) hideModal(viewReceiptModal); }); }
 
     // --- Table Action Listeners ---
     tbody.addEventListener('click', (e) => {
@@ -406,7 +334,7 @@ console.log('SuperAdmin-User.js loaded');
         const user = users.find(u => u.AccountID == userId);
         if (btn.classList.contains('edit')) openEditModal(userId);
         else if (btn.classList.contains('delete')) showDeleteModal(userId, user?.Email);
-        else if (btn.classList.contains('view')) openReceiptModal(userId); // Re-added this call
+        // No 'view' action for admins
      });
 
     // --- Search & Filter Listeners ---
@@ -420,32 +348,10 @@ console.log('SuperAdmin-User.js loaded');
             if (editModal?.classList.contains('show')) hideModal(editModal);
             if (addModal?.classList.contains('show')) hideModal(addModal);
             if (deleteModal?.classList.contains('show')) hideDeleteModal();
-            if (viewReceiptModal?.classList.contains('show')) hideModal(viewReceiptModal); // Re-added check
         }
      });
 
     // --- Initial Load ---
     loadUsers();
-
-    // --- Update plan options in HTML selects ---
-    document.addEventListener('DOMContentLoaded', () => {
-        const planSelects = document.querySelectorAll('#editPlan, #addPlan');
-        const filterPlanSelect = document.getElementById('filterSelect');
-        const planOptions = [
-            { value: 'Basic Plan', text: 'Basic Plan' },
-            { value: 'Standard Plan', text: 'Standard Plan' },
-            { value: 'Premium Plan', text: 'Premium Plan' }
-        ];
-        planSelects.forEach(select => {
-            while (select.options.length > 1) select.remove(1);
-            planOptions.forEach(opt => select.add(new Option(opt.text, opt.value)));
-        });
-        if (filterPlanSelect) {
-            while (filterPlanSelect.options.length > 1) filterPlanSelect.remove(1);
-            planOptions.forEach(opt => filterPlanSelect.add(new Option(opt.text, opt.value)));
-            filterPlanSelect.add(new Option('Expired', 'expired'));
-            filterPlanSelect.add(new Option('Downgraded', 'downgraded'));
-        }
-     });
 
 })(); // End Main IIFE

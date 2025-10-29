@@ -6,16 +6,13 @@
   <link rel="stylesheet" href="step2.css">
 </head>
 <body>
- <header class="header">
+  <header class="header">
     <div class="logo">
-      <!-- adjust path if logo is in Media/ or root -->
       <img src="logo.png" alt="GoodReads" style="height:48px;">
     </div>
   </header>
 
-    </div>
-  </header>
-    <!-- BACK BUTTON BELOW HEADER -->
+  <!-- BACK BUTTON BELOW HEADER -->
   <div class="back-container">
     <button class="back-btn" onclick="history.back()">← Back</button>
   </div>
@@ -25,19 +22,17 @@
     <h2 class="form-title">
       Enter your email and create a password to<br>start your membership.
     </h2>
-    <p class="subtitle">Just a few more steps and you’re all set!</p>
+    <p class="subtitle">Just a few more steps and you're all set!</p>
 
     <form id="signupStep1">
       <div class="input-group">
-        <input type="email" id="email" placeholder="" required>
-        <label for="email">Email</label>
-        <div id="err-email" class="error" style="display:none;color:#c33;font-size:0.9rem"></div>
+        <input type="email" id="email" name="new-email" placeholder="Email" autocomplete="off" required>
+        <div id="err-email" class="error" style="display:none;color:#c33;font-size:0.9rem;margin-top:0.25rem;"></div>
       </div>
 
       <div class="input-group">
-        <input type="password" id="password" placeholder="" required>
-        <label for="password">Password</label>
-        <div id="err-password" class="error" style="display:none;color:#c33;font-size:0.9rem"></div>
+        <input type="password" id="password" name="new-password" placeholder="Password" autocomplete="new-password" required>
+        <div id="err-password" class="error" style="display:none;color:#c33;font-size:0.9rem;margin-top:0.25rem;"></div>
       </div>
 
       <div id="server-msg" style="display:none;color:#c33;margin-top:0.5rem;"></div>
@@ -45,6 +40,6 @@
     </form>
   </div>
 
-  <script src="Membership1.js"></script>
+  <script src="Step2.js"></script>
 </body>
 </html>

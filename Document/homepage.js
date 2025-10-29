@@ -224,32 +224,72 @@ const grids = {
 const modal = document.getElementById("bookPreviewModal");
 const closeModal = document.getElementById("closeModal");
 const addBookBtn = document.getElementById("addBookBtn");
+const warningModal = document.getElementById("warningModal");
+const warningMessage = document.getElementById("warningMessage");
+const warningTitle = warningModal.querySelector('h2'); 
+const closeWarning = document.getElementById("closeWarning");
+const okBtn = document.getElementById("warningOkBtn");
+
 let selectedBook = null;
 
-// ====== 🧠 PLAN VALIDATION ======
+// ====== 🧠 PLAN VALIDATION AND INITIALIZATION ======
 let userPlan = sessionStorage.getItem("user_plan") || localStorage.getItem("user_plan");
 
 if (!userPlan) {
-  userPlan = "Basic"; // default for demo
-  sessionStorage.setItem("user_plan", userPlan);
+  // If not signed in or session expired, redirect to sign-in
+  if (window.location.pathname.split('/').pop() === 'homepage.html') {
+    console.warn("User plan not found. Redirecting to sign-in.");
+    window.location.href = 'SignIn.html';
+  }
+  userPlan = "Basic"; // Fallback to Basic for development/testing environment
 }
 
 userPlan = userPlan.trim().toLowerCase();
-console.log("📘 Current plan:", userPlan);
+console.log("📘 Current plan:", userPlan.toUpperCase());
 
 const allowedGenres = {
   basic: ["educational"],
-  standard: ["educational", "novel"],
-  premium: ["educational", "novel", "graphic novel"]
+  standard: ["educational", "novel", "book recommendation"],
+  premium: ["educational", "novel", "graphic novel", "book recommendation"]
 };
 
 function requiredPlan(genre) {
   const g = genre.toLowerCase();
   if (g === "educational") return "Basic";
-  if (g === "novel") return "Standard";
+  if (g === "novel" || g === "book recommendation") return "Standard";
   if (g === "graphic novel") return "Premium";
   return "Premium";
 }
+
+/**
+ * Checks for and displays the subscription expiration warning on page load.
+ */
+function checkSubscriptionExpiration() {
+    const isExpired = sessionStorage.getItem('is_plan_expired');
+    const originalPlan = sessionStorage.getItem('original_plan');
+
+    if (isExpired === 'true' && originalPlan) {
+        // Clear the flags immediately so the modal doesn't show on subsequent visits
+        sessionStorage.removeItem('is_plan_expired');
+        sessionStorage.removeItem('original_plan');
+
+        // Update the modal content for the expiration message
+        warningTitle.textContent = "Subscription Expired";
+        warningMessage.innerHTML = `Your **${originalPlan}** plan has expired. Your account has been automatically adjusted to the **Basic** plan, and you will have limited access to features.`;
+        
+        // Ensure OK button closes the modal
+        const close = () => (warningModal.style.display = "none");
+        closeWarning.onclick = close;
+        okBtn.onclick = close;
+        window.onclick = e => {
+            if (e.target === warningModal) close();
+        };
+
+        // Show the modal
+        warningModal.style.display = "block";
+    }
+}
+
 
 // ====== Render Books ======
 function loadBooks() {
@@ -261,32 +301,33 @@ function loadBooks() {
       .forEach(book => {
         const card = document.createElement("div");
         card.classList.add("book-card");
-        card.innerHTML = `<img src="${book.cover}" alt="${book.title}">`;
+        
+        const coverUrl = book.cover || 'https://placehold.co/150x225/A5B4FC/3730A3?text=No+Cover'; 
+        card.innerHTML = `<img src="${coverUrl}" alt="${book.title}" onerror="this.onerror=null;this.src='https://placehold.co/150x225/A5B4FC/3730A3?text=No+Cover'">`;
+
 
         const genre = book.genre.toLowerCase();
         const isAllowed = allowedGenres[userPlan]?.includes(genre);
 
         if (!isAllowed) {
+          card.classList.add('restricted');
           card.style.filter = "grayscale(100%) brightness(0.6)";
           card.style.cursor = "not-allowed";
           card.title = `Upgrade to ${requiredPlan(book.genre)} to access this book.`;
 
           card.addEventListener("click", () => {
-            const warningModal = document.getElementById("warningModal");
-            const warningMessage = document.getElementById("warningMessage");
-            const closeWarning = document.getElementById("closeWarning");
-            const okBtn = document.getElementById("warningOkBtn");
-
-             warningMessage.textContent = `"${book.title}" is not available in your current plan (${userPlan.toUpperCase()}). Upgrade to ${requiredPlan(book.genre)} to unlock this genre!`;
+             const required = requiredPlan(book.genre);
+             warningTitle.textContent = "Access Restricted";
+             warningMessage.textContent = `"${book.title}" is not available in your current plan (${userPlan.toUpperCase()}). Upgrade to ${required} to unlock this genre!`;
              warningModal.style.display = "block";
 
             const close = () => (warningModal.style.display = "none");
             closeWarning.onclick = close;
             okBtn.onclick = close;
             window.onclick = e => {
-    if (e.target === warningModal) close();
-  };
-});
+                if (e.target === warningModal) close();
+            };
+        });
         } else {
           card.addEventListener("click", () => openPreview(book));
         }
@@ -315,10 +356,29 @@ window.addEventListener("click", e => {
   if (e.target === modal) modal.style.display = "none";
 });
 
+// FIX: Replaced alert() with in-page notification (using warning modal)
 addBookBtn.addEventListener("click", () => {
-  alert(`${selectedBook.title} has been added to your My Books!`);
-  modal.style.display = "none";
+    console.log(`${selectedBook.title} added to My Books!`);
+    
+    // Set success message content
+    warningTitle.textContent = "Success!";
+    warningMessage.textContent = `${selectedBook.title} has been successfully added to your My Books!`;
+    warningModal.style.display = "block";
+    
+    // Set up close actions
+    const close = () => warningModal.style.display = "none";
+    closeWarning.onclick = close;
+    okBtn.onclick = close;
+
+    // Automatically close after a delay, then close preview modal
+    setTimeout(() => {
+        close();
+        modal.style.display = "none";
+        selectedBook = null;
+    }, 1500); 
+    
 });
+
 
 const closeModalBtn = document.getElementById("closeModal");
 closeModalBtn.addEventListener("click", () => {
@@ -328,6 +388,7 @@ closeModalBtn.addEventListener("click", () => {
 
 // ====== Initialize ======
 loadBooks();
+checkSubscriptionExpiration(); // Check for and show expiration message on load
 
 (function markActiveNav() {
   const navLinks = document.querySelectorAll(".nav-icons a");
@@ -347,4 +408,3 @@ loadBooks();
 if (window.feather && typeof feather.replace === "function") {
   feather.replace();
 }
-
