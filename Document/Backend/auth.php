@@ -1,5 +1,5 @@
 <?php
-// Backend/auth.php
+// Backend/auth.php (FIXED VERSION)
 header('Content-Type: application/json; charset=utf-8');
 
 // allow only POST
@@ -49,21 +49,20 @@ if (!empty($errors)) {
 }
 
 try {
-    // FIX 1: Removed FullName, Added Plan_Status to SELECT
+    // 1. Fetch User
     $stmt = $pdo->prepare('SELECT AccountID, Email, Password, Role, Plan_Status, Plan, SubsEnd FROM ACCOUNT WHERE Email = ? LIMIT 1');
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
-        // do not reveal whether email exists
         http_response_code(401);
         echo json_encode(['success' => false, 'message' => 'Invalid email or password.']);
         exit;
     }
 
+    // 2. Verify Password
     $stored = $user['Password'];
     $ok = false;
-
     // Password Verification (using password_verify for hashes, fallback for plaintext)
     if (password_verify($password, $stored) || $password === $stored) {
         $ok = true;
@@ -79,34 +78,36 @@ try {
     $currentPlan = $user['Plan'];
     $isSubscriptionExpired = false;
 
-    // --- Subscription Expiration Logic (Only for Users/Customers) ---
-    if (strcasecmp($user['Role'], 'Customer') === 0 || strcasecmp($user['Role'], 'User') === 0) { // Renamed from User/Customer
+    // --- 3. Subscription Expiration Logic (Only for Users/Customers) ---
+    // Check if the role is Customer (or User if you use it)
+    if (strtolower($user['Role']) === 'customer' || strtolower($user['Role']) === 'user') {
 
-        $subsEndTimestamp = strtotime($user['SubsEnd']);
-        $todayTimestamp = strtotime(date('Y-m-d'));
+        // FIX: Ensure SubsEnd is not NULL before using strtotime
+        $subsEnd = $user['SubsEnd'];
+        
+        if (!empty($subsEnd)) {
+            $subsEndTimestamp = strtotime($subsEnd);
+            $todayTimestamp = strtotime(date('Y-m-d'));
+            
+            // Check if the plan is paid AND the subscription end date is in the past
+            $currentPlanLower = strtolower($currentPlan);
+            if (($currentPlanLower === 'standard plan' || $currentPlanLower === 'premium plan') && $subsEndTimestamp < $todayTimestamp) {
 
-        // Check if the plan is Standard or Premium AND the subscription end date is in the past
-        if ($subsEndTimestamp && $subsEndTimestamp < $todayTimestamp) {
-             $currentPlanLower = strtolower($currentPlan);
-             // UPDATED: Check for the full plan names
-             if ($currentPlanLower === 'standard plan' || $currentPlanLower === 'premium plan') {
                 $isSubscriptionExpired = true;
-                $currentPlan = 'Basic Plan'; // UPDATED: Downgrade to Basic Plan
+                $currentPlan = 'Basic Plan'; 
 
-                // FIX 2: Updated column name from Status to Plan_Status
                 $updateStmt = $pdo->prepare('UPDATE ACCOUNT SET Plan = ?, SubsEnd = NULL, SubsStarted = NULL, Plan_Status = ? WHERE AccountID = ?');
-                // UPDATED: Use "Basic Plan"
                 $updateStmt->execute(['Basic Plan', 'Downgraded', $user['AccountID']]);
 
                 // Update the user array for the session and response
-                $user['Plan'] = 'Basic Plan'; // UPDATED
+                $user['Plan'] = 'Basic Plan';
                 $user['Plan_Status'] = 'Downgraded';
             }
         }
     }
     // --- End Subscription Expiration Logic ---
 
-    // Successful login: regenerate session id and store safe user info in session
+    // 4. Successful login: Regenerate session and store info
     session_regenerate_id(true);
     // keep only non-sensitive fields
     $_SESSION['user'] = [
@@ -119,7 +120,7 @@ try {
         'logged_in_at' => date('c')
     ];
 
-    // return success with non-sensitive data (no password)
+    // 5. Return success
     echo json_encode([
         'success' => true,
         'message' => 'Authenticated successfully.',
@@ -128,18 +129,19 @@ try {
             'Email' => $user['Email'],
             'Role' => $user['Role'],
             'Status' => $user['Plan_Status'], 
-            'Plan' => $user['Plan'], // New plan status
-            'OriginalPlan' => $originalPlan, // Original plan for client-side message
-            'IsExpired' => $isSubscriptionExpired, // Flag for client
+            'Plan' => $user['Plan'],
+            'OriginalPlan' => $originalPlan,
+            'IsExpired' => $isSubscriptionExpired,
             'FullName' => null
         ]
     ]);
     exit;
 
 } catch (PDOException $ex) {
-    // Log server-side in real app. Returning generic message to client.
+    // Log server-side error for debugging
+    error_log("Auth PDO error: " . $ex->getMessage());
     http_response_code(500);
-    error_log("Auth error: " . $ex->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Server error.']);
+    // Return generic JSON message to client
+    echo json_encode(['success' => false, 'message' => 'Server error during authentication.']);
     exit;
 }
