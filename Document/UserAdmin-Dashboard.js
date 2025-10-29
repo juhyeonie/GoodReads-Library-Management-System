@@ -375,3 +375,17 @@ function updateStats() {
   window.loadCustomersFromServer = loadCustomersFromServer;
 
 })();
+
+// Logout: redirect to sign in
+document.querySelectorAll('.logout-icon').forEach(el => {
+  el.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    // optional: clear any auth-like items in localStorage/sessionStorage
+    localStorage.removeItem('auth_token');         // if you use one
+    localStorage.removeItem('sidebar_collapsed');  // keep the rest if wanted
+    sessionStorage.clear();                        // optional
+    // redirect to sign in page (adjust path if needed)
+    window.location.href = 'SignIn.html';
+  });
+});
+
