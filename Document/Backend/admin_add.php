@@ -17,7 +17,8 @@ $role = $input['role'] ?? ''; // Role is required
 $errors = [];
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors['email'] = 'Invalid email format.'; }
 if (strlen($password) < 6) { $errors['password'] = 'Password must be at least 6 characters.'; }
-if (empty($role) || !in_array($role, ['SubsAdmin', 'UserAdmin', 'SuperAdmin'])) { 
+// Disallow 'SuperAdmin' from being added this way
+if (empty($role) || !in_array($role, ['SubsAdmin', 'UserAdmin'])) { 
     $errors['role'] = 'Invalid role selected.'; 
 }
 
@@ -43,14 +44,15 @@ if (!empty($errors)) {
 try {
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
     
-    // Admins do not have subscription dates or payment methods
     $stmt = $pdo->prepare(
         "INSERT INTO ACCOUNT (Email, Password, Role, Plan, Plan_Status) 
          VALUES (?, ?, ?, ?, ?)"
     );
-    // Admins get a 'Premium Plan' by default, or you can adjust as needed
+    
+    // --- CHANGED ---
+    // The 'Plan' is now set to 'Admin' by default, not 'Premium Plan'.
     $stmt->execute([
-        $email, $passwordHash, $role, 'Premium Plan', 'Active'
+        $email, $passwordHash, $role, 'Admin', 'Active'
     ]);
 
     $newUserId = $pdo->lastInsertId();
