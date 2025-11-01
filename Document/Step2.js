@@ -1,4 +1,4 @@
-// Step2.js
+// Step2.js (FINAL VERSION with Live Password Validation)
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('signupStep1');
   const email = document.getElementById('email');
@@ -71,18 +71,77 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 350);
 
+  /**
+   * Performs full validation for form submission.
+   */
   function validateLocal() {
     let ok=true;
-    hide(errEmail); hide(errPassword); hide(serverMsg);
+    hide(errEmail); 
+    hide(errPassword); // Ensure this is hidden before showing new errors
+    hide(serverMsg);
     const em = email.value.trim();
     const pw = password.value;
+    
+    // Regular expressions for password requirements
+    const hasUpperCase = /[A-Z]/.test(pw);
+    const hasNumber = /[0-9]/.test(pw);
+    
+    // Email Validation (Stays the same)
+    if (!em) { 
+        show(errEmail,'Enter your email.'); 
+        ok=false; 
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { 
+        show(errEmail,'Enter a valid email.'); 
+        ok=false; 
+    }
 
-    if (!em) { show(errEmail,'Enter your email.'); ok=false; }
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { show(errEmail,'Enter a valid email.'); ok=false; }
-    if (!pw) { show(errPassword,'Enter a password.'); ok=false; }
-    else if (pw.length < 8) { show(errPassword,'Password must be at least 8 characters.'); ok=false; }
+    // Password Validation (Stays the same for final check)
+    if (!pw) { 
+        show(errPassword,'Enter a password.'); 
+        ok=false; 
+    } else if (pw.length < 8) { 
+        show(errPassword,'Password must be at least 8 characters.'); 
+        ok=false; 
+    } else if (!hasUpperCase) {
+        show(errPassword,'Password must contain at least 1 uppercase letter.');
+        ok=false;
+    } else if (!hasNumber) {
+        show(errPassword,'Password must contain at least 1 number.');
+        ok=false;
+    }
+    
     return ok;
   }
+  
+  /**
+   * Provides live password feedback to the user.
+   */
+  function checkPasswordStrength(pw) {
+    const hasLength = pw.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(pw);
+    const hasNumber = /[0-9]/.test(pw);
+    
+    let requirements = [];
+
+    if (!hasLength) requirements.push("8+ characters");
+    if (!hasUpperCase) requirements.push("1 uppercase letter");
+    if (!hasNumber) requirements.push("1 number");
+
+    if (requirements.length === 0 && pw.length > 0) {
+        hide(errPassword);
+        return true;
+    } else if (requirements.length > 0) {
+        // Display the list of missing requirements
+        const msg = `Password must contain: ${requirements.join(', ')}.`;
+        show(errPassword, msg);
+        return false;
+    }
+    hide(errPassword);
+    return false;
+  }
+
+
+  // --- Event Listeners ---
 
   email.addEventListener('input', (e) => {
     const v = email.value.trim();
@@ -93,10 +152,27 @@ document.addEventListener('DOMContentLoaded', () => {
     debouncedCheck(v);
   });
 
+  // NEW: Live feedback on password input
+  password.addEventListener('input', (e) => {
+    // Only show live feedback if the input is not empty
+    if (password.value.length > 0) {
+      checkPasswordStrength(password.value);
+    } else {
+      // Clear message if field is empty
+      hide(errPassword); 
+    }
+  });
+
+
   // --- FORM SUBMIT LOGIC ---
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!validateLocal()) return;
+    // Re-validate everything, including the new password rules
+    if (!validateLocal()) {
+        // Run checkPasswordStrength one last time to ensure the error message is comprehensive
+        if (password.value) checkPasswordStrength(password.value); 
+        return;
+    }
 
     const em = email.value.trim();
     const pw = password.value;
@@ -119,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sessionStorage.removeItem('signup_password');
     sessionStorage.removeItem('signup_plan');
     
-    // --- CONDITIONAL LOGIC ---
+    // --- CONDITIONAL LOGIC (No changes here) ---
     if (selectedPlan === 'Basic Plan' || selectedPlan === 'Basic') {
       // --- HANDLE BASIC PLAN: Create account and redirect to homepage ---
       nextBtn.disabled = true;
