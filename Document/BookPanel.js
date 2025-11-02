@@ -1,4 +1,3 @@
-// State
 let currentChapter = 0;
 let currentSlide = 0;
 let totalSlides = 0;
@@ -627,9 +626,6 @@ if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
 updateHeaderNav();
 fontSizeDisplay.textContent = currentFontSize + 'px';
 
-</script>
-<!-- Add this just before closing </body> tag -->
-<script>
 if (window.feather) {
 feather.replace();
 }
