@@ -1,6 +1,3 @@
-// filepath: c:\xampp\htdocs\GoodReads-Library-Management-System\Document\BookPanel.js
-// Cleaned and consolidated BookPanel.js — safe element access, dropdowns, slide/scroll modes, search, TOC, navigation
-
 // State
 let currentChapter = 0;
 let currentSlide = 0;
@@ -9,16 +6,16 @@ let slidePages = [];
 let totalChapters = 9;
 let currentTheme = 'light';
 let currentFontSize = 18;
-let currentMode = 'scroll'; // 'scroll' or 'slide'
+let currentMode = 'scroll';
 let tocOpen = false;
 let currentSearchTerm = '';
 
-// Elements (safe)
+// Elements
 const body = document.body;
 const hamburgerBtn = document.getElementById('hamburgerBtn');
 const tocSidebar = document.getElementById('tocSidebar');
 const bookInfoHeader = document.getElementById('bookInfoHeader');
-const tocItems = document.querySelectorAll('.toc-item') || [];
+const tocItems = document.querySelectorAll('.toc-item');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const themeBtn = document.getElementById('themeBtn');
@@ -33,10 +30,12 @@ const readingArea = document.getElementById('readingArea');
 const contentWrapper = document.getElementById('contentWrapper');
 const scrollContent = document.getElementById('scrollContent');
 const slideContent = document.getElementById('slideContent');
-const chapters = document.querySelectorAll('.chapter') || [];
-const fontSizeInput = document.getElementById('fontSizeInput'); // number input (preferred)
+const chapters = document.querySelectorAll('.chapter');
+const decreaseFont = document.getElementById('decreaseFont');
+const increaseFont = document.getElementById('increaseFont');
+const fontSizeDisplay = document.getElementById('fontSizeDisplay');
 const fontSelect = document.getElementById('fontSelect');
-const modeToggleBtns = document.querySelectorAll('.mode-toggle-btn') || [];
+const modeToggleBtns = document.querySelectorAll('.mode-toggle-btn');
 const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
 const nextPageIndicator = document.getElementById('nextPageIndicator');
@@ -44,417 +43,593 @@ const scrollNextBtn = document.getElementById('scrollNextBtn');
 const slidePrevBtn = document.getElementById('slidePrevBtn');
 const slideNextBtn = document.getElementById('slideNextBtn');
 const pageIndicator = document.getElementById('pageIndicator');
-const pageIndicatorWrapper = document.getElementById('pageIndicator');
 
-// Utilities
-function safe(fn){ try{ fn(); }catch(e){ console.warn(e); } }
+// Toggle TOC Sidebar
+hamburgerBtn.addEventListener('click', () => {
+tocOpen = !tocOpen;
+tocSidebar.classList.toggle('open');
+bookInfoHeader.classList.toggle('hidden');
+closeAllDropdowns();
+});
 
-function closeAllDropdowns(){
-  if(fontDropdown) fontDropdown.classList.remove('active');
-  if(modeDropdown) modeDropdown.classList.remove('active');
-  if(searchDropdown) searchDropdown.classList.remove('active');
-}
-
-function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-// TOC toggle
-if(hamburgerBtn && tocSidebar){
-  hamburgerBtn.addEventListener('click', ()=>{
-    tocOpen = !tocOpen;
-    tocSidebar.classList.toggle('open', tocOpen);
-    if(bookInfoHeader) bookInfoHeader.classList.toggle('hidden', tocOpen);
-    closeAllDropdowns();
-  });
-}
-
-// TOC item clicks
-if(tocItems.length){
-  tocItems.forEach(item=>{
-    item.addEventListener('click', ()=>{
-      const ch = parseInt(item.dataset.chapter,10);
-      if(isNaN(ch)) return;
-      goToChapter(ch);
-      tocItems.forEach(i=>i.classList.toggle('active', parseInt(i.dataset.chapter,10)===ch));
-      // close on small
-      if(window.innerWidth <= 768 && tocSidebar){
-        tocSidebar.classList.remove('open'); tocOpen=false;
-        if(bookInfoHeader) bookInfoHeader.classList.remove('hidden');
-      }
-    });
-  });
-}
-
-// Core navigation functions
-function updateTOCActive(){
-  tocItems.forEach(item=>{
-    const idx = parseInt(item.dataset.chapter,10);
-    item.classList.toggle('active', idx === currentChapter);
-  });
-}
-
-function updateHeaderNav(){
-  safe(()=> {
-    if(currentMode === 'slide'){
-      if(prevBtn) prevBtn.disabled = currentSlide === 0;
-      if(nextBtn) nextBtn.disabled = currentSlide >= totalSlides - 1;
-    } else {
-      if(prevBtn) prevBtn.disabled = currentChapter === 0;
-      if(nextBtn) nextBtn.disabled = currentChapter >= totalChapters - 1;
+// TOC Navigation
+tocItems.forEach(item => {
+item.addEventListener('click', () => {
+    const chapterNum = parseInt(item.dataset.chapter);
+    goToChapter(chapterNum);
+    
+    // Update active state
+    tocItems.forEach(t => t.classList.remove('active'));
+    item.classList.add('active');
+    
+    // Close TOC on mobile
+    if (window.innerWidth <= 768) {
+    tocSidebar.classList.remove('open');
+    bookInfoHeader.classList.remove('hidden');
+    tocOpen = false;
     }
-  });
-}
+});
+});
 
-function updateSlideNav(){
-  if(slidePrevBtn) slidePrevBtn.disabled = currentSlide === 0;
-  if(slideNextBtn) slideNextBtn.disabled = currentSlide >= totalSlides - 1;
-  if(pageIndicator) pageIndicator.textContent = `${Math.min(totalSlides, currentSlide+1)} / ${Math.max(1,totalSlides)}`;
-}
+// Page Navigation Functions
+function goToChapter(chapterNum, highlightTerm = '') {
+if (chapterNum < 0 || chapterNum >= totalChapters) return;
 
-// Scroll / Chapter navigation
-function goToChapter(chapterNum, highlightTerm=''){
-  if(isNaN(chapterNum) || chapterNum < 0) return;
-  if(chapterNum >= totalChapters) chapterNum = totalChapters - 1;
-  currentChapter = chapterNum;
+currentChapter = chapterNum;
 
-  if(currentMode === 'slide'){
-    // find first slide matching chapter
-    let targetSlide = slidePages.findIndex(s => s.chapter === chapterNum);
-    if(targetSlide === -1) targetSlide = 0;
-    goToSlide(targetSlide);
-  } else {
+if (currentMode === 'slide') {
+    // Find the first slide of this chapter
+    let slideIndex = 0;
+    for (let i = 0; i < slidePages.length; i++) {
+    if (slidePages[i].chapter === chapterNum) {
+        slideIndex = i;
+        break;
+    }
+    }
+    goToSlide(slideIndex);
+} else {
+    // Clear previous highlights
     clearHighlights();
-    const target = document.querySelector(`.chapter[data-chapter="${chapterNum}"]`);
-    if(target && readingArea){
-      readingArea.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
-      if(highlightTerm) setTimeout(()=> highlightSearchTerm(target, highlightTerm), 500);
+    
+    // Scroll mode - scroll to the chapter
+    const targetChapter = document.querySelector(`.chapter[data-chapter="${chapterNum}"]`);
+    if (targetChapter) {
+    targetChapter.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Highlight the search term if provided
+    if (highlightTerm) {
+        setTimeout(() => {
+        highlightSearchTerm(targetChapter, highlightTerm);
+        }, 500);
     }
-  }
-
-  updateTOCActive();
-  updateHeaderNav();
+    }
 }
 
-// Slide navigation
-function goToSlide(slideIndex){
-  if(isNaN(slideIndex)) return;
-  if(slideIndex < 0) slideIndex = 0;
-  if(slideIndex >= totalSlides) slideIndex = totalSlides - 1;
-  currentSlide = slideIndex;
-  currentChapter = slidePages[slideIndex] ? slidePages[slideIndex].chapter : currentChapter;
-
-  // hide all and show active
-  const allSlides = slideContent ? slideContent.querySelectorAll('.slide-page') : [];
-  allSlides.forEach(s=> s.classList.remove('active'));
-  const active = slideContent ? slideContent.querySelector(`.slide-page[data-slide="${currentSlide}"]`) : null;
-  if(active) active.classList.add('active');
-
-  updateSlideNav();
-  updateTOCActive();
-  updateHeaderNav();
+updateTOCActive();
+updateHeaderNav();
 }
 
-// Header buttons
-if(prevBtn){
-  prevBtn.addEventListener('click', ()=>{
-    if(currentMode === 'slide'){
-      if(currentSlide > 0) goToSlide(currentSlide - 1);
+function clearHighlights() {
+const allHighlights = scrollContent.querySelectorAll('.highlight');
+allHighlights.forEach(highlight => {
+    const parent = highlight.parentNode;
+    parent.replaceChild(document.createTextNode(highlight.textContent), highlight);
+    parent.normalize();
+});
+}
+
+function highlightSearchTerm(container, searchTerm) {
+if (!searchTerm) return;
+
+const walker = document.createTreeWalker(
+    container,
+    NodeFilter.SHOW_TEXT,
+    null,
+    false
+);
+
+const nodesToReplace = [];
+let node;
+
+while (node = walker.nextNode()) {
+    if (node.nodeValue.toLowerCase().includes(searchTerm.toLowerCase())) {
+    nodesToReplace.push(node);
+    }
+}
+
+nodesToReplace.forEach(textNode => {
+    const span = document.createElement('span');
+    span.innerHTML = textNode.nodeValue.replace(
+    new RegExp(`(${searchTerm})`, 'gi'),
+    '<span class="highlight">$1</span>'
+    );
+    textNode.parentNode.replaceChild(span, textNode);
+});
+}
+
+function goToSlide(slideIndex) {
+if (slideIndex < 0 || slideIndex >= totalSlides) return;
+
+currentSlide = slideIndex;
+currentChapter = slidePages[slideIndex].chapter;
+
+// Hide all slides
+const allSlides = slideContent.querySelectorAll('.slide-page');
+allSlides.forEach(slide => slide.classList.remove('active'));
+
+// Show current slide
+const activeSlide = slideContent.querySelector(`[data-slide="${currentSlide}"]`);
+if (activeSlide) {
+    activeSlide.classList.add('active');
+}
+
+updateSlideNav();
+updateTOCActive();
+updateHeaderNav();
+}
+
+function updateTOCActive() {
+tocItems.forEach(item => {
+    if (parseInt(item.dataset.chapter) === currentChapter) {
+    item.classList.add('active');
     } else {
-      if(currentChapter > 0) goToChapter(currentChapter - 1);
+    item.classList.remove('active');
     }
-  });
-}
-if(nextBtn){
-  nextBtn.addEventListener('click', ()=>{
-    if(currentMode === 'slide'){
-      if(currentSlide < totalSlides - 1) goToSlide(currentSlide + 1);
-    } else {
-      if(currentChapter < totalChapters - 1) goToChapter(currentChapter + 1);
-    }
-  });
+});
 }
 
-// Slide nav buttons
-if(slidePrevBtn) slidePrevBtn.addEventListener('click', ()=>{ if(currentSlide>0) goToSlide(currentSlide-1); });
-if(slideNextBtn) slideNextBtn.addEventListener('click', ()=>{ if(currentSlide<totalSlides-1) goToSlide(currentSlide+1); });
+function updateHeaderNav() {
+if (currentMode === 'slide') {
+    prevBtn.disabled = currentSlide === 0;
+    nextBtn.disabled = currentSlide === totalSlides - 1;
+} else {
+    prevBtn.disabled = currentChapter === 0;
+    nextBtn.disabled = currentChapter === totalChapters - 1;
+}
+}
 
-// Scroll mode next (bottom) button
-if(scrollNextBtn) scrollNextBtn.addEventListener('click', ()=>{ if(currentChapter < totalChapters - 1) goToChapter(currentChapter + 1); });
+function updateSlideNav() {
+slidePrevBtn.disabled = currentSlide === 0;
+slideNextBtn.disabled = currentSlide === totalSlides - 1;
+pageIndicator.textContent = `${currentSlide + 1} / ${totalSlides}`;
+}
 
-// Reading area scroll detection (show bottom next when at end of current chapter)
-if(readingArea){
-  readingArea.addEventListener('scroll', ()=>{
-    if(currentMode !== 'scroll') return;
+// Header Navigation Buttons
+prevBtn.addEventListener('click', () => {
+if (currentMode === 'slide') {
+    if (currentSlide > 0) {
+    goToSlide(currentSlide - 1);
+    }
+} else {
+    if (currentChapter > 0) {
+    goToChapter(currentChapter - 1);
+    }
+}
+});
+
+nextBtn.addEventListener('click', () => {
+if (currentMode === 'slide') {
+    if (currentSlide < totalSlides - 1) {
+    goToSlide(currentSlide + 1);
+    }
+} else {
+    if (currentChapter < totalChapters - 1) {
+    goToChapter(currentChapter + 1);
+    }
+}
+});
+
+// Slide Navigation Buttons
+slidePrevBtn.addEventListener('click', () => {
+if (currentSlide > 0) {
+    goToSlide(currentSlide - 1);
+}
+});
+
+slideNextBtn.addEventListener('click', () => {
+if (currentSlide < totalSlides - 1) {
+    goToSlide(currentSlide + 1);
+}
+});
+
+// Scroll Mode Next Button
+scrollNextBtn.addEventListener('click', () => {
+if (currentChapter < totalChapters - 1) {
+    goToChapter(currentChapter + 1);
+}
+});
+
+// Detect scroll position in scroll mode
+readingArea.addEventListener('scroll', () => {
+if (currentMode === 'scroll') {
     const scrollTop = readingArea.scrollTop;
-    const clientH = readingArea.clientHeight;
-    // find active chapter by offset
-    let found = currentChapter;
-    chapters.forEach((ch, idx)=>{
-      if(ch.offsetTop <= scrollTop + 10) found = idx;
+    const scrollHeight = readingArea.scrollHeight;
+    const clientHeight = readingArea.clientHeight;
+    
+    // Show next button when near bottom
+    if (scrollHeight - scrollTop - clientHeight < 100 && currentChapter < totalChapters - 1) {
+    nextPageIndicator.classList.add('show');
+    } else {
+    nextPageIndicator.classList.remove('show');
+    }
+
+    // Update current chapter based on scroll position
+    let foundChapter = currentChapter;
+    chapters.forEach((chapter, index) => {
+    const rect = chapter.getBoundingClientRect();
+    if (rect.top <= 100 && rect.bottom > 100) {
+        foundChapter = index;
+    }
     });
-    if(found !== currentChapter){
-      currentChapter = found;
-      updateTOCActive();
-      updateHeaderNav();
+    
+    if (foundChapter !== currentChapter) {
+    currentChapter = foundChapter;
+    updateTOCActive();
+    updateHeaderNav();
     }
-    // show bottom next when near bottom of current chapter
-    const currentEl = chapters[currentChapter];
-    if(currentEl){
-      const pageBottom = currentEl.offsetTop + currentEl.offsetHeight;
-      const atEnd = (scrollTop + clientH) >= (pageBottom - 8);
-      if(nextPageIndicator) nextPageIndicator.classList.toggle('show', atEnd && currentChapter < totalChapters - 1);
-    }
-  });
+}
+});
+
+// Theme Toggle
+themeBtn.addEventListener('click', () => {
+if (currentTheme === 'light') {
+// Switch to dark mode
+currentTheme = 'dark';
+body.classList.remove('light-mode');
+body.classList.add('dark-mode');
+// Update the icon to moon
+themeBtn.innerHTML = '<i data-feather="moon"></i>';
+themeBtn.classList.add('active');
+} else {
+// Switch to light mode
+currentTheme = 'light';
+body.classList.remove('dark-mode');
+body.classList.add('light-mode');
+// Update the icon to sun
+themeBtn.innerHTML = '<i data-feather="sun"></i>';
+themeBtn.classList.remove('active');
+}
+// Re-initialize feather icons after changing the icon
+feather.replace();
+closeAllDropdowns();
+});
+// Dropdown Management
+function closeAllDropdowns() {
+fontDropdown.classList.remove('active');
+modeDropdown.classList.remove('active');
+searchDropdown.classList.remove('active');
 }
 
-// Theme toggle
-if(themeBtn){
-  themeBtn.addEventListener('click', ()=>{
-    currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-    body.classList.toggle('dark-mode', currentTheme === 'dark');
-    body.classList.toggle('light-mode', currentTheme === 'light');
+fontBtn.addEventListener('click', (e) => {
+e.stopPropagation();
+const isOpen = fontDropdown.classList.contains('active');
+closeAllDropdowns();
+if (!isOpen) {
+    fontDropdown.classList.add('active');
+}
+});
+
+modeBtn.addEventListener('click', (e) => {
+e.stopPropagation();
+const isOpen = modeDropdown.classList.contains('active');
+closeAllDropdowns();
+if (!isOpen) {
+    modeDropdown.classList.add('active');
+}
+});
+
+searchBtn.addEventListener('click', (e) => {
+e.stopPropagation();
+const isOpen = searchDropdown.classList.contains('active');
+closeAllDropdowns();
+if (!isOpen) {
+    searchDropdown.classList.add('active');
+    searchInput.focus();
+}
+});
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+if (!e.target.closest('.icon-btn') && !e.target.closest('.dropdown-menu')) {
     closeAllDropdowns();
-  });
 }
+});
 
-// Dropdown toggles (safe)
-if(fontBtn){
-  fontBtn.addEventListener('click', (e)=>{ e.stopPropagation(); const open = fontDropdown && fontDropdown.classList.contains('active'); closeAllDropdowns(); if(fontDropdown && !open) fontDropdown.classList.add('active'); });
+// Font Size Control
+decreaseFont.addEventListener('click', () => {
+if (currentFontSize > 10) {
+    currentFontSize -= 1;
+    updateFontSize();
 }
-if(modeBtn){
-  modeBtn.addEventListener('click', (e)=>{ e.stopPropagation(); const open = modeDropdown && modeDropdown.classList.contains('active'); closeAllDropdowns(); if(modeDropdown && !open) modeDropdown.classList.add('active'); });
-}
-if(searchBtn){
-  searchBtn.addEventListener('click', (e)=>{ e.stopPropagation(); const open = searchDropdown && searchDropdown.classList.contains('active'); closeAllDropdowns(); if(searchDropdown && !open){ searchDropdown.classList.add('active'); if(searchInput) searchInput.focus(); } });
-}
-document.addEventListener('click', (e)=>{ if(!e.target.closest('.icon-btn') && !e.target.closest('.dropdown') && !e.target.closest('.dropdown-menu')) closeAllDropdowns(); });
+});
 
-// Font size input (number)
-if(fontSizeInput){
-  fontSizeInput.addEventListener('change', ()=>{
-    let v = parseInt(fontSizeInput.value,10) || currentFontSize;
-    v = Math.max(12, Math.min(40, v));
-    currentFontSize = v;
-    applyFontSettings();
-  });
+increaseFont.addEventListener('click', () => {
+if (currentFontSize < 50) {
+    currentFontSize += 1;
+    updateFontSize();
 }
-// also support direct fontSelect
-if(fontSelect){
-  fontSelect.addEventListener('change', ()=> applyFontSettings());
-}
+});
 
-function applyFontSettings(){
-  if(contentWrapper){
-    contentWrapper.style.fontSize = currentFontSize + 'px';
-    if(fontSelect && fontSelect.value) contentWrapper.style.fontFamily = fontSelect.value;
-  }
-  if(currentMode === 'slide') {
-    // regenerate slides to respect new metrics
+function updateFontSize() {
+contentWrapper.style.fontSize = currentFontSize + 'px';
+fontSizeDisplay.textContent = currentFontSize + 'px';
+
+// Regenerate slides if in slide mode
+if (currentMode === 'slide') {
+    setTimeout(() => {
     generateSlidePages();
     goToSlide(currentSlide);
-  }
+    }, 100);
+}
 }
 
-// Search handling
-if(searchInput){
-  searchInput.addEventListener('input', (e)=>{
-    const q = (e.target.value || '').trim().toLowerCase();
-    currentSearchTerm = q;
-    performSearch(q);
-  });
+// Font Family Control
+fontSelect.addEventListener('change', (e) => {
+contentWrapper.style.fontFamily = e.target.value;
+
+// Regenerate slides if in slide mode
+if (currentMode === 'slide') {
+    setTimeout(() => {
+    generateSlidePages();
+    goToSlide(currentSlide);
+    }, 100);
 }
+});
 
-function performSearch(q){
-  if(!searchResults) return;
-  if(!q){ searchResults.innerHTML = '<div class="no-results">Enter a search term</div>'; return; }
-  const results = [];
-  chapters.forEach((ch, idx)=>{
-    const txt = ch.textContent || '';
-    const sentences = txt.split(/(?<=[.?!])\s+/);
-    sentences.forEach(s => {
-      if(s.toLowerCase().includes(q)) results.push({ chapter: idx, text: s.trim(), title: ch.querySelector('h2')?.textContent || `Chapter ${idx+1}` });
-    });
-  });
-  if(results.length === 0) searchResults.innerHTML = '<div class="no-results">No results found</div>';
-  else {
-    searchResults.innerHTML = results.slice(0,15).map(r=>`<div class="search-result-item" data-chapter="${r.chapter}" style="padding:8px;border-bottom:1px solid #eee;cursor:pointer">${escapeHtml(r.text)}<div style="font-size:12px;color:#666">${escapeHtml(r.title)}</div></div>`).join('');
-    Array.from(searchResults.querySelectorAll('.search-result-item')).forEach(el=>{
-      el.addEventListener('click', ()=>{
-        const ch = parseInt(el.dataset.chapter,10);
-        goToChapter(ch, currentSearchTerm);
-        closeAllDropdowns();
-        if(tocOpen && tocSidebar){ tocSidebar.classList.remove('open'); tocOpen=false; if(bookInfoHeader) bookInfoHeader.classList.remove('hidden'); }
-      });
-    });
-  }
-}
+// Generate Slide Pages
+function generateSlidePages() {
+slidePages = [];
+slideContent.innerHTML = '';
 
-// Highlight utilities
-function clearHighlights(){
-  const highlights = scrollContent ? scrollContent.querySelectorAll('.highlight') : [];
-  highlights.forEach(h=>{
-    const parent = h.parentNode;
-    if(parent) parent.replaceChild(document.createTextNode(h.textContent), h);
-  });
-}
-function highlightSearchTerm(container, term){
-  if(!term || !container) return;
-  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
-  const nodes = [];
-  let n;
-  while(n = walker.nextNode()) {
-    if(n.nodeValue.toLowerCase().includes(term.toLowerCase())) nodes.push(n);
-  }
-  nodes.forEach(textNode => {
-    const span = document.createElement('span');
-    span.innerHTML = escapeHtml(textNode.nodeValue).replace(new RegExp(`(${term})`, 'gi'), '<span class="highlight">$1</span>');
-    textNode.parentNode.replaceChild(span, textNode);
-  });
-}
+const tempDiv = document.createElement('div');
+tempDiv.style.cssText = `
+    position: absolute;
+    left: -9999px;
+    width: ${contentWrapper.clientWidth}px;
+    font-size: ${currentFontSize}px;
+    line-height: 1.8;
+    font-family: ${contentWrapper.style.fontFamily || 'Georgia, serif'};
+`;
+document.body.appendChild(tempDiv);
 
-// Slide generation
-function generateSlidePages(){
-  if(!slideContent || !contentWrapper) return;
-  slidePages = [];
-  slideContent.innerHTML = '';
+const availableHeight = readingArea.clientHeight - 80; // Subtract bottom nav height
 
-  // create a measurement element
-  const temp = document.createElement('div');
-  temp.style.position = 'absolute';
-  temp.style.left = '-9999px';
-  temp.style.width = contentWrapper.clientWidth + 'px';
-  temp.style.fontSize = currentFontSize + 'px';
-  temp.style.lineHeight = '1.8';
-  temp.style.fontFamily = contentWrapper.style.fontFamily || getComputedStyle(contentWrapper).fontFamily;
-  document.body.appendChild(temp);
-
-  const availableHeight = (readingArea ? readingArea.clientHeight : window.innerHeight) - 100; // leave space for nav
-
-  chapters.forEach((ch, chIdx)=>{
-    // prepare title and paragraphs
-    const titleHtml = ch.querySelector('h2') ? ch.querySelector('h2').outerHTML : '';
-    const paras = Array.from(ch.querySelectorAll('p')).map(p => p.outerHTML);
-
-    let pageContent = titleHtml ? [titleHtml] : [];
+chapters.forEach((chapter, chapterIndex) => {
+    const title = chapter.querySelector('h2').cloneNode(true);
+    const paragraphs = Array.from(chapter.querySelectorAll('p'));
+    
+    let currentPageContent = [];
     let currentHeight = 0;
-    // estimate title height
-    temp.innerHTML = pageContent.join('');
-    currentHeight = temp.scrollHeight;
-
-    paras.forEach(pHtml=>{
-      temp.innerHTML = pHtml;
-      const ph = temp.scrollHeight;
-      if(currentHeight + ph > availableHeight && pageContent.length > 0){
-        // finalize current page
-        createSlidePage(chIdx, pageContent);
-        pageContent = [];
-        currentHeight = 0;
-      }
-      pageContent.push(pHtml);
-      currentHeight += ph;
+    
+    // Add title to first page of chapter
+    tempDiv.innerHTML = '';
+    tempDiv.appendChild(title.cloneNode(true));
+    const titleHeight = tempDiv.offsetHeight + 20; // Add margin
+    currentHeight += titleHeight;
+    currentPageContent.push({ type: 'title', content: title.innerHTML });
+    
+    paragraphs.forEach((para, paraIndex) => {
+    tempDiv.innerHTML = '';
+    const paraClone = para.cloneNode(true);
+    tempDiv.appendChild(paraClone);
+    const paraHeight = tempDiv.offsetHeight + 20; // Add margin
+    
+    if (currentHeight + paraHeight > availableHeight) {
+        // Create new page with current content
+        createSlidePage(chapterIndex, currentPageContent);
+        
+        // Start new page
+        currentPageContent = [{ type: 'paragraph', content: para.innerHTML }];
+        currentHeight = paraHeight;
+    } else {
+        currentPageContent.push({ type: 'paragraph', content: para.innerHTML });
+        currentHeight += paraHeight;
+    }
     });
-    if(pageContent.length) createSlidePage(chIdx, pageContent);
-  });
+    
+    // Create last page of chapter
+    if (currentPageContent.length > 0) {
+    createSlidePage(chapterIndex, currentPageContent);
+    }
+});
 
-  document.body.removeChild(temp);
-  totalSlides = slidePages.length;
-  // append slide DOM elements to slideContent (createSlidePage already appended)
+document.body.removeChild(tempDiv);
+totalSlides = slidePages.length;
 }
 
-function createSlidePage(chapterIndex, contentArray){
-  const pageDiv = document.createElement('div');
-  pageDiv.className = 'slide-page';
-  pageDiv.dataset.slide = slidePages.length;
-  contentArray.forEach(html => {
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = html;
-    while(wrapper.firstChild){ pageDiv.appendChild(wrapper.firstChild); }
-  });
-  slideContent.appendChild(pageDiv);
-  slidePages.push({ chapter: chapterIndex, element: pageDiv });
+function createSlidePage(chapterIndex, content) {
+const pageDiv = document.createElement('div');
+pageDiv.className = 'slide-page';
+pageDiv.dataset.slide = slidePages.length;
+
+content.forEach(item => {
+    if (item.type === 'title') {
+    const h2 = document.createElement('h2');
+    h2.innerHTML = item.content;
+    pageDiv.appendChild(h2);
+    } else {
+    const p = document.createElement('p');
+    p.innerHTML = item.content;
+    pageDiv.appendChild(p);
+    }
+});
+
+slideContent.appendChild(pageDiv);
+slidePages.push({ chapter: chapterIndex, element: pageDiv });
 }
 
-// Mode toggle (buttons if present)
-if(modeToggleBtns.length){
-  modeToggleBtns.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const mode = btn.dataset.mode;
-      if(!mode) return;
-      currentMode = mode;
-      modeToggleBtns.forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      if(mode === 'scroll'){
-        if(readingArea) readingArea.classList.add('scroll-mode');
-        if(readingArea) readingArea.classList.remove('slide-mode');
-        if(scrollContent) scrollContent.style.display = 'block';
-        if(slideContent) slideContent.style.display = 'none';
-      } else {
-        if(readingArea) readingArea.classList.add('slide-mode');
-        if(readingArea) readingArea.classList.remove('scroll-mode');
-        if(scrollContent) scrollContent.style.display = 'none';
-        if(slideContent) slideContent.style.display = 'block';
-        generateSlidePages();
-        // show first slide of current chapter
-        let idx = slidePages.findIndex(s => s.chapter === currentChapter); if(idx === -1) idx = 0;
-        goToSlide(idx);
-      }
-      updateHeaderNav();
-      closeAllDropdowns();
-    });
-  });
-}
+// Reading Mode Toggle
+modeToggleBtns.forEach(btn => {
+btn.addEventListener('click', () => {
+    const mode = btn.dataset.mode;
+    currentMode = mode;
+    
+    // Update active state
+    modeToggleBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // Toggle classes
+    if (mode === 'scroll') {
+    readingArea.classList.remove('slide-mode');
+    readingArea.classList.add('scroll-mode');
+    
+    scrollContent.style.display = 'block';
+    slideContent.style.display = 'none';
+    
+    // Scroll to current chapter
+    setTimeout(() => {
+        const targetChapter = document.querySelector(`[data-chapter="${currentChapter}"]`);
+        if (targetChapter) {
+        targetChapter.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, 100);
+    
+    } else {
+    readingArea.classList.remove('scroll-mode');
+    readingArea.classList.add('slide-mode');
+    
+    scrollContent.style.display = 'none';
+    slideContent.style.display = 'block';
+    
+    // Generate slides and show current chapter
+    generateSlidePages();
+    
+    // Find first slide of current chapter
+    let slideIndex = 0;
+    for (let i = 0; i < slidePages.length; i++) {
+        if (slidePages[i].chapter === currentChapter) {
+        slideIndex = i;
+        break;
+        }
+    }
+    goToSlide(slideIndex);
+    }
+    
+    updateHeaderNav();
+    closeAllDropdowns();
+});
+});
 
-// Keyboard navigation
-document.addEventListener('keydown', (e)=>{
-  if(e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) {
-    if(e.key === 'Escape') closeAllDropdowns();
+// Search Functionality
+searchInput.addEventListener('input', (e) => {
+const searchTerm = e.target.value.trim().toLowerCase();
+currentSearchTerm = searchTerm;
+
+if (searchTerm === '') {
+    searchResults.innerHTML = '<div class="no-results">Enter a search term</div>';
     return;
-  }
-  if(e.key === 'ArrowLeft'){
-    if(currentMode === 'slide'){ if(currentSlide > 0) goToSlide(currentSlide - 1); }
-    else { if(currentChapter > 0) goToChapter(currentChapter - 1); }
-  } else if(e.key === 'ArrowRight'){
-    if(currentMode === 'slide'){ if(currentSlide < totalSlides - 1) goToSlide(currentSlide + 1); }
-    else { if(currentChapter < totalChapters - 1) goToChapter(currentChapter + 1); }
-  } else if(e.key === 'Escape'){
-    closeAllDropdowns();
-    if(tocOpen){ tocSidebar && tocSidebar.classList.remove('open'); tocOpen=false; if(bookInfoHeader) bookInfoHeader.classList.remove('hidden'); }
-  } else if((e.ctrlKey || e.metaKey) && e.key === 'f'){
-    e.preventDefault();
-    closeAllDropdowns();
-    if(searchDropdown) { searchDropdown.classList.add('active'); if(searchInput) searchInput.focus(); }
-  } else if(e.key.toLowerCase() === 't'){
-    // toggle toc
-    tocOpen = !tocOpen;
-    tocSidebar && tocSidebar.classList.toggle('open', tocOpen);
-    if(bookInfoHeader) bookInfoHeader.classList.toggle('hidden', tocOpen);
-    closeAllDropdowns();
-  }
-});
-
-// Close book
-if(closeBtn){
-  closeBtn.addEventListener('click', (e)=>{
-    e.preventDefault();
-    if(confirm('Are you sure you want to close this book?')) window.history.back();
-  });
 }
 
-// Initialization
-safe(()=>{
-  // set totalChapters from DOM if available
-  if(chapters.length) totalChapters = chapters.length;
-  // apply font settings
-  if(fontSizeInput) currentFontSize = parseInt(fontSizeInput.value,10) || currentFontSize;
-  applyFontSettings();
-  // initial mode: ensure scroll visible
-  if(currentMode === 'scroll'){
-    if(scrollContent) scrollContent.style.display = 'block';
-    if(slideContent) slideContent.style.display = 'none';
-  }
-  // wire slide nav update if slides exist
-  generateSlidePages();
-  updateSlideNav();
-  updateHeaderNav();
-  // expose some utilities for debug
-  window.reader = { generateSlidePages, goToChapter, goToSlide, setMode: (m)=>{ currentMode = m; /* trigger UI change if needed */ } };
+const results = [];
+chapters.forEach((chapter, index) => {
+    const chapterText = chapter.textContent;
+    const sentences = chapterText.split(/[.!?]+/);
+    
+    sentences.forEach(sentence => {
+    const trimmedSentence = sentence.trim();
+    if (trimmedSentence && trimmedSentence.toLowerCase().includes(searchTerm)) {
+        results.push({
+        chapter: index,
+        text: trimmedSentence,
+        title: chapter.querySelector('h2')?.textContent || `Chapter ${index + 1}`
+        });
+    }
+    });
 });
+
+if (results.length === 0) {
+    searchResults.innerHTML = '<div class="no-results">No results found</div>';
+} else {
+    searchResults.innerHTML = results.slice(0, 15).map((result, idx) => `
+    <div class="search-result-item" data-chapter="${result.chapter}">
+        <div class="search-result-text">${highlightText(result.text, searchTerm)}</div>
+        <div class="search-result-page">${result.title}</div>
+    </div>
+    `).join('');
+    
+    document.querySelectorAll('.search-result-item').forEach(item => {
+    item.addEventListener('click', () => {
+        const chapterNum = parseInt(item.dataset.chapter);
+        goToChapter(chapterNum, currentSearchTerm);
+        closeAllDropdowns();
+        
+        if (tocOpen) {
+        tocSidebar.classList.remove('open');
+        bookInfoHeader.classList.remove('hidden');
+        tocOpen = false;
+        }
+    });
+    });
+}
+});
+
+function highlightText(text, searchTerm) {
+const regex = new RegExp(`(${searchTerm})`, 'gi');
+return text.replace(regex, '<span class="highlight">$1</span>');
+}
+
+// Close Book
+closeBtn.addEventListener('click', () => {
+if (confirm('Are you sure you want to close this book?')) {
+    window.history.back();
+}
+});
+
+// Keyboard Shortcuts
+document.addEventListener('keydown', (e) => {
+if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+    if (e.key === 'Escape') {
+    closeAllDropdowns();
+    e.target.blur();
+    }
+    return;
+}
+
+if (e.key === 'ArrowLeft') {
+    if (currentMode === 'slide') {
+    if (currentSlide > 0) goToSlide(currentSlide - 1);
+    } else {
+    if (currentChapter > 0) goToChapter(currentChapter - 1);
+    }
+} else if (e.key === 'ArrowRight') {
+    if (currentMode === 'slide') {
+    if (currentSlide < totalSlides - 1) goToSlide(currentSlide + 1);
+    } else {
+    if (currentChapter < totalChapters - 1) goToChapter(currentChapter + 1);
+    }
+}
+
+if (e.key === 'Escape') {
+    closeAllDropdowns();
+    if (tocOpen) {
+    tocSidebar.classList.remove('open');
+    bookInfoHeader.classList.remove('hidden');
+    tocOpen = false;
+    }
+}
+
+if (e.key === 't' || e.key === 'T') {
+    tocOpen = !tocOpen;
+    tocSidebar.classList.toggle('open');
+    bookInfoHeader.classList.toggle('hidden');
+    closeAllDropdowns();
+}
+
+if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    e.preventDefault();
+    closeAllDropdowns();
+    searchDropdown.classList.add('active');
+    searchInput.focus();
+}
+}); 
+
+// Initialize
+updateHeaderNav();
+fontSizeDisplay.textContent = currentFontSize + 'px';
+
+</script>
+<!-- Add this just before closing </body> tag -->
+<script>
+if (window.feather) {
+feather.replace();
+}
