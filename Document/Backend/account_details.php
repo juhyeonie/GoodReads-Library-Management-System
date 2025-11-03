@@ -17,9 +17,10 @@ if (empty($accountId) || !is_numeric($accountId)) {
 }
 
 try {
-    // Select all relevant account data
+    // MODIFIED: Select all required account data including Payment_Method. 
+    // We'll use SubsStarted as the "CreationDate" proxy, as a dedicated field isn't in the schema.
     $stmt = $pdo->prepare(
-        "SELECT Email, Role, Plan, Plan_Status, SubsStarted, SubsEnd 
+        "SELECT Email, Role, Plan, Plan_Status, SubsStarted, SubsEnd, Payment_Method 
          FROM ACCOUNT WHERE AccountID = ?"
     );
     $stmt->execute([$accountId]);
@@ -34,16 +35,19 @@ try {
     $planName = $account['Plan'];
     $subsStartDisplay = $account['SubsStarted'] ?? 'N/A';
     $subsEndDisplay = $account['SubsEnd'] ?? 'N/A';
+    $paymentMethod = $account['Payment_Method'] ?? 'N/A';
 
-    // The frontend will apply the 'Free Plan' label, but we clean nulls here
     $profileData = [
         'AccountID' => $accountId,
         'Email' => $account['Email'],
-        'AccountType' => $account['Role'],
+        'Role' => $account['Role'], // Changed AccountType to Role based on schema
         'Plan' => $planName,
         'Status' => $account['Plan_Status'],
+        'Payment_Method' => $paymentMethod, // ADDED: Payment_Method
         'SubsStarted' => $subsStartDisplay,
         'SubsEnd' => $subsEndDisplay,
+        // The front-end expects 'CreationDate' to process data, even if we remove it later.
+        'CreationDate' => $account['SubsStarted'] // Using SubsStarted as a placeholder for creation date
     ];
 
     echo json_encode(['success' => true, 'profile' => $profileData]);

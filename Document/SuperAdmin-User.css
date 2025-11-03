@@ -587,3 +587,11 @@ tbody tr td:first-child {
 body.no-scroll {
   overflow: hidden;
 }
+
+.user-form input[readonly],
+.user-form input.uneditable {
+    background-color: #f0f0f0 !important; /* Light gray background */
+    cursor: not-allowed !important;      /* Indicate it's uneditable */
+    color: #666;                        /* Dim the text slightly */
+    border-color: #ddd;                 /* Lighten the border */
+}

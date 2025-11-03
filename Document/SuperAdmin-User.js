@@ -138,10 +138,11 @@ console.log('SuperAdmin-User.js loaded');
             // Replace space with 'T' to ensure correct UTC/local time parsing in browsers
             const date = new Date(dateString.replace(' ', 'T')); 
             if (isNaN(date)) return dateString; // Return original if parsing fails
+            // Format example: May 26, 2025 at 07:42 AM
             return date.toLocaleDateString('en-US', { 
                 year: 'numeric', month: 'long', day: 'numeric',
-                hour: '2-digit', minute: '2-digit'
-            });
+                hour: '2-digit', minute: '2-digit', hour12: true
+            }).replace(',', ''); // Remove comma for closer match
         } catch (e) {
             return dateString;
         }
@@ -222,11 +223,13 @@ console.log('SuperAdmin-User.js loaded');
         const prefix = isEdit ? 'edit' : 'add';
         clearErrors(document.getElementById(prefix + 'Form'));
 
-        if (!email || !validateEmail(email)) { showError(prefix + 'Email', 'Invalid email'); isValid = false; }
+        // Since we are setting readonly, not disabled, we rely on the pre-filled value being correct.
+        // We still check for basic validation if the field were editable, but since it's controlled
+        // by the admin, we focus on the other fields.
+        
         if (!isEdit && !password) { showError(prefix + 'Password', 'Password required'); isValid = false; }
         else if (password && password.length < 6) { showError(prefix + 'Password', 'Password >= 6 chars'); isValid = false; }
         if (!plan) { showError(prefix + 'Plan', 'Plan required'); isValid = false; }
-        // REMOVED Payment validation for edit form
         return isValid;
      }
 
@@ -238,6 +241,13 @@ console.log('SuperAdmin-User.js loaded');
         editEmail.value = user.Email;
         editPassword.value = ''; // Clear password field
         editPlan.value = user.Plan;
+        
+        // --- FINAL FIX START: Use readonly (for form submission) + tabindex/class (for unclickable/visual) ---
+        editEmail.setAttribute('readonly', 'true');
+        editEmail.setAttribute('tabindex', '-1'); // Prevents keyboard focus
+        editEmail.classList.add('uneditable'); // For CSS styling (pointer-events: none)
+        // --- FINAL FIX END ---
+        
         // REMOVED: editPayment logic
         clearErrors(editForm);
         showModal(editModal);
@@ -246,20 +256,18 @@ console.log('SuperAdmin-User.js loaded');
     confirmEdit.addEventListener('click', async (e) => {
         e.preventDefault();
         const userId = editUserIdInput.value;
-        const email = editEmail.value.trim();
+        // The value is successfully retrieved from a 'readonly' field.
+        const email = editEmail.value.trim(); 
         const password = editPassword.value;
         const plan = editPlan.value;
-        // REMOVED: const payment = editPayment.value;
 
-        // REMOVED payment from validation
         if (!validateForm(email, password, plan, true)) return;
 
         confirmEdit.disabled = true; confirmEdit.textContent = 'SAVING...';
         try {
-            const response = await fetch('Backend/user_update.php', { // Ensure using correct update script
+            const response = await fetch('Backend/user_update.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                // REMOVED payment from body
                 body: JSON.stringify({ userId, email, password, plan })
             });
             const result = await response.json();
@@ -278,7 +286,16 @@ console.log('SuperAdmin-User.js loaded');
      });
 
     cancelEdit.addEventListener('click', () => hideModal(editModal));
-    editModal.addEventListener('click', (e) => { if (e.target === editModal) hideModal(editModal); });
+    editModal.addEventListener('click', (e) => { 
+        if (e.target === editModal) hideModal(editModal); 
+        // --- FINAL FIX START: Cleanup on modal close ---
+        if (editEmail.hasAttribute('readonly')) {
+            editEmail.removeAttribute('readonly');
+            editEmail.removeAttribute('tabindex');
+            editEmail.classList.remove('uneditable');
+        }
+        // --- FINAL FIX END ---
+    });
 
     // --- Add User Logic ---
     addUserBtn.addEventListener('click', () => {
@@ -351,11 +368,10 @@ console.log('SuperAdmin-User.js loaded');
         }
      });
     cancelDeleteBtn.addEventListener('click', hideDeleteModal);
-    deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) hideDeleteModal(); });
+    deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) hideModal(deleteModal); });
 
     // --- Profile View Logic (REPLACES Receipt View Logic) ---
     async function openProfileModal(accountId) {
-        // Use the renamed modal elements
         if (!viewProfileModal || !profileContent) {
             console.error("Profile modal elements not found in HTML.");
             alert("Profile modal structure is missing. Please check HTML IDs.");
@@ -366,48 +382,44 @@ console.log('SuperAdmin-User.js loaded');
         showModal(viewProfileModal);
 
         try {
-            // NEW ENDPOINT: Fetch clean account details
+            // Fetch clean account details
             const response = await fetch(`Backend/account_details.php?id=${accountId}`); 
             const data = await response.json();
             if (!data.success) throw new Error(data.message || 'Failed to load profile.');
 
-            const p = data.profile; // Get the profile object from the new endpoint
+            const p = data.profile; 
             
-            // --- Logic for Basic Plan Display ---
-            let subsStartText = p.SubsStarted || 'N/A';
-            let subsEndText = p.SubsEnd || 'N/A';
-            const isBasicPlan = p.Plan.toLowerCase() === 'basic plan';
+            // --- Logic for Subscription Text ---
+            let subsStartText = p.SubsStarted ? formatDate(p.SubsStarted) : 'N/A';
+            let subsEndText = p.SubsEnd ? formatDate(p.SubsEnd) : 'N/A';
+            
+            const isBasicPlan = p.Plan.toLowerCase() === 'basic plan' || (p.Payment_Method && p.Payment_Method.toLowerCase() === 'free plan');
 
             if (isBasicPlan) {
-                // APPLY REQUESTED RULE: For Basic Plan, show "Free Plan" message instead of date
-                subsStartText = 'Free Plan';
-                subsEndText = 'Free Plan (No Expiry)';
+                subsStartText = 'N/A (Free Plan)';
+                subsEndText = 'N/A (Free Plan)';
             }
+
+            const statusColor = p.Status === 'Active' ? '#38a169' : '#e53e3e';
             
-            // Construct the new Profile HTML output
+            // --- FINAL UPDATED HTML FOR ORIGINAL IMAGE MIMICRY (NO CREATION DATE) ---
             profileContent.innerHTML = `
-                <div class="profile-container" style="border: none; padding: 0;">
-                    <hr style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <h2 style="text-align: center; margin: 15px 0; font-size: 18px; font-weight: 600;">ACCOUNT PROFILE</h2>
-                    <hr style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <div class="section" style="margin: 15px 0; line-height: 1.7;">
-                      <p><span style="font-weight: 500;">Email</span> : ${escapeHtml(p.Email)}</p>
-                      <p><span style="font-weight: 500;">Account Type</span> : ${escapeHtml(p.AccountType)}</p>
+                <div class="profile-container" style="padding: 0 20px;">
+                    <div class="section" style="margin-bottom: 20px;">
+                        <h3 style="font-size: 16px; font-weight: 600; color: #555; margin-bottom: 10px;">Account Details</h3>
+                        <p style="margin-bottom: 5px;"><strong style="font-weight: 700; display: inline-block; min-width: 150px;">Account ID:</strong> ${escapeHtml(p.AccountID)}</p>
+                        <p style="margin-bottom: 5px;"><strong style="font-weight: 700; display: inline-block; min-width: 150px;">Email:</strong> ${escapeHtml(p.Email)}</p>
+                        <p style="margin-bottom: 5px;"><strong style="font-weight: 700; display: inline-block; min-width: 150px;">Role:</strong> ${escapeHtml(p.Role)}</p>
+                        </div>
+
+                    <div class="section" style="margin-bottom: 20px;">
+                        <h3 style="font-size: 16px; font-weight: 600; color: #555; margin-bottom: 10px;">Subscription Details</h3>
+                        <p style="margin-bottom: 5px;"><strong style="font-weight: 700; display: inline-block; min-width: 150px;">Plan:</strong> ${escapeHtml(p.Plan)}</p>
+                        <p style="margin-bottom: 5px; color: ${statusColor};"><strong style="font-weight: 700; display: inline-block; min-width: 150px;">Status:</strong> <span style="font-weight: 700; color: ${statusColor};">${escapeHtml(p.Status)}</span></p>
+                        <p style="margin-bottom: 5px;"><strong style="font-weight: 700; display: inline-block; min-width: 150px;">Payment Method:</strong> ${escapeHtml(p.Payment_Method)}</p>
+                        <p style="margin-bottom: 5px;"><strong style="font-weight: 700; display: inline-block; min-width: 150px;">Subscription Start:</strong> ${escapeHtml(subsStartText)}</p>
+                        <p style="margin-bottom: 5px;"><strong style="font-weight: 700; display: inline-block; min-width: 150px;">Subscription End:</strong> ${escapeHtml(subsEndText)}</p>
                     </div>
-                    <hr style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <div class="section" style="margin: 15px 0; line-height: 1.7;">
-                      <p><span style="font-weight: 500;">Subscription Plan</span> : ${escapeHtml(p.Plan)}</p>
-                      <p><span style="font-weight: 500;">Plan Status</span> : ${escapeHtml(p.Status)}</p>
-                    </div>
-                    <hr style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <div class="section" style="margin: 15px 0; line-height: 1.7;">
-                      <p><span style="font-weight: 500;">Subscription Start</span> : ${escapeHtml(subsStartText)}</p>
-                      <p><span style="font-weight: 500;">Subscription End</span> : ${escapeHtml(subsEndText)}</p>
-                    </div>
-                    <hr style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <p class="footer-note" style="text-align: center; font-size: 13px; margin-top: 10px; color: #333;">
-                      * This is the current account status.
-                    </p>
                 </div>
             `;
         } catch (err) {
@@ -464,6 +476,7 @@ console.log('SuperAdmin-User.js loaded');
             while (filterPlanSelect.options.length > 1) filterPlanSelect.remove(1);
             planOptions.forEach(opt => filterPlanSelect.add(new Option(opt.text, opt.value)));
             filterPlanSelect.add(new Option('Expired', 'expired'));
+            filterPlanSelect.add(new Option('Cancelled', 'cancelled')); 
             filterPlanSelect.add(new Option('Downgraded', 'downgraded'));
         }
      });
