@@ -479,6 +479,28 @@ select {
   outline: none;
 }
 
+/* --- ADDED: Style for the unclickable email display --- */
+.edit-plan-form .uneditable-text-display {
+    /* Mimics the padding and width of the original input field */
+    display: block; 
+    width: 100%;
+    padding: 10px 12px;
+    
+    /* Plain text styling, ensures it does not look like a password/input box */
+    font-size: 14px;
+    color: #556;
+    background-color: #f0f0f0; /* Light gray background to show it's non-interactive */
+    border: 1px solid #c7ced2; 
+    border-radius: 8px; 
+    
+    /* KEY: Makes the element completely ignore mouse clicks/events */
+    pointer-events: none;
+    cursor: default;
+    user-select: none; /* Prevents text selection */
+}
+/* --- END ADDED STYLES --- */
+
+
 /* Modal Footer */
 .modal-bottombar {
   height: 62px;

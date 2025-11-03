@@ -96,8 +96,9 @@
 
         <form id="editUserForm" class="edit-plan-form" autocomplete="off">
           <div class="field">
-             <label class="field-label">Email (Read-only)</label>
-            <input id="userEmail" name="email" type="email" placeholder="Email" readonly style="background:#f5f5f5; color:#888; cursor:not-allowed;" />
+             <label class="field-label">Email</label>
+            <span id="userEmailDisplay" class="uneditable-text-display"></span>
+            <input id="userEmailHidden" name="email" type="hidden" />
           </div>
 
           <div class="field">
@@ -123,11 +124,12 @@
   </div>
 
   <div id="viewReceiptModal" class="modal-overlay">
-    <div class="modal-box receipt-modal-box">
-      <div class="modal-topbar"></div>
-      <div class="modal-body receipt-modal-body">
-        <div id="receiptContent" class="receipt-content-area">
-          <p style="text-align: center; padding: 40px; color: #888;">Loading receipt...</p>
+    <div class="modal-box profile-modal-box">
+      <div class="modal-topbar" style="background-color: #1b3c53;"></div> 
+      <div class="modal-body profile-modal-body" style="padding: 30px;">
+        <h2 style="text-align: center; font-size: 24px; font-weight: 700; color: #1b3c53; margin-bottom: 30px;">CUSTOMER PROFILE</h2>
+        <div id="receiptContent" class="profile-content-area" style="padding: 0 10px;">
+          <p style="text-align: center; padding: 40px; color: #888;">Loading profile...</p>
         </div>
       </div>
       <div class="modal-bottombar">
@@ -137,8 +139,6 @@
       </div>
     </div>
   </div>
-
-
   <script src="SubsAdmin-UserSubscription.js"></script>
 </body>
 </html>
