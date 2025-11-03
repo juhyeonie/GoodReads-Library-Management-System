@@ -87,7 +87,8 @@ console.log('SuperAdmin-User.js loaded');
     // Edit Modal Elements
     const editModal = document.getElementById('editModal');
     const editForm = document.getElementById('editForm');
-    const editEmail = document.getElementById('editEmail');
+    const editEmail = document.getElementById('editEmail'); // Now the hidden input
+    const editEmailDisplay = document.getElementById('editEmailDisplay'); // NEW: The visible text element
     const editPassword = document.getElementById('editPassword');
     const editPlan = document.getElementById('editPlan');
     // REMOVED: const editPayment = document.getElementById('editPayment');
@@ -222,10 +223,8 @@ console.log('SuperAdmin-User.js loaded');
         let isValid = true;
         const prefix = isEdit ? 'edit' : 'add';
         clearErrors(document.getElementById(prefix + 'Form'));
-
-        // Since we are setting readonly, not disabled, we rely on the pre-filled value being correct.
-        // We still check for basic validation if the field were editable, but since it's controlled
-        // by the admin, we focus on the other fields.
+        
+        // Since the edit email field is now a hidden input, we skip client validation for it here.
         
         if (!isEdit && !password) { showError(prefix + 'Password', 'Password required'); isValid = false; }
         else if (password && password.length < 6) { showError(prefix + 'Password', 'Password >= 6 chars'); isValid = false; }
@@ -238,15 +237,16 @@ console.log('SuperAdmin-User.js loaded');
         const user = users.find(u => u.AccountID == userId);
         if (!user || !editModal) return;
         editUserIdInput.value = user.AccountID;
-        editEmail.value = user.Email;
+        
+        // --- FINAL EMAIL FIX START ---
+        // 1. Set the value of the hidden input for submission
+        editEmail.value = user.Email; 
+        // 2. Display the email as non-interactive text
+        editEmailDisplay.textContent = user.Email;
+        // --- FINAL EMAIL FIX END ---
+        
         editPassword.value = ''; // Clear password field
         editPlan.value = user.Plan;
-        
-        // --- FINAL FIX START: Use readonly (for form submission) + tabindex/class (for unclickable/visual) ---
-        editEmail.setAttribute('readonly', 'true');
-        editEmail.setAttribute('tabindex', '-1'); // Prevents keyboard focus
-        editEmail.classList.add('uneditable'); // For CSS styling (pointer-events: none)
-        // --- FINAL FIX END ---
         
         // REMOVED: editPayment logic
         clearErrors(editForm);
@@ -256,7 +256,7 @@ console.log('SuperAdmin-User.js loaded');
     confirmEdit.addEventListener('click', async (e) => {
         e.preventDefault();
         const userId = editUserIdInput.value;
-        // The value is successfully retrieved from a 'readonly' field.
+        // Retrieve the email from the hidden input
         const email = editEmail.value.trim(); 
         const password = editPassword.value;
         const plan = editPlan.value;
@@ -288,13 +288,6 @@ console.log('SuperAdmin-User.js loaded');
     cancelEdit.addEventListener('click', () => hideModal(editModal));
     editModal.addEventListener('click', (e) => { 
         if (e.target === editModal) hideModal(editModal); 
-        // --- FINAL FIX START: Cleanup on modal close ---
-        if (editEmail.hasAttribute('readonly')) {
-            editEmail.removeAttribute('readonly');
-            editEmail.removeAttribute('tabindex');
-            editEmail.classList.remove('uneditable');
-        }
-        // --- FINAL FIX END ---
     });
 
     // --- Add User Logic ---
