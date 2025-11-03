@@ -2,7 +2,9 @@
 // Backend/admin_update.php
 header('Content-Type: application/json; charset=utf-8');
 
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once __DIR__ . '/config.php';
 
 $adminId = $_SESSION['user']['AccountID'] ?? 0;
@@ -15,34 +17,47 @@ $role = $input['role'] ?? '';
 
 // --- Validation ---
 $errors = [];
-if (empty($userId)) { $errors['general'] = 'User ID missing.'; }
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors['email'] = 'Invalid email format.'; }
-if (!empty($password) && strlen($password) < 6) { $errors['password'] = 'Password must be at least 6 characters if provided.'; }
-// --- UPDATED: Disallow 'SuperAdmin' role in the request ---
-if (empty($role) || !in_array($role, ['SubsAdmin', 'UserAdmin'])) { 
-    $errors['role'] = 'Invalid role selected.'; 
+if (empty($userId)) {
+    $errors['general'] = 'User ID missing.';
+}
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $errors['email'] = 'Invalid email format.';
+}
+if (!empty($password) && strlen($password) < 6) {
+    $errors['password'] = 'Password must be at least 6 characters if provided.';
+}
+// Disallow 'SuperAdmin' role in the request
+if (empty($role) || !in_array($role, ['SubsAdmin', 'UserAdmin'])) {
+    $errors['role'] = 'Invalid role selected.';
 }
 
-// Check if the NEW email already exists FOR ANOTHER USER
-if (!empty($email) && !empty($userId)) {
+// FIRST: Check if the account being edited is a SuperAdmin
+if (!empty($userId)) {
     try {
-        // --- UPDATED: Stronger check ---
-        // First, get the role of the user being edited
         $checkStmt = $pdo->prepare("SELECT Role FROM ACCOUNT WHERE AccountID = ?");
         $checkStmt->execute([$userId]);
         $currentUserRole = $checkStmt->fetchColumn();
 
         // SAFETY: Do not allow editing a SuperAdmin AT ALL
         if ($currentUserRole === 'SuperAdmin') {
-             $errors['general'] = 'SuperAdmin accounts cannot be modified from this panel.';
+            $errors['general'] = 'SuperAdmin accounts cannot be modified from this panel.';
         }
+    } catch (PDOException $e) {
+        error_log("Role check error: " . $e->getMessage());
+        $errors['database'] = 'Error checking account role.';
+    }
+}
 
+// Check if the NEW email already exists FOR ANOTHER USER
+if (!empty($email) && !empty($userId) && empty($errors)) {
+    try {
         $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM ACCOUNT WHERE Email = ? COLLATE NOCASE AND AccountID != ?");
         $checkStmt->execute([$email, $userId]);
         if ($checkStmt->fetchColumn() > 0) {
             $errors['email'] = 'Email already registered by another user.';
         }
     } catch (PDOException $e) {
+        error_log("Email check error: " . $e->getMessage());
         $errors['database'] = 'Error checking email.';
     }
 }
@@ -55,22 +70,24 @@ if (!empty($errors)) {
 // --- End Validation ---
 
 try {
-    $sql = "UPDATE ACCOUNT SET Email = ?, Role = ?";
+    // Build UPDATE query
+    $updateFields = ['Email = ?', 'Role = ?'];
     $params = [$email, $role];
 
     if (!empty($password)) {
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-        $sql .= ", Password = ?";
+        $updateFields[] = 'Password = ?';
         $params[] = $passwordHash;
     }
 
-    // --- UPDATED: Stronger WHERE clause ---
-    $sql .= " WHERE AccountID = ? AND Role != 'Customer' AND Role != 'SuperAdmin'";
+    // Add userId to params for WHERE clause
     $params[] = $userId;
 
+    // Execute update - ensure it only affects admin accounts (not Customers or SuperAdmin)
+    $sql = "UPDATE ACCOUNT SET " . implode(', ', $updateFields) . " WHERE AccountID = ? AND Role != 'Customer' AND Role != 'SuperAdmin'";
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
-    
+
     $rowCount = $stmt->rowCount();
 
     if ($rowCount > 0) {
@@ -79,10 +96,9 @@ try {
         $log_stmt->execute([$adminId, "SuperAdmin updated admin ID: " . $userId . " (Email: " . $email . ")"]);
         echo json_encode(['success' => true, 'message' => 'Admin updated successfully.']);
     } else {
-        // This can happen if the user wasn't found or was a SuperAdmin
-        echo json_encode(['success' => false, 'message' => 'User not found or no changes made.']);
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'No changes made. User not found or insufficient permissions.']);
     }
-
 } catch (PDOException $e) {
     http_response_code(500);
     error_log('Admin update error: ' . $e->getMessage());
