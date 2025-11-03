@@ -38,20 +38,31 @@ try {
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
     // If subs dates not provided, set default: start = today, end = +30 days
+    // Note: SubsStarted/SubsEnd are Y-m-d here, which might conflict if the DB format is Y-m-d H:i:s.
+    // However, keeping existing date logic and only updating the new column:
     if (!$subs_started) $subs_started = date('Y-m-d');
     if (!$subs_end) $subs_end = date('Y-m-d', strtotime($subs_started.' +30 days'));
     
     // UPDATED: Check for "Basic Plan"
     if ($payment_method === '' && $plan === 'Basic Plan') $payment_method = 'Free Plan';
 
+    // *** START CHANGE: Define the creation date ***
+    $account_created = date('Y-m-d H:i:s');
+    // *** END CHANGE ***
+
 
     // FIX 1: Updated column names for INSERT (Plan_Status, Payment_Method)
     // The query now includes 'Payment_Method' and uses 'Plan_Status'
-    $stmt = $pdo->prepare('INSERT INTO ACCOUNT (Email, Password, Plan, Role, SubsStarted, SubsEnd, Plan_Status, Payment_Method) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+    // *** START CHANGE: Update the prepared statement ***
+    $stmt = $pdo->prepare('INSERT INTO ACCOUNT (Email, Password, Plan, Role, SubsStarted, SubsEnd, Plan_Status, Payment_Method, AccountCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    // *** END CHANGE ***
+    
     $role = 'Customer'; // Changed to align with your new table data
     $plan_status = 'Active';
     // FIX 2: Execute now has 8 parameters
-    $stmt->execute([$email, $passwordHash, $plan, $role, $subs_started, $subs_end, $plan_status, $payment_method]);
+    // *** START CHANGE: Update the execute array ***
+    $stmt->execute([$email, $passwordHash, $plan, $role, $subs_started, $subs_end, $plan_status, $payment_method, $account_created]);
+    // *** END CHANGE ***
 
     $account_id = $pdo->lastInsertId();
 

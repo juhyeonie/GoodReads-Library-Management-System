@@ -5,29 +5,26 @@ require_once __DIR__ . '/config.php';
 
 // --- Input Parameters ---
 $searchTerm = $_GET['search'] ?? '';
-$filterPlan = $_GET['filter'] ?? 'all'; // e.g., 'all', 'basic plan', 'standard plan', 'premium plan', 'expired', 'cancelled'
+$filterPlan = $_GET['filter'] ?? 'all'; 
 
 // --- Build SQL Query ---
-$sql = "SELECT AccountID, Email, Plan, Payment_Method, Plan_Status FROM ACCOUNT WHERE Role = 'Customer'";
+// *** CHANGED: Added SubsEnd and AccountCreated to the SELECT statement ***
+$sql = "SELECT AccountID, Email, Plan, Payment_Method, Plan_Status, SubsStarted, SubsEnd, AccountCreated FROM ACCOUNT WHERE Role = 'Customer'";
 $params = [];
 
 // Apply Search
 if (!empty($searchTerm)) {
-    // Search AccountID (exact match) or Email (partial match)
     $sql .= " AND (AccountID = ? OR Email LIKE ?)";
-    $params[] = $searchTerm; // AccountID must be exact
-    $params[] = '%' . $searchTerm . '%'; // Email partial match
+    $params[] = $searchTerm; 
+    $params[] = '%' . $searchTerm . '%';
 }
 
 // Apply Filter
 if ($filterPlan !== 'all') {
     if ($filterPlan === 'expired' || $filterPlan === 'cancelled' || $filterPlan === 'downgraded') {
-        // Filter by Plan_Status
         $sql .= " AND Plan_Status = ?";
-        // Capitalize first letter for DB values ('Expired', 'Cancelled', 'Downgraded')
         $params[] = ucfirst($filterPlan); 
     } else {
-        // Filter by Plan name (e.g., 'Basic Plan', 'Standard Plan', 'Premium Plan')
         $sql .= " AND Plan = ?";
         $params[] = $filterPlan; 
     }

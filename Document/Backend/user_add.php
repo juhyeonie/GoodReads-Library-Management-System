@@ -57,13 +57,22 @@ try {
         $subs_end = date('Y-m-d H:i:s', strtotime('+30 days'));
     }
 
+    // *** START CHANGE: Define the creation date ***
+    $account_created = date('Y-m-d H:i:s');
+    // *** END CHANGE ***
+
+    // *** START CHANGE: Update the prepared statement ***
     $stmt = $pdo->prepare(
-        "INSERT INTO ACCOUNT (Email, Password, Plan, Role, Payment_Method, Plan_Status, SubsStarted, SubsEnd) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO ACCOUNT (Email, Password, Plan, Role, Payment_Method, Plan_Status, SubsStarted, SubsEnd, AccountCreated) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)" // Added AccountCreated
     );
+    // *** END CHANGE ***
+    
+    // *** START CHANGE: Update the execute array ***
     $stmt->execute([
-        $email, $passwordHash, $plan, $role, $payment, $plan_status, $subs_started, $subs_end
+        $email, $passwordHash, $plan, $role, $payment, $plan_status, $subs_started, $subs_end, $account_created // Added $account_created
     ]);
+    // *** END CHANGE ***
 
     $newUserId = $pdo->lastInsertId();
 
