@@ -13,7 +13,6 @@ body {
 
 .app { display:flex; min-height:100vh; width:100%; }
 
-/* Sidebar */
 .sidebar {
   width: 280px;
   background: linear-gradient(180deg,#1b3c53 0%, #6f6b9b 100%);
@@ -203,7 +202,6 @@ body {
   height:28px; 
 }
 
-/* Main content */
 .main-content {
   margin-left: 280px;
   padding: 28px 34px;
@@ -265,7 +263,6 @@ body {
   .sidebar-overlay.active { display: block; }
 }
 
-/* Top area */
 .topbar { 
   margin-bottom:40px; 
 }
@@ -274,7 +271,6 @@ body {
   color:#1b3c53; 
 }
 
-/* NEW Plan Cards Design - Matching Step 1 */
 .plans {
   display:flex; 
   justify-content:center; 
@@ -427,7 +423,6 @@ body {
   background: #ffd02a;
 }
 
-/* Modal styles */
 .modal-overlay {
   position: fixed;
   inset: 0;

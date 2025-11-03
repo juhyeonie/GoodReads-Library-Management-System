@@ -77,7 +77,7 @@
   });
 })();
 
-// --- Dashboard data and functionality (DATABASE CONNECTED) ---
+// Dashboard data and functionality (DATABASE CONNECTED)
 (function() {
   let users = []; 
 
@@ -92,7 +92,7 @@
   const cancelBtn = document.getElementById('cancelUserEdit');
   const editForm = document.getElementById('editUserForm');
 
-  // --- NEW: Receipt Modal Elements ---
+  // NEW: Receipt Modal Elements
   const viewReceiptModal = document.getElementById('viewReceiptModal');
   const receiptContent = document.getElementById('receiptContent');
   const closeReceiptBtn = document.getElementById('closeReceiptBtn');
@@ -161,10 +161,10 @@
     }
   }
 
-  // --- Initial Load ---
+  // Initial Load
   loadDashboardData();
 
-  // --- Modal Functions ---
+  // Modal Functions
   function showModal(modal) { if(modal){ modal.classList.add('show'); document.body.classList.add('no-scroll'); }}
   function hideModal(modal) { if(modal){ modal.classList.remove('show'); document.body.classList.remove('no-scroll'); }}
 
@@ -179,7 +179,7 @@
     hideModal(editModal);
   }
   
-  // --- NEW: Receipt View Logic ---
+  // NEW: Receipt View Logic
   async function openReceiptModal(accountId) {
     if (!viewReceiptModal || !receiptContent) {
         console.error("Receipt modal elements not found in HTML.");
@@ -238,7 +238,7 @@
     }
   }
 
-  // --- UPDATED: Click listener for table buttons ---
+  // UPDATED: Click listener for table buttons
   document.addEventListener('click', (e) => {
     const editBtn = e.target.closest('.edit-btn');
     if (editBtn) {
@@ -254,7 +254,7 @@
       return;
     }
     
-    // --- NEW: Handle View Button ---
+    // NEW: Handle View Button 
     const viewBtn = e.target.closest('.view-btn');
     if (viewBtn) {
       const id = viewBtn.dataset.id;
@@ -306,7 +306,7 @@
     }
   });
 
-  // --- Modal close listeners ---
+  // Modal close listeners
   cancelBtn && cancelBtn.addEventListener('click', (e) => { 
     e.preventDefault(); 
     hideEdit(); 
@@ -315,18 +315,18 @@
     if (e.target === editModal) hideEdit(); 
   });
   
-  // --- NEW: Receipt modal close listeners ---
+  // NEW: Receipt modal close listeners 
   if (closeReceiptBtn) { closeReceiptBtn.addEventListener('click', () => hideModal(viewReceiptModal)); }
   if (viewReceiptModal) { viewReceiptModal.addEventListener('click', (e) => { if (e.target === viewReceiptModal) hideModal(viewReceiptModal); }); }
 
 
-  // --- UPDATED: Escape key listener ---
+  // UPDATED: Escape key listener 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       if (editModal && editModal.classList.contains('show')) {
         hideEdit();
       }
-      // --- NEW ---
+      // NEW 
       if (viewReceiptModal && viewReceiptModal.classList.contains('show')) {
         hideModal(viewReceiptModal);
       }

@@ -75,7 +75,7 @@ console.log('SubsAdmin-Subscription.js loaded');
   });
 })();
 
-// --- NEW DYNAMIC PLAN MANAGEMENT ---
+// NEW DYNAMIC PLAN MANAGEMENT 
 (function() {
   const modal = document.getElementById('editPlanModal');
   const form = document.getElementById('editPlanForm');
@@ -90,9 +90,7 @@ console.log('SubsAdmin-Subscription.js loaded');
   let originalPlanName = null;
   let allPlansData = [];
 
-  /**
-   * 1. LOAD ALL PLANS FROM DATABASE
-   */
+  /* 1. LOAD ALL PLANS FROM DATABASE */
   async function loadPlans() {
     try {
       const response = await fetch('Backend/plan_fetch.php');
@@ -122,9 +120,7 @@ console.log('SubsAdmin-Subscription.js loaded');
     }
   }
 
-  /**
-   * 2. RENDER PLANS ON THE PAGE
-   */
+  /* 2. RENDER PLANS ON THE PAGE */
   function renderPlans(plans) {
     if (!plansContainer) return;
     plansContainer.innerHTML = ''; 
@@ -166,9 +162,7 @@ console.log('SubsAdmin-Subscription.js loaded');
     });
   }
 
-  /**
-   * 3. OPEN AND POPULATE THE EDIT MODAL
-   */
+  /* 3. OPEN AND POPULATE THE EDIT MODAL */
   function openEditModal(planName) {
     const plan = allPlansData.find(p => p.PlanName === planName);
     if (!plan) return;
@@ -187,9 +181,7 @@ console.log('SubsAdmin-Subscription.js loaded');
     showModal();
   }
 
-  /**
-   * 4. SAVE CHANGES TO DATABASE
-   */
+  /* 4. SAVE CHANGES TO DATABASE */
   async function handleConfirmEdit(evt) {
     evt.preventDefault();
     confirmBtn.disabled = true;
@@ -240,7 +232,7 @@ console.log('SubsAdmin-Subscription.js loaded');
   }
 
 
-  // --- Modal Helper Functions ---
+  // Modal Helper Functions
 
   function showModal() {
     if (!modal) return;
@@ -281,7 +273,7 @@ console.log('SubsAdmin-Subscription.js loaded');
   }
 
 
-  // --- Init & Event Listeners ---
+  // Init & Event Listeners 
 
   addFeatureBtn.addEventListener('click', () => {
     const newFeature = createFeatureItem();

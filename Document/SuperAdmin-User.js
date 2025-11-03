@@ -1,6 +1,5 @@
-console.log('SuperAdmin-User.js loaded');
+console.log('SuperAdmin-User.js loaded (UI-updated)');
 
-// Sidebar behavior
 (function() {
     const sidebar = document.getElementById('sidebar');
     const menuToggle = document.getElementById('menuToggle');
@@ -84,6 +83,17 @@ console.log('SuperAdmin-User.js loaded');
     const filterSelect = document.getElementById('filterSelect');
     const addUserBtn = document.getElementById('addUserBtn');
 
+    // View Modal Elements
+    const viewModal = document.getElementById('viewModal');
+    const viewAccountId = document.getElementById('viewAccountId');
+    const viewEmail = document.getElementById('viewEmail');
+    const viewRegisteredDate = document.getElementById('viewRegisteredDate');
+    const viewPlan = document.getElementById('viewPlan');
+    const viewPayment = document.getElementById('viewPayment');
+    const viewInvoiceBtn = document.getElementById('viewInvoiceBtn');
+    const closeViewBtn = document.getElementById('closeViewBtn');
+    let currentViewAccountId = null;
+
     // Edit Modal Elements
     const editModal = document.getElementById('editModal');
     const editForm = document.getElementById('editForm');
@@ -91,7 +101,7 @@ console.log('SuperAdmin-User.js loaded');
     const editEmailDisplay = document.getElementById('editEmailDisplay'); // NEW: The visible text element
     const editPassword = document.getElementById('editPassword');
     const editPlan = document.getElementById('editPlan');
-    // REMOVED: const editPayment = document.getElementById('editPayment');
+    const editPayment = document.getElementById('editPayment');
     const editUserIdInput = document.getElementById('editReceipt');
     const confirmEdit = document.getElementById('confirmEdit');
     const cancelEdit = document.getElementById('cancelEdit');
@@ -113,10 +123,17 @@ console.log('SuperAdmin-User.js loaded');
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
     let deleteTargetId = null;
 
+<<<<<<< HEAD
     // Profile Modal Elements (REUSING old Receipt IDs for less HTML breakage)
     const viewProfileModal = document.getElementById('viewReceiptModal'); 
     const profileContent = document.getElementById('receiptContent');     
     const closeProfileBtn = document.getElementById('closeReceiptBtn');    
+=======
+    // Receipt Modal Elements
+    const viewReceiptModal = document.getElementById('viewReceiptModal');
+    const receiptContent = document.getElementById('receiptContent');
+    const closeReceiptBtn = document.getElementById('closeReceiptBtn');
+>>>>>>> b145637f981ee697f94ca474e82d261f790433d6
 
     // --- Utility Functions ---
     function escapeHtml(str) {
@@ -131,6 +148,7 @@ console.log('SuperAdmin-User.js loaded');
     function formatPlan(plan) {
         return plan || 'N/A';
      }
+<<<<<<< HEAD
     // New function to format date/time
     function formatDate(dateString) {
         if (!dateString) return 'N/A';
@@ -148,8 +166,100 @@ console.log('SuperAdmin-User.js loaded');
             return dateString;
         }
     }
+=======
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'N/A';
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+     }
+>>>>>>> b145637f981ee697f94ca474e82d261f790433d6
 
-    // --- Core Data Fetching & Rendering ---
+    // --- Password Toggle Logic (Fixed & general) ---
+    function getOpenEyeSVG() {
+        // open eye (visible)
+        return `
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        `;
+    }
+    function getClosedEyeSVG() {
+        // closed / slashed eye
+        return `
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path>
+          <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path>
+          <line x1="1" y1="1" x2="23" y2="23"></line>
+        `;
+    }
+    function initPasswordToggles() {
+        document.querySelectorAll('.password-toggle').forEach(toggle => {
+            // ensure SVG start is closed eye
+            const eyeIcon = toggle.querySelector('.eye-icon');
+            if (eyeIcon && eyeIcon.innerHTML.trim() === '') {
+                eyeIcon.innerHTML = getClosedEyeSVG();
+            }
+            toggle.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                const eyeIconLocal = this.querySelector('.eye-icon');
+
+                if (!passwordInput) return;
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    // open eye
+                    if (eyeIconLocal) eyeIconLocal.innerHTML = getOpenEyeSVG();
+                } else {
+                    passwordInput.type = 'password';
+                    // closed eye
+                    if (eyeIconLocal) eyeIconLocal.innerHTML = getClosedEyeSVG();
+                }
+            });
+        });
+    }
+
+    // Initialize password toggles
+    initPasswordToggles();
+
+    // --- Floating behaviour for selects (so labels float when select has value) ---
+    function initFloatingSelects(scope=document) {
+        const selects = scope.querySelectorAll('select');
+        selects.forEach(s => {
+            // mark initial value state
+            if (s.value && s.value !== '') s.classList.add('has-value'); else s.classList.remove('has-value');
+
+            s.addEventListener('change', function() {
+                if (this.value && this.value !== '') this.classList.add('has-value');
+                else this.classList.remove('has-value');
+            });
+
+            // also watch programmatic changes (MutationObserver if needed)
+        });
+    }
+
+    // ensure floating labels update when inputs are programmatically filled
+    function initFloatingTextInputs(scope=document) {
+        const inputs = scope.querySelectorAll('input, textarea');
+        inputs.forEach(inp => {
+            // for inputs, we use :placeholder-shown in CSS combined with placeholder=" "
+            // but when filled programmatically, we want labels to float: we toggle a data attribute
+            const lbl = inp.parentElement?.querySelector('.floating-label');
+            function update() {
+                if (!inp) return;
+                if (inp.value && inp.value !== '') inp.classList.add('has-val'); else inp.classList.remove('has-val');
+            }
+            inp.addEventListener('input', update);
+            // initial
+            update();
+        });
+    }
+
+    // --- Core Data Fetching & Rendering (kept) ---
     async function loadUsers() {
         const searchTerm = searchInput.value.trim();
         const filterValue = filterSelect.value;
@@ -196,10 +306,11 @@ console.log('SuperAdmin-User.js loaded');
         });
      }
 
-    // --- Modal Handling ---
-    function showModal(modal) { if(modal){ modal.classList.add('show'); document.body.classList.add('no-scroll'); }}
-    function hideModal(modal) { if(modal){ modal.classList.remove('show'); document.body.classList.remove('no-scroll'); }}
+    // --- Modal Handling helpers (kept) ---
+    function showModal(modal) { if(modal){ modal.classList.add('show'); modal.style.display = 'flex'; document.body.classList.add('no-scroll'); }}
+    function hideModal(modal) { if(modal){ modal.classList.remove('show'); modal.style.display = ''; document.body.classList.remove('no-scroll'); }}
     function clearErrors(form) {
+        if(!form) return;
         form.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
         form.querySelectorAll('.error-message').forEach(el => { el.textContent = ''; el.classList.remove('show'); });
      }
@@ -210,7 +321,8 @@ console.log('SuperAdmin-User.js loaded');
         if (errorDiv) { errorDiv.textContent = message; errorDiv.classList.add('show'); }
      }
     function displayServerErrors(errors, prefix) {
-         clearErrors(document.getElementById(prefix + 'Form'));
+         const form = document.getElementById(prefix + 'Form') || document.getElementById(prefix + 'form') || document.querySelector(`#${prefix}Form`);
+         clearErrors(form || document);
          for (const key in errors) {
              let fieldId = prefix + key.charAt(0).toUpperCase() + key.slice(1);
              if (key === 'database' || key === 'general') { alert(`Server Error: ${errors[key]}`); }
@@ -219,9 +331,10 @@ console.log('SuperAdmin-User.js loaded');
      }
     function validateEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
 
-    function validateForm(email, password, plan, isEdit = false) {
+    function validateForm(email, password, plan, payment, isEdit = false) {
         let isValid = true;
         const prefix = isEdit ? 'edit' : 'add';
+<<<<<<< HEAD
         clearErrors(document.getElementById(prefix + 'Form'));
         
         // Since the edit email field is now a hidden input, we skip client validation for it here.
@@ -229,14 +342,62 @@ console.log('SuperAdmin-User.js loaded');
         if (!isEdit && !password) { showError(prefix + 'Password', 'Password required'); isValid = false; }
         else if (password && password.length < 6) { showError(prefix + 'Password', 'Password >= 6 chars'); isValid = false; }
         if (!plan) { showError(prefix + 'Plan', 'Plan required'); isValid = false; }
+=======
+        clearErrors(document.getElementById(prefix + 'Form') || document.getElementById(prefix + 'form') || document.getElementById(prefix + 'Form'));
+        if (!email || !validateEmail(email)) { showError(prefix + 'Email', 'Invalid email'); isValid = false; }
+        if (!isEdit && !password) { showError(prefix + 'Password', 'Password required'); isValid = false; }
+        else if (password && password.length < 6) { showError(prefix + 'Password', 'Password >= 6 chars'); isValid = false; }
+        if (!plan) { showError(prefix + 'Plan', 'Plan required'); isValid = false; }
+        if (!payment) { showError(prefix + 'Payment', 'Payment method required'); isValid = false; }
+>>>>>>> b145637f981ee697f94ca474e82d261f790433d6
         return isValid;
      }
 
-    // --- Edit User Logic ---
+    // --- View Customer Details Logic (kept) ---
+    function openViewModal(userId) {
+        const user = users.find(u => u.AccountID == userId);
+        if (!user || !viewModal) return;
+
+        currentViewAccountId = user.AccountID;
+        viewAccountId.textContent = user.AccountID || '';
+        viewEmail.textContent = user.Email || '';
+        viewRegisteredDate.textContent = formatDate(user.Registered_Date || user.CreatedAt || user.created_at);
+        viewPlan.textContent = formatPlan(user.Plan);
+        viewPayment.textContent = formatPaymentMethod(user.Payment_Method);
+
+        showModal(viewModal);
+    }
+
+    if (closeViewBtn) {
+        closeViewBtn.addEventListener('click', () => {
+            hideModal(viewModal);
+            currentViewAccountId = null;
+        });
+    }
+
+    if (viewInvoiceBtn) {
+        viewInvoiceBtn.addEventListener('click', () => {
+            if (currentViewAccountId) {
+                openReceiptModal(currentViewAccountId);
+            }
+        });
+    }
+
+    if (viewModal) {
+        viewModal.addEventListener('click', (e) => {
+            if (e.target === viewModal) {
+                hideModal(viewModal);
+                currentViewAccountId = null;
+            }
+        });
+    }
+
+    // --- Edit User Logic (kept) ---
     function openEditModal(userId) {
         const user = users.find(u => u.AccountID == userId);
         if (!user || !editModal) return;
         editUserIdInput.value = user.AccountID;
+<<<<<<< HEAD
         
         // --- FINAL EMAIL FIX START ---
         // 1. Set the value of the hidden input for submission
@@ -249,7 +410,20 @@ console.log('SuperAdmin-User.js loaded');
         editPlan.value = user.Plan;
         
         // REMOVED: editPayment logic
+=======
+        editEmail.value = user.Email || '';
+        editPassword.value = '';
+        editPlan.value = user.Plan || '';
+        editPayment.value = user.Payment_Method || '';
+>>>>>>> b145637f981ee697f94ca474e82d261f790433d6
         clearErrors(editForm);
+        // trigger floating updates for selects
+        if (editPlan) {
+          if (editPlan.value) editPlan.classList.add('has-value'); else editPlan.classList.remove('has-value');
+        }
+        if (editPayment) {
+          if (editPayment.value) editPayment.classList.add('has-value'); else editPayment.classList.remove('has-value');
+        }
         showModal(editModal);
      }
 
@@ -260,15 +434,25 @@ console.log('SuperAdmin-User.js loaded');
         const email = editEmail.value.trim(); 
         const password = editPassword.value;
         const plan = editPlan.value;
+<<<<<<< HEAD
 
         if (!validateForm(email, password, plan, true)) return;
+=======
+        const payment = editPayment.value;
+
+        if (!validateForm(email, password, plan, payment, true)) return;
+>>>>>>> b145637f981ee697f94ca474e82d261f790433d6
 
         confirmEdit.disabled = true; confirmEdit.textContent = 'SAVING...';
         try {
             const response = await fetch('Backend/user_update.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+<<<<<<< HEAD
                 body: JSON.stringify({ userId, email, password, plan })
+=======
+                body: JSON.stringify({ userId, email, password, plan, payment })
+>>>>>>> b145637f981ee697f94ca474e82d261f790433d6
             });
             const result = await response.json();
             if (!result.success) {
@@ -286,24 +470,30 @@ console.log('SuperAdmin-User.js loaded');
      });
 
     cancelEdit.addEventListener('click', () => hideModal(editModal));
+<<<<<<< HEAD
     editModal.addEventListener('click', (e) => { 
         if (e.target === editModal) hideModal(editModal); 
     });
+=======
+    if (editModal) editModal.addEventListener('click', (e) => { if (e.target === editModal) hideModal(editModal); });
+>>>>>>> b145637f981ee697f94ca474e82d261f790433d6
 
-    // --- Add User Logic ---
+    // --- Add User Logic (kept) ---
     addUserBtn.addEventListener('click', () => {
-        addForm.reset(); clearErrors(addForm); showModal(addModal);
+        addForm.reset(); clearErrors(addForm);
+        // ensure selects remove has-value on reset
+        const selects = addForm.querySelectorAll('select');
+        selects.forEach(s => s.classList.remove('has-value'));
+        showModal(addModal);
      });
     confirmAdd.addEventListener('click', async (e) => {
         e.preventDefault();
         const email = addEmail.value.trim();
         const password = addPassword.value;
         const plan = addPlan.value;
-        const payment = addPayment.value; // Still need payment for adding
+        const payment = addPayment.value;
 
-        // Add payment back to validation for the add form
-        if (!validateForm(email, password, plan, false)) return; // Basic client check
-        if (!payment) { showError('addPayment', 'Payment required'); return; } // Add payment check
+        if (!validateForm(email, password, plan, payment, false)) return;
 
         confirmAdd.disabled = true; confirmAdd.textContent = 'ADDING...';
         try {
@@ -327,14 +517,14 @@ console.log('SuperAdmin-User.js loaded');
         }
      });
     cancelAdd.addEventListener('click', () => hideModal(addModal));
-    addModal.addEventListener('click', (e) => { if (e.target === addModal) hideModal(addModal); });
+    if (addModal) addModal.addEventListener('click', (e) => { if (e.target === addModal) hideModal(addModal); });
 
-    // --- Delete User Logic ---
+    // --- Delete User Logic (kept) ---
     function showDeleteModal(userId, userEmail) {
         deleteTargetId = userId;
-        deleteMessage.textContent = `Delete user ${escapeHtml(userEmail || userId)}? This cannot be undone.`;
+        deleteMessage.textContent = `Are you sure you want to delete user ${escapeHtml(userEmail || userId)}? This action cannot be undone.`;
         showModal(deleteModal);
-        setTimeout(() => confirmDeleteBtn?.focus(), 80);
+        setTimeout(() => cancelDeleteBtn?.focus(), 80);
      }
     function hideDeleteModal() {
         hideModal(deleteModal);
@@ -357,10 +547,11 @@ console.log('SuperAdmin-User.js loaded');
         } catch (err) {
             console.error("Delete User Error:", err); alert(`Error: ${err.message}`);
         } finally {
-            confirmDeleteBtn.disabled = false; confirmDeleteBtn.textContent = 'YES, DELETE';
+            confirmDeleteBtn.disabled = false; confirmDeleteBtn.textContent = 'YES';
         }
      });
     cancelDeleteBtn.addEventListener('click', hideDeleteModal);
+<<<<<<< HEAD
     deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) hideModal(deleteModal); });
 
     // --- Profile View Logic (REPLACES Receipt View Logic) ---
@@ -368,6 +559,15 @@ console.log('SuperAdmin-User.js loaded');
         if (!viewProfileModal || !profileContent) {
             console.error("Profile modal elements not found in HTML.");
             alert("Profile modal structure is missing. Please check HTML IDs.");
+=======
+    if (deleteModal) deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) hideDeleteModal(); });
+
+    // --- Receipt View Logic (kept) ---
+    async function openReceiptModal(accountId) {
+        if (!viewReceiptModal || !receiptContent) {
+            console.error("Receipt modal elements not found in HTML.");
+            alert("Receipt modal structure is missing. Please check HTML IDs.");
+>>>>>>> b145637f981ee697f94ca474e82d261f790433d6
             return;
         }
 
@@ -423,7 +623,7 @@ console.log('SuperAdmin-User.js loaded');
     if (closeProfileBtn) { closeProfileBtn.addEventListener('click', () => hideModal(viewProfileModal)); }
     if (viewProfileModal) { viewProfileModal.addEventListener('click', (e) => { if (e.target === viewProfileModal) hideModal(viewProfileModal); }); }
 
-    // --- Table Action Listeners ---
+    // --- Table Action Listeners (kept) ---
     tbody.addEventListener('click', (e) => {
         const btn = e.target.closest('button.pill');
         if (!btn) return;
@@ -431,28 +631,54 @@ console.log('SuperAdmin-User.js loaded');
         const user = users.find(u => u.AccountID == userId);
         if (btn.classList.contains('edit')) openEditModal(userId);
         else if (btn.classList.contains('delete')) showDeleteModal(userId, user?.Email);
+<<<<<<< HEAD
         else if (btn.classList.contains('view')) openProfileModal(userId); // *** CALLS NEW PROFILE FUNCTION ***
+=======
+        else if (btn.classList.contains('view')) openViewModal(userId);
+>>>>>>> b145637f981ee697f94ca474e82d261f790433d6
      });
 
-    // --- Search & Filter Listeners ---
+    // --- Search & Filter Listeners (kept) ---
     let searchTimeout;
     searchInput.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(loadUsers, 300); });
     filterSelect.addEventListener('change', loadUsers);
 
-    // --- Global Key Listener ---
+    // --- Global Key Listener (kept) ---
     document.addEventListener('keydown', (ev) => {
         if (ev.key === 'Escape') {
             if (editModal?.classList.contains('show')) hideModal(editModal);
             if (addModal?.classList.contains('show')) hideModal(addModal);
             if (deleteModal?.classList.contains('show')) hideDeleteModal();
+<<<<<<< HEAD
             if (viewProfileModal?.classList.contains('show')) hideModal(viewProfileModal); // Checks profile modal
+=======
+            if (viewModal?.classList.contains('show')) {
+                hideModal(viewModal);
+                currentViewAccountId = null;
+            }
+            if (viewReceiptModal?.classList.contains('show')) hideModal(viewReceiptModal);
+>>>>>>> b145637f981ee697f94ca474e82d261f790433d6
         }
      });
 
-    // --- Initial Load ---
-    loadUsers();
+    // --- Initial Load & floating init ---
+    document.addEventListener('DOMContentLoaded', () => {
+        loadUsers();
+        initFloatingSelects(document);
+        initFloatingTextInputs(document);
 
-    // --- Update plan options in HTML selects ---
+        // Ensure selects inside modals get background arrow (if desired) and class updated
+        [document.getElementById('addPlan'), document.getElementById('addPayment'), document.getElementById('editPlan'), document.getElementById('editPayment'), document.getElementById('filterSelect')].forEach(s => {
+            if (s) {
+                if (s.value && s.value !== '') s.classList.add('has-value'); else s.classList.remove('has-value');
+                s.addEventListener('change', () => {
+                    if (s.value && s.value !== '') s.classList.add('has-value'); else s.classList.remove('has-value');
+                });
+            }
+        });
+    });
+
+    // --- Update plan options in HTML selects (kept) ---
     document.addEventListener('DOMContentLoaded', () => {
         const planSelects = document.querySelectorAll('#editPlan, #addPlan');
         const filterPlanSelect = document.getElementById('filterSelect');
@@ -472,6 +698,6 @@ console.log('SuperAdmin-User.js loaded');
             filterPlanSelect.add(new Option('Cancelled', 'cancelled')); 
             filterPlanSelect.add(new Option('Downgraded', 'downgraded'));
         }
-     });
+    });
 
-})(); // End Main IIFE
+})();

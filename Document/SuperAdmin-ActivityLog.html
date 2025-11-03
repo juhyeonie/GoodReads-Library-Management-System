@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GoodReads | Activity Log</title>
+  <link rel="stylesheet" href="SuperAdmin-ActivityLog.css" />
+</head>
+<body>
+
+  <button id="menuToggle" class="menu-toggle" aria-label="Toggle menu">☰</button>
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+  <div class="app">
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-top">
+        <div class="logo">
+          <img src="logo.png" alt="GoodReads Logo" class="logo-img" />
+          <img src="logopic.png" alt="GoodReads" class="logo-pic" />
+        </div>
+
+        <button id="collapseBtn" class="collapse-btn" aria-label="Collapse sidebar">☰</button>
+
+        <nav class="menu">
+          <a href="SuperAdmin-Dashboard.html" class="menu-item" data-tooltip="Dashboard">
+            <span class="icon"><img src="dashboard.png" alt="" /></span>
+            <span class="text">Dashboard</span>
+          </a>
+          <a href="SuperAdmin-User.html" class="menu-item" data-tooltip="Customer Management">
+            <span class="icon"><img src="user.png" alt="" /></span>
+            <span class="text">Customer Management</span>
+          </a>
+          <a href="SuperAdmin-Admin.html" class="menu-item" data-tooltip="Admin Management">
+            <span class="icon"><img src="admin.png" alt="" /></span>
+            <span class="text">Admin Management</span>
+          </a>
+          <a href="SuperAdmin-Subscription.html" class="menu-item" data-tooltip="Plan Management">
+            <span class="icon"><img src="subscription.png" alt="" /></span>
+            <span class="text">Plan Management</span>
+          </a>
+          <a href="SuperAdmin-ActivityLog.html" class="menu-item active" data-tooltip="Activity Log">
+            <span class="icon"><img src="activity.png" alt="" /></span>
+            <span class="text">Activity Log</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user">
+          <p class="username">Super Admin</p>
+          <a href="StartPage.html" class="logout-icon" title="Logout">
+            <img src="logout.png" alt="Logout" />
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <main id="mainContent" class="main-content">
+      <div class="top-bar">
+        <h1>Activity Log</h1>
+
+          <div class="search-panel">
+            <div class="search-container">
+              <input id="searchInput" type="text" placeholder="Search activity..." />
+              <button class="search-btn" aria-label="Search">
+                <img src="search.png" alt="Search" />
+              </button>
+            </div>
+            <select id="filterSelect" class="filter-select">
+            <option value="all">All Roles</option>
+            <option value="SubsAdmin">Subscription Admin</option>
+            <option value="UserAdmin">User Admin</option>
+            <option value="SuperAdmin">Super Admin</option>
+          </select>
+        </div>
+      </div>
+          
+          
+      <section class="activity-section">
+        <div class="activity-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <h2>Recent Activity</h2>
+          <div class="activity-stats">
+            <div class="activity-stat">
+              <span class="activity-stat-label">Total Logs</span>
+              <span class="activity-stat-value" id="totalLogs">—</span>
+            </div>
+            <div class="activity-stat">
+              <span class="activity-stat-label">Today</span>
+              <span class="activity-stat-value" id="todayLogs">—</span>
+            </div>
+            <div class="activity-stat">
+              <span class="activity-stat-label">This Week</span>
+              <span class="activity-stat-value" id="weekLogs">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="activity-table-wrapper" style="margin-top:12px;">
+          <table class="activity-table" role="table" aria-label="Activity log table">
+            <thead>
+              <tr>
+                <th scope="col">Timestamp</th>
+                <th scope="col">Admin</th>
+                <th scope="col">Description</th>
+              </tr>
+            </thead>
+            <tbody id="activityTableBody">
+              <tr>
+                <td colspan="3">
+                  <div class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <div class="empty-state-text">Loading activity logs...</div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination" id="paginationControls" style="display:none;">
+          <div class="pagination-info" id="paginationInfo">Showing 0-0 of 0 entries</div>
+          <div class="pagination-controls">
+            <button class="pagination-btn" id="prevBtn">← Previous</button>
+            <button class="pagination-btn active" id="currentPageBtn">1</button>
+            <button class="pagination-btn" id="nextBtn">Next →</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="SuperAdmin-ActivityLog.js"></script>
+</body>
+</html>

@@ -12,7 +12,6 @@
   <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
   <div class="app">
-    <!-- Sidebar -->
     <aside id="sidebar" class="sidebar" role="navigation" aria-label="Main sidebar">
       <div class="sidebar-top">
         <div class="logo">
@@ -47,62 +46,63 @@
       </div>
     </aside>
 
-    <!-- Main content -->
     <main id="mainContent" class="main-content" role="main">
       <div class="dashboard-header">
         <h1>Dashboard</h1>
         <p>Overview of customer subscriptions and recent activity</p>
       </div>
 
-      <!-- Stats Cards -->
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-card-header">
             <span class="stat-label">Free Plan</span>
-            <div class="stat-icon">🆓</div>
+            <div class="stat-icon">
+                <img src="basic.png" alt="Basic Plan Icon" style="width:28px; height:28px;" />
+            </div>
           </div>
           <div class="stat-value" id="freeCount">0</div>
-          <div class="stat-trend">↑ 12% from last month</div>
         </div>
 
         <div class="stat-card">
           <div class="stat-card-header">
             <span class="stat-label">Standard Plan</span>
-            <div class="stat-icon">⭐</div>
+            <div class="stat-icon">
+              <img src="standard.png" alt="Standard Plan Icon" style="width:28px; height:28px;" />
+            </div>
           </div>
           <div class="stat-value" id="standardCount">0</div>
-          <div class="stat-trend">↑ 8% from last month</div>
         </div>
 
         <div class="stat-card">
           <div class="stat-card-header">
             <span class="stat-label">Premium Plan</span>
-            <div class="stat-icon">👑</div>
+            <div class="stat-icon">
+              <img src="premium.png" alt="Premium Plan Icon" style="width:28px; height:28px;" />
+            </div>
           </div>
           <div class="stat-value" id="premiumCount">0</div>
-          <div class="stat-trend">↑ 15% from last month</div>
         </div>
 
         <div class="stat-card">
           <div class="stat-card-header">
             <span class="stat-label">Expired</span>
-            <div class="stat-icon">⏰</div>
+            <div class="stat-icon">
+              <img src="expired.png" alt="Expired Icon" style="width:28px; height:28px;" />
+            </div>
           </div>
           <div class="stat-value" id="expiredCount">0</div>
-          <div class="stat-trend down">↓ 5% from last month</div>
         </div>
 
         <div class="stat-card">
           <div class="stat-card-header">
             <span class="stat-label">Cancelled</span>
-            <div class="stat-icon">❌</div>
+            <div class="stat-icon">x</div>
           </div>
           <div class="stat-value" id="cancelledCount">0</div>
           <div class="stat-trend down">↓ 3% from last month</div>
         </div>
       </div>
 
-      <!-- Recent Customers Table -->
       <section class="table-section" aria-labelledby="recent-heading">
         <div class="table-top">
           <h2 id="recent-heading">Recent Customers</h2>
@@ -120,7 +120,6 @@
               </tr>
             </thead>
             <tbody>
-              <!-- injected by JS -->
             </tbody>
           </table>
         </div>
@@ -128,7 +127,6 @@
     </main>
   </div>
 
-  <!-- ===== Edit User Modal ===== -->
   <div id="editModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="editTitle">
     <div class="modal-box" role="document">
       <div class="modal-topbar"></div>
@@ -172,7 +170,6 @@
     </div>
   </div>
 
-  <!-- ===== Add User Modal ===== -->
   <div id="addModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="addTitle">
     <div class="modal-box" role="document">
       <div class="modal-topbar"></div>
@@ -216,7 +213,6 @@
     </div>
   </div>
 
-  <!-- ===== Delete Confirm Modal ===== -->
   <div id="deleteModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="deleteTitle">
     <div class="confirm-box" role="document" aria-live="assertive">
       <div>
