@@ -109,7 +109,7 @@
         <form id="editForm" class="user-form">
           <div class="field">
              <label class="field-label">Email</label>
-            <input id="editEmail" name="email" type="email" placeholder="Email" />
+            <input id="editEmail" name="email" type="email" placeholder="Email" readonly style="background-color: #f5f5f5; color: #888; cursor: not-allowed;" />
             <div class="error-message" id="editEmailError"></div>
           </div>
           <div class="field">
@@ -196,12 +196,10 @@
     </div>
   </div>
 
-  <!-- *** START CHANGE: Renamed viewReceiptModal to viewProfileModal and adjusted content IDs/classes *** -->
   <div id="viewProfileModal" class="modal-overlay">
     <div class="modal-box profile-modal-box">
       <div class="modal-topbar"></div>
       <div class="modal-body profile-modal-body">
-        <!-- Profile content will be dynamically loaded here -->
         <div id="profileContent" class="profile-content-area">
           <p style="text-align: center; padding: 40px; color: #888;">Loading profile...</p>
         </div>
@@ -213,7 +211,6 @@
       </div>
     </div>
   </div>
- <!-- *** END CHANGE *** -->
 
  <script src="SuperAdmin-User.js"></script>
 </body>

@@ -90,8 +90,7 @@ console.log('SuperAdmin-User.js loaded');
     const editEmail = document.getElementById('editEmail');
     const editPassword = document.getElementById('editPassword');
     const editPlan = document.getElementById('editPlan');
-    // REMOVED: const editPayment = document.getElementById('editPayment');
-    const editUserIdInput = document.getElementById('editReceipt');
+    const editUserIdInput = document.getElementById('editReceipt'); // This holds the AccountID
     const confirmEdit = document.getElementById('confirmEdit');
     const cancelEdit = document.getElementById('cancelEdit');
 
@@ -112,11 +111,10 @@ console.log('SuperAdmin-User.js loaded');
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
     let deleteTargetId = null;
 
-    // *** Profile Modal Elements ***
+    // Profile Modal Elements
     const viewProfileModal = document.getElementById('viewProfileModal');
     const profileContent = document.getElementById('profileContent');
     const closeProfileBtn = document.getElementById('closeProfileBtn');
-    // *** END CHANGE ***
 
     // --- Utility Functions ---
     function escapeHtml(str) {
@@ -133,10 +131,9 @@ console.log('SuperAdmin-User.js loaded');
      }
     function formatDate(dateString) {
         if (!dateString) return 'N/A';
-        // Handle SQLite date format (YYYY-MM-DD HH:MM:SS or just YYYY-MM-DD)
         try {
             const date = new Date(dateString.replace(' ', 'T'));
-            if (isNaN(date)) return dateString; // Return original if parsing fails
+            if (isNaN(date)) return dateString; 
             return date.toLocaleDateString('en-US', { 
                 year: 'numeric', month: 'long', day: 'numeric',
                 hour: '2-digit', minute: '2-digit'
@@ -156,11 +153,10 @@ console.log('SuperAdmin-User.js loaded');
         if (filterValue) params.append('filter', filterValue);
 
         try {
-            // Updated fetch URL to retrieve necessary columns
             const response = await fetch(`Backend/user_fetch.php?${params.toString()}`);
             const data = await response.json();
             if (!data.success) throw new Error(data.message || 'Failed to fetch.');
-            users = data.users; // This now contains SubsEnd and AccountCreated
+            users = data.users; 
             renderTable(users);
         } catch (err) {
             console.error("Load Users Error:", err);
@@ -215,28 +211,47 @@ console.log('SuperAdmin-User.js loaded');
      }
     function validateEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
 
+    // *** MODIFICATION: Skipping email validation on 'edit' (isEdit = true) ***
     function validateForm(email, password, plan, isEdit = false) {
         let isValid = true;
         const prefix = isEdit ? 'edit' : 'add';
         clearErrors(document.getElementById(prefix + 'Form'));
 
-        if (!email || !validateEmail(email)) { showError(prefix + 'Email', 'Invalid email'); isValid = false; }
-        if (!isEdit && !password) { showError(prefix + 'Password', 'Password required'); isValid = false; }
-        else if (password && password.length < 6) { showError(prefix + 'Password', 'Password >= 6 chars'); isValid = false; }
-        if (!plan) { showError(prefix + 'Plan', 'Plan required'); isValid = false; }
-        // REMOVED Payment validation for edit form
+        // Only validate email on ADD form, not EDIT form
+        if (!isEdit) { 
+            if (!email || !validateEmail(email)) { 
+                showError(prefix + 'Email', 'Invalid email'); 
+                isValid = false; 
+            }
+        }
+        
+        // Validate password: required for ADD, optional for EDIT
+        if (!isEdit && !password) { 
+            showError(prefix + 'Password', 'Password required'); 
+            isValid = false; 
+        }
+        else if (password && password.length < 6) { // Validate length only if password is provided
+            showError(prefix + 'Password', 'Password >= 6 chars'); 
+            isValid = false; 
+        }
+        
+        if (!plan) { 
+            showError(prefix + 'Plan', 'Plan required'); 
+            isValid = false; 
+        }
+        
         return isValid;
      }
+    // *** END MODIFICATION ***
 
     // --- Edit User Logic ---
     function openEditModal(userId) {
         const user = users.find(u => u.AccountID == userId);
         if (!user || !editModal) return;
         editUserIdInput.value = user.AccountID;
-        editEmail.value = user.Email;
+        editEmail.value = user.Email; // Set the readonly email field
         editPassword.value = ''; // Clear password field
         editPlan.value = user.Plan;
-        // REMOVED: editPayment logic
         clearErrors(editForm);
         showModal(editModal);
      }
@@ -244,21 +259,18 @@ console.log('SuperAdmin-User.js loaded');
     confirmEdit.addEventListener('click', async (e) => {
         e.preventDefault();
         const userId = editUserIdInput.value;
-        const email = editEmail.value.trim();
-        const password = editPassword.value;
+        const email = editEmail.value.trim(); // Get the readonly email value to send to backend
+        const password = editPassword.value; // Empty string if not changing
         const plan = editPlan.value;
-        // REMOVED: const payment = editPayment.value;
 
-        // REMOVED payment from validation
         if (!validateForm(email, password, plan, true)) return;
 
         confirmEdit.disabled = true; confirmEdit.textContent = 'SAVING...';
         try {
-            const response = await fetch('Backend/user_update.php', { // Ensure using correct update script
+            const response = await fetch('Backend/user_update.php', { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                // REMOVED payment from body
-                body: JSON.stringify({ userId, email, password, plan })
+                body: JSON.stringify({ userId, email, password, plan }) // Send all data
             });
             const result = await response.json();
             if (!result.success) {
@@ -266,7 +278,7 @@ console.log('SuperAdmin-User.js loaded');
                  else throw new Error(result.message || 'Failed.');
             } else {
                 hideModal(editModal);
-                loadUsers();
+                loadUsers(); // Refresh table
             }
         } catch (err) {
             console.error("Update User Error:", err); alert(`Error: ${err.message}`);
@@ -287,11 +299,10 @@ console.log('SuperAdmin-User.js loaded');
         const email = addEmail.value.trim();
         const password = addPassword.value;
         const plan = addPlan.value;
-        const payment = addPayment.value; // Still need payment for adding
+        const payment = addPayment.value; 
 
-        // Add payment back to validation for the add form
-        if (!validateForm(email, password, plan, false)) return; // Basic client check
-        if (!payment) { showError('addPayment', 'Payment required'); return; } // Add payment check
+        if (!validateForm(email, password, plan, false)) return; 
+        if (!payment) { showError('addPayment', 'Payment required'); return; } 
 
         confirmAdd.disabled = true; confirmAdd.textContent = 'ADDING...';
         try {
@@ -351,7 +362,7 @@ console.log('SuperAdmin-User.js loaded');
     cancelDeleteBtn.addEventListener('click', hideDeleteModal);
     deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) hideDeleteModal(); });
 
-    // *** START MODIFICATION: Updated Profile View Logic ***
+    // *** Profile View Logic ***
     function openProfileModal(accountId) {
         const user = users.find(u => u.AccountID == accountId);
         if (!user) {
@@ -362,22 +373,17 @@ console.log('SuperAdmin-User.js loaded');
 
         const isBasicPlan = user.Plan === 'Basic Plan';
 
-        // Conditional values for start/end date
         let subsStartDisplay;
-        let subsEndHtml; // This will hold the entire HTML line for the end date
+        let subsEndHtml; 
 
         if (isBasicPlan) {
-            // FIX: If Basic Plan, show "N/A (Free Plan)" for dates, even if data exists
             subsStartDisplay = 'N/A (Free Plan)';
             subsEndHtml = `<p><strong>Subscription End:</strong> N/A (Free Plan)</p>`;
         } else {
-            // Paid Plan Logic
             subsStartDisplay = formatDate(user.SubsStarted);
-            // FIX: Show SubsEnd if it exists, otherwise 'N/A'
             const subsEndDisplay = user.SubsEnd ? formatDate(user.SubsEnd) : 'N/A'; 
             subsEndHtml = `<p><strong>Subscription End:</strong> ${subsEndDisplay}</p>`;
         }
-
 
         profileContent.innerHTML = `
             <div class="profile-container" style="padding: 20px 0;">
@@ -397,13 +403,13 @@ console.log('SuperAdmin-User.js loaded');
                     <p><strong>Status:</strong> <span style="font-weight: 700; color: ${user.Plan_Status === 'Active' ? '#10b981' : '#ef4444'};">${escapeHtml(user.Plan_Status)}</span></p>
                     <p><strong>Payment Method:</strong> ${escapeHtml(user.Payment_Method || 'N/A')}</p>
                     <p><strong>Subscription Start:</strong> ${subsStartDisplay}</p>
-                    ${subsEndHtml} </div>
+                    ${subsEndHtml} 
+                </div>
                 
             </div>
         `;
         showModal(viewProfileModal);
     }
-    // *** END MODIFICATION ***
 
     if (closeProfileBtn) { closeProfileBtn.addEventListener('click', () => hideModal(viewProfileModal)); }
     if (viewProfileModal) { viewProfileModal.addEventListener('click', (e) => { if (e.target === viewProfileModal) hideModal(viewProfileModal); }); }
