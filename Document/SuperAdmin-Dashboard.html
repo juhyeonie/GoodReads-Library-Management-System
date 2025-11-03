@@ -38,6 +38,10 @@
             <span class="icon"><img src="subscription.png" alt="" /></span>
             <span class="text">Plan Management</span>
           </a>
+          <a href="SuperAdmin-ActivityLog.html" class="menu-item" data-tooltip="Customer Management">
+            <span class="icon"><img src="user.png" alt="" /></span>
+            <span class="text">Activity Log</span>
+          </a>
         </nav>
       </div>
 
@@ -58,72 +62,114 @@
 
       <section class="stats-section">
         <div class="stats-grid">
-          <div class="stat-card">
+          <div class="stat-card" data-card="free-plan">
             <div class="stat-header">
-              <div class="stat-title">Free Plan</div>
-              <div class="stat-icon">🆓</div>
+              <div class="stat-title">BASIC PLAN</div>
+              <div class="stat-icon">
+                <img src="basic.png" alt="Basic Plan Icon" style="width:28px; height:28px;" />
+              </div>
             </div>
             <div class="stat-value" id="value-free-plan">—</div>
           </div>
 
-          <div class="stat-card">
+          <div class="stat-card" data-card="standard-plan">
             <div class="stat-header">
-              <div class="stat-title">Standard Plan</div>
-              <div class="stat-icon">⭐</div>
+              <div class="stat-title">STANDARD PLAN</div>
+              <div class="stat-icon">
+                <img src="standard.png" alt="Standard Plan Icon" style="width:28px; height:28px;" />
+              </div>
             </div>
             <div class="stat-value" id="value-standard-plan">—</div>
           </div>
 
-          <div class="stat-card">
+          <div class="stat-card" data-card="premium-plan">
             <div class="stat-header">
-              <div class="stat-title">Premium Plan</div>
-              <div class="stat-icon">👑</div>
+              <div class="stat-title">PREMIUM PLAN</div>
+              <div class="stat-icon">
+                <img src="premium.png" alt="Premium Plan Icon" style="width:28px; height:28px;" />
+              </div>
             </div>
             <div class="stat-value" id="value-premium-plan">—</div>
           </div>
 
-          <div class="stat-card">
+          <div class="stat-card" data-card="user-admin">
             <div class="stat-header">
-              <div class="stat-title">Total Admins</div>
-              <div class="stat-icon">🧑‍💼</div>
+              <div class="stat-title">USER ADMIN</div>
+              <div class="stat-icon">
+                <img src="useradmin.png" alt="User Admin Icon" style="width:28px; height:28px;" />
+              </div>
+            </div>
+            <div class="stat-value" id="value-user-admin">—</div>
+          </div>
+
+          <div class="stat-card" data-card="subscription-admin">
+            <div class="stat-header">
+              <div class="stat-title">SUBSCRIPTION ADMIN</div>
+              <div class="stat-icon">
+                <img src="subsadmin.png" alt="Subscription Admin Icon" style="width:28px; height:28px;" />
+              </div>
+            </div>
+            <div class="stat-value" id="value-subscription-admin">—</div>
+          </div>
+
+          <div class="stat-card" data-card="total-admins">
+            <div class="stat-header">
+              <div class="stat-title">TOTAL ADMINS</div>
+              <div class="stat-icon">
+                <img src="admins.png" alt="Total Admins Icon" style="width:28px; height:28px;" />
+              </div>
             </div>
             <div class="stat-value" id="value-total-admins">—</div>
           </div>
 
-          <div class="stat-card">
+          <div class="stat-card" data-card="total-customers">
             <div class="stat-header">
-              <div class="stat-title">Total Customers</div>
-              <div class="stat-icon">👥</div>
+              <div class="stat-title">TOTAL CUSTOMERS</div>
+              <div class="stat-icon">
+                <img src="customer.png" alt="User Icon" style="width:28px; height:28px;" />
+              </div>
             </div>
             <div class="stat-value" id="value-total-customers">—</div>
           </div>
 
-          <div class="stat-card">
+          <div class="stat-card" data-card="total-books">
             <div class="stat-header">
-              <div class="stat-title">Total Books</div>
-              <div class="stat-icon">📚</div>
+              <div class="stat-title">TOTAL BOOKS</div>
+              <div class="stat-icon">
+                <img src="books.png" alt="Total Books Icon" style="width:28px; height:28px;" />
+              </div>
             </div>
             <div class="stat-value" id="value-total-books">—</div>
           </div>
-
-          <div class="stat-card tall">
-            <div class="stat-header">
-              <div class="stat-title">Admin's Activity Log</div>
-              <div class="stat-icon">📝</div>
-            </div>
-
-            <div class="activity-list" id="activityList">
-              <div class="empty-note">No activity yet</div>
-            </div>
-          </div>
         </div>
 
-        <div class="graphs-label">Graphs</div>
       </section>
 
     </main>
   </div>
 
+  <!-- Modal (single shared modal) -->
+  <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+    <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-topbar"></div>
+
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Details</h2>
+        <button class="modal-close" id="modalClose" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body" id="modalBody">
+        <!-- placeholder while data loads -->
+        <div style="padding: 28px; text-align:center; color:#888;">
+          <div style="font-size:40px; margin-bottom:8px;">📋</div>
+          <div style="font-weight:700;">Select a card to view details</div>
+          <div style="margin-top:8px;">(Free, Standard, Premium, User Admin)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="SuperAdmin-Dashboard.js"></script>
+
 </body>
 </html>

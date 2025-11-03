@@ -281,7 +281,6 @@ body {
   }
 }
 
-/* ===== Top area ===== */
 .top-bar { 
   display:flex; 
   justify-content:space-between; 
@@ -447,178 +446,101 @@ tbody tr td:first-child {
 }
 
 /* ===== Modal ===== */
-.modal-overlay {
-  position: fixed; 
-  inset:0; 
-  display:none; 
-  align-items:center; 
-  justify-content:center; 
-  background: rgba(10,14,18,0.6); 
-  z-index: 10000;
-  padding:28px;
-}
+.modal-overlay { position: fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(10,14,18,0.6); z-index: 10000; padding:28px; }
+.modal-overlay.show { display:flex; }
+.modal-box { width:600px; max-width:calc(100% - 48px); background:#fff; border-radius:6px; overflow:hidden; box-shadow: 0 18px 42px rgba(16,24,40,0.3); display:flex; flex-direction:column; position:relative; animation: fadeIn .18s ease; }
+.modal-topbar { height:48px; background: linear-gradient(90deg,#1b3c53 0%, #908daf 100%); }
+.modal-body { padding:34px 40px 22px 40px; }
+.modal-title { color:#456882; font-size:20px; margin-bottom:24px; font-weight:700; }
 
-.modal-overlay.show { 
-  display:flex; 
-}
 
-.modal-box {
-  width:600px; 
-  max-width:calc(100% - 48px); 
-  background:#fff; 
-  border-radius:6px; 
-  overflow:hidden;
-  box-shadow: 0 18px 42px rgba(16,24,40,0.3); 
-  display:flex; 
-  flex-direction:column; 
-  position:relative;
-  animation: fadeIn .18s ease;
-}
-
-.modal-topbar { 
-  height:48px; 
-  background: linear-gradient(90deg,#1b3c53 0%, #908daf 100%); 
-}
-
-.modal-body { 
-  padding:34px 40px 22px 40px; 
-}
-
-.modal-title { 
-  color:#456882; 
-  font-size:20px; 
-  margin-bottom:24px; 
-  font-weight:700; 
-}
-
+/* ===== Floating Label Inputs ===== */
 .user-form .field { 
   margin-bottom:14px; 
+  position: relative; 
+}
+
+.floating {
   position: relative;
+  margin-bottom: 14px;
 }
-
-.user-form input[type="text"], 
-.user-form input[type="email"], 
-.user-form input[type="password"], 
-.user-form select {
-  width:100%; 
-  padding:10px 12px; 
-  border-radius:8px; 
-  border:1px solid #c7ced2; 
-  font-size:14px; 
-  color:#556;
-  background:#fff; 
-  outline:none;
-  transition: border-color 0.2s;
+.floating input[type="text"],
+.floating input[type="email"],
+.floating input[type="password"],
+.floating select,
+.floating textarea {
+  width: 100%;
+  padding: 12px 12px;
+  padding-right: 44px; /* leave space for icons like password toggle */
+  border-radius: 8px;
+  border: 1px solid #c7ced2;
+  font-size: 14px;
+  color: #556;
+  background: #fff;
+  outline: none;
+  transition: border-color .18s;
 }
-
-.user-form input.error, 
-.user-form select.error {
-  border-color: #dc3545;
-  background-color: #fff5f5;
-}
-
-.error-message {
-  color: #dc3545;
-  font-size: 12px;
-  margin-top: 4px;
-  display: none;
-}
-
-.error-message.show {
-  display: block;
-}
-
-/* Password field with eye icon */
-.password-field {
-  position: relative;
-}
-
-.password-field input {
-  padding-right: 45px;
-}
-
-.toggle-password {
+.floating select { appearance: none; -webkit-appearance: none; -moz-appearance: none; background-position: right 12px center; background-repeat: no-repeat; background-size: 14px; }
+.floating .floating-label {
   position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.6;
-  transition: opacity 0.2s;
+  left: 12px;
+  top: 12px;
+  pointer-events: none;
+  color: #7b8a91;
+  background: transparent;
+  padding: 0 6px;
+  transition: transform .18s ease, top .18s ease, font-size .18s ease, color .18s ease;
+  transform-origin: left top;
+}
+.floating input:focus,
+.floating select:focus,
+.floating textarea:focus { border-color: #1b3c53; }
+.floating input:focus + .floating-label,
+.floating input:not(:placeholder-shown) + .floating-label,
+.floating select.has-value + .floating-label,
+.floating textarea:not(:placeholder-shown) + .floating-label {
+  top: -8px;
+  left: 10px;
+  font-size: 12px;
+  color: #1b3c53;
+  background: #fff;
 }
 
-.toggle-password:hover {
-  opacity: 1;
+.floating input:focus + label,
+.floating input:not(:placeholder-shown) + label {
+  top: -8px;
+  font-size: 12px;
+  color: #1b3c53;
 }
 
-.toggle-password svg {
-  width: 20px;
-  height: 20px;
-  stroke: #666;
-}
+/* error state preserved */
+.user-form input.error,
+.user-form select.error { border-color: #dc3545; background-color: #fff5f5; }
+.error-message { color: #dc3545; font-size: 12px; margin-top: 4px; display: none; }
+.error-message.show { display: block; }
 
-.modal-bottombar {
-  height:62px; 
-  background: linear-gradient(90deg,#1b3c53 0%, #908daf 100%); 
-  display:flex; 
-  align-items:center; 
-  justify-content:flex-end; 
-  padding:0 18px;
-}
+.modal-bottombar { height:62px; background: linear-gradient(90deg,#1b3c53 0%, #908daf 100%); display:flex; align-items:center; justify-content:flex-end; padding:0 18px; }
+.modal-actions { display:flex; gap:10px; }
+.btn { border:none; padding:8px 12px; border-radius:6px; font-weight:700; cursor:pointer; font-size:13px; }
+.btn.confirm { background:#fff; color:#1b3c53; }
+.btn.cancel { background: rgba(255,255,255,0.14); color:#fff; }
 
-.modal-actions { 
-  display:flex; 
-  gap:10px; 
-}
+/* ===== Password toggle (positioning) ===== */
+.password-field-wrapper { position: relative; }
+.password-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: transparent; border: none; cursor: pointer; padding: 4px 6px; display: flex; align-items: center; justify-content: center; color: #456882; transition: color 0.2s; }
+.password-toggle:hover { color: #1b3c53; }
+.password-toggle svg { width: 20px; height: 20px; }
+.user-form .password-input { padding-right: 44px; }
 
-.btn { 
-  border:none; 
-  padding:8px 12px; 
-  border-radius:6px; 
-  font-weight:700; 
-  cursor:pointer; 
-  font-size:13px; 
-}
+/* small helpers */
+.hidden { display:none !important; }
 
-.btn.confirm { 
-  background:#fff; 
-  color:#1b3c53; 
-}
+/* animations */
+@keyframes fadeIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+body.no-scroll { overflow: hidden; }
 
-.btn.cancel { 
-  background: rgba(255,255,255,0.14); 
-  color:#fff; 
-}
-
-/* ===== Delete confirm modal ===== */
-.confirm-box { 
-  width:420px; 
-  max-width:calc(100% - 48px); 
-  padding:18px; 
-  border-radius:8px; 
-  background:#fff; 
-  box-shadow:0 12px 32px rgba(0,0,0,0.12);
-  text-align:left;
-}
-
-.confirm-actions { 
-  display:flex; 
-  gap:10px; 
-  justify-content:flex-end; 
-  margin-top:12px; 
-}
-
-@keyframes fadeIn { 
-  from { opacity:0; transform:translateY(-6px); } 
-  to { opacity:1; transform:none; } 
-}
-
-body.no-scroll {
-  overflow: hidden;
+/* small responsive tweaks to keep same look */
+@media (max-width: 640px) {
+  .modal-box { width: 100%; margin: 8px; }
+  .view-row .view-label { min-width: 120px; font-size: 13px; padding:10px; }
 }

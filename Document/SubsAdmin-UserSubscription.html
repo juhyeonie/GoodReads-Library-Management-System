@@ -28,7 +28,7 @@
           </a>
           <a href="SubsAdmin-Subscription.html" class="menu-item" data-tooltip="Subscription">
             <span class="icon"><img src="subscription.png" alt="" /></span>
-            <span class="text">Subscription</span>
+            <span class="text">Subscription Plans</span>
           </a>
           <a href="SubsAdmin-UserSubscription.html" class="menu-item active" data-tooltip="Customer Subscription">
             <span class="icon"><img src="user.png" alt="" /></span>
@@ -66,7 +66,7 @@
             <option value="Premium Plan">Premium Plan</option>
             <option value="expired">Expired Status</option>
             <option value="downgraded">Downgraded Status</option>
-            </select>
+          </select>
         </div>
       </div>
 
@@ -78,52 +78,105 @@
               <th>Email</th>
               <th>Plan</th>
               <th>Payment Method</th>
-              <th style="text-align:right">Actions</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            </tbody>
+          </tbody>
         </table>
       </div>
     </main>
   </div>
 
-  <div id="editUserModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="editUserTitle">
-    <div class="modal-box" role="document">
+  <div id="viewModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-box view-modal-box" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
       <div class="modal-topbar"></div>
       <div class="modal-body">
-        <h2 id="editUserTitle" class="modal-title">Edit user subscription</h2>
+        <h2 id="viewTitle" class="modal-title">Customer Details</h2>
 
-        <form id="editUserForm" class="edit-plan-form" autocomplete="off">
-          <div class="field">
-             <label class="field-label">Email (Read-only)</label>
-            <input id="userEmail" name="email" type="email" placeholder="Email" readonly style="background:#f5f5f5; color:#888; cursor:not-allowed;" />
+        <div class="user-details">
+          <div class="view-row">
+            <div class="view-label">Account ID:</div>
+            <div id="viewAccountId" class="view-value"></div>
           </div>
 
-          <div class="field">
-             <label class="field-label">Subscription Plan</label>
-            <select id="userPlan" name="plan" required>
-              <option value="">Select Plan</option>
-              <option value="Basic Plan">Basic Plan</option>
-              <option value="Standard Plan">Standard Plan</option>
-              <option value="Premium Plan">Premium Plan</option>
-            </select>
+          <div class="view-row">
+            <div class="view-label">Email:</div>
+            <div id="viewEmail" class="view-value"></div>
           </div>
 
-          <input type="hidden" id="userId" name="id" /> </form>
+          <div class="view-row">
+            <div class="view-label">Subscription Plan:</div>
+            <div id="viewPlan" class="view-value"></div>
+          </div>
+
+          <div class="view-row">
+            <div class="view-label">Payment Method:</div>
+            <div id="viewPayment" class="view-value"></div>
+          </div>
+        </div>
       </div>
 
       <div class="modal-bottombar">
         <div class="modal-actions">
-          <button id="confirmUserEdit" class="btn confirm">CONFIRM</button>
-          <button id="cancelUserEdit" class="btn cancel">CANCEL</button>
+          <button id="viewInvoiceBtn" class="btn confirm" type="button">VIEW INVOICE</button>
+          <button id="closeViewBtn" class="btn cancel" type="button">CLOSE</button>
         </div>
       </div>
     </div>
   </div>
 
-  <div id="viewReceiptModal" class="modal-overlay">
-    <div class="modal-box receipt-modal-box">
+  <div id="editModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+      <div class="modal-topbar"></div>
+      <div class="modal-body">
+        <h2 id="editTitle" class="modal-title">Edit user details</h2>
+
+        <form id="editForm" class="user-form" autocomplete="off">
+          <div class="floating field">
+            <input id="editEmail" name="email" type="email" placeholder=" " readonly style="background:#f5f5f5; color:#888; cursor:not-allowed;" />
+            <label class="floating-label" for="editEmail">Email</label>
+            <div class="error-message" id="editEmailError"></div>
+          </div>
+
+          <div class="floating field">
+            <select id="editPlan" name="plan">
+              <option value=""></option>
+              <option value="Basic Plan">Basic Plan</option>
+              <option value="Standard Plan">Standard Plan</option>
+              <option value="Premium Plan">Premium Plan</option>
+            </select>
+            <label class="floating-label" for="editPlan">Subscription Plan</label>
+            <div class="error-message" id="editPlanError"></div>
+          </div>
+
+          <div class="floating field">
+            <select id="editPayment" name="payment">
+              <option value=""></option>
+              <option value="Credit Card">Credit Card</option>
+              <option value="Gcash">GCash</option>
+              <option value="Maya">Maya</option>
+              <option value="Paypal">PayPal</option>
+            </select>
+            <label class="floating-label" for="editPayment">Payment Method</label>
+            <div class="error-message" id="editPaymentError"></div>
+          </div>
+
+          <input type="hidden" id="editUserId" name="id" />
+        </form>
+      </div>
+
+      <div class="modal-bottombar">
+        <div class="modal-actions">
+          <button id="confirmEdit" class="btn confirm" type="button">CONFIRM</button>
+          <button id="cancelEdit" class="btn cancel" type="button">CANCEL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewReceiptModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-box receipt-modal-box" role="dialog" aria-modal="true">
       <div class="modal-topbar"></div>
       <div class="modal-body receipt-modal-body">
         <div id="receiptContent" class="receipt-content-area">

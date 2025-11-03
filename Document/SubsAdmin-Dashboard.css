@@ -3,7 +3,7 @@
   src: url('fonts/Gordita.ttf') format('truetype');
 }
 
-/* ===== Reset & Base ===== */
+
 * { box-sizing: border-box; margin:0; padding:0; }
 html,body { height:100%; }
 body {
@@ -12,10 +12,8 @@ body {
   color:#222;
 }
 
-/* ===== App layout ===== */
 .app { display:flex; min-height:100vh; width:100%; }
 
-/* Sidebar */
 .sidebar {
   width: 280px;
   background: linear-gradient(180deg,#1b3c53 0%, #6f6b9b 100%);
@@ -220,7 +218,7 @@ body {
   height:28px; 
 }
 
-/* ===== Main content ===== */
+/* Main */
 .main-content {
   margin-left: 280px;
   padding: 28px 34px;
@@ -286,7 +284,6 @@ body {
   }
 }
 
-/* Dashboard header */
 .dashboard-header {
   margin-bottom: 24px;
 }
@@ -302,7 +299,6 @@ body {
   font-size: 14px;
 }
 
-/* Dashboard cards */
 .cards-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -354,7 +350,6 @@ body {
   margin-bottom: 4px;
 }
 
-/* Table section */
 .table-section {
   background: #fff;
   border-radius: 8px;
@@ -420,7 +415,6 @@ body {
   background: #2f4e6d;
 }
 
-/* Modal Overlay */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -436,7 +430,6 @@ body {
   display: flex; 
 }
 
-/* Modal Box */
 .modal-box {
   width: 600px;
   max-width: calc(100% - 48px);
@@ -455,7 +448,6 @@ body {
   background: linear-gradient(90deg, #1b3c53 0%, #908daf 100%);
 }
 
-/* Modal Body */
 .modal-body { 
   padding: 34px 40px 22px 40px; 
 }
@@ -483,7 +475,6 @@ body {
   outline: none;
 }
 
-/* Modal Footer */
 .modal-bottombar {
   height: 62px;
   background: linear-gradient(90deg, #1b3c53 0%, #908daf 100%);

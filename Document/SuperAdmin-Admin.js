@@ -1,5 +1,4 @@
-// File: SuperAdmin-Admin.js
-// (Converted to use Database)
+console.log('SuperAdmin-User.js loaded (UI-updated)');
 
 // Sidebar behavior
 (function() {
@@ -61,24 +60,22 @@
 
 // --- Admin Management (DATABASE CONNECTED) ---
 (function() {
-    let users = []; // Will hold data fetched from DB
+    let users = [];
 
     const tbody = document.querySelector('#usersTable tbody');
     const searchInput = document.getElementById('searchInput');
     const filterSelect = document.getElementById('filterSelect');
     const addUserBtn = document.getElementById('addUserBtn');
 
-    // Edit Modal Elements
     const editModal = document.getElementById('editModal');
     const editForm = document.getElementById('editForm');
     const editEmail = document.getElementById('editEmail');
     const editPassword = document.getElementById('editPassword');
     const editRole = document.getElementById('editRole');
-    const editUserIdInput = document.getElementById('editUserId'); // Matched HTML
+    const editUserIdInput = document.getElementById('editUserId');
     const confirmEdit = document.getElementById('confirmEdit');
     const cancelEdit = document.getElementById('cancelEdit');
 
-    // Add Modal Elements
     const addModal = document.getElementById('addModal');
     const addForm = document.getElementById('addForm');
     const addEmail = document.getElementById('addEmail');
@@ -87,35 +84,40 @@
     const confirmAdd = document.getElementById('confirmAdd');
     const cancelAdd = document.getElementById('cancelAdd');
 
-    // Delete Modal Elements
     const deleteModal = document.getElementById('deleteModal');
     const deleteMessage = document.getElementById('deleteMessage');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
     let deleteTargetId = null;
     
-    // Password toggle functionality
-    document.querySelectorAll('.toggle-password').forEach(btn => {
-        btn.addEventListener('click', function() {
+    // Password toggle functionality - FIXED
+    document.querySelectorAll('.password-toggle').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
           const targetId = this.getAttribute('data-target');
           const input = document.getElementById(targetId);
           if (!input) return;
-          const eyeOpen = this.querySelectorAll('.eye-open');
-          const eyeClosed = this.querySelector('.eye-closed');
+          
+          const svg = this.querySelector('svg');
           
           if (input.type === 'password') {
             input.type = 'text';
-            eyeOpen.forEach(path => path.style.display = 'none');
-            if(eyeClosed) eyeClosed.style.display = 'block';
+            svg.innerHTML = `
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            `;
           } else {
             input.type = 'password';
-            eyeOpen.forEach(path => path.style.display = 'block');
-            if(eyeClosed) eyeClosed.style.display = 'none';
+            svg.innerHTML = `
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            `;
           }
         });
     });
 
-    // --- Utility Functions ---
     function escapeHtml(str) {
         if (str == null) return '';
         return String(str).replace(/[&<>"']/g, s => ({
@@ -126,7 +128,17 @@
         return role || 'N/A';
      }
 
-    // --- Core Data Fetching & Rendering ---
+     document.querySelectorAll('.floating select').forEach(sel => {
+  function toggleHasValue() {
+    if (sel.value) sel.classList.add('has-value');
+    else sel.classList.remove('has-value');
+  }
+  sel.addEventListener('change', toggleHasValue);
+  toggleHasValue(); // initialize on load
+});
+
+     
+
     async function loadUsers() {
         const searchTerm = searchInput.value.trim();
         const filterValue = filterSelect.value;
@@ -136,7 +148,6 @@
         if (filterValue) params.append('filter', filterValue);
 
         try {
-            // Use the new admin_fetch.php endpoint
             const response = await fetch(`Backend/admin_fetch.php?${params.toString()}`);
             const data = await response.json();
             if (!data.success) throw new Error(data.message || 'Failed to fetch.');
@@ -156,7 +167,6 @@
         }
         rows.forEach(u => {
             const tr = document.createElement('tr');
-            // Render columns for ID, Email, Role, Actions
             tr.innerHTML = `
               <td>${escapeHtml(u.AccountID)}</td>
               <td>${escapeHtml(u.Email)}</td>
@@ -172,7 +182,6 @@
         });
      }
 
-    // --- Modal Handling ---
     function showModal(modal) { if(modal){ modal.classList.add('show'); document.body.classList.add('no-scroll'); }}
     function hideModal(modal) { if(modal){ modal.classList.remove('show'); document.body.classList.remove('no-scroll'); }}
     function clearErrors(form) {
@@ -207,13 +216,12 @@
         return isValid;
      }
 
-    // --- Edit User Logic ---
     function openEditModal(userId) {
         const user = users.find(u => u.AccountID == userId);
         if (!user || !editModal) return;
         editUserIdInput.value = user.AccountID;
         editEmail.value = user.Email;
-        editPassword.value = ''; // Clear password field
+        editPassword.value = '';
         editRole.value = user.Role;
         clearErrors(editForm);
         showModal(editModal);
@@ -230,7 +238,6 @@
 
         confirmEdit.disabled = true; confirmEdit.textContent = 'SAVING...';
         try {
-            // Use the new admin_update.php endpoint
             const response = await fetch('Backend/admin_update.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -254,7 +261,6 @@
     cancelEdit.addEventListener('click', () => hideModal(editModal));
     editModal.addEventListener('click', (e) => { if (e.target === editModal) hideModal(editModal); });
 
-    // --- Add User Logic ---
     addUserBtn.addEventListener('click', () => {
         addForm.reset(); clearErrors(addForm); showModal(addModal);
      });
@@ -268,7 +274,6 @@
 
         confirmAdd.disabled = true; confirmAdd.textContent = 'ADDING...';
         try {
-            // Use the new admin_add.php endpoint
             const response = await fetch('Backend/admin_add.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -291,7 +296,6 @@
     cancelAdd.addEventListener('click', () => hideModal(addModal));
     addModal.addEventListener('click', (e) => { if (e.target === addModal) hideModal(addModal); });
 
-    // --- Delete User Logic ---
     function showDeleteModal(userId, userEmail) {
         deleteTargetId = userId;
         deleteMessage.textContent = `Delete admin ${escapeHtml(userEmail || userId)}? This cannot be undone.`;
@@ -307,7 +311,6 @@
         if (!deleteTargetId) { hideDeleteModal(); return; }
         confirmDeleteBtn.disabled = true; confirmDeleteBtn.textContent = 'DELETING...';
         try {
-            // Use the new admin_delete.php endpoint
             const response = await fetch('Backend/admin_delete.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -326,7 +329,6 @@
     cancelDeleteBtn.addEventListener('click', hideDeleteModal);
     deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) hideDeleteModal(); });
 
-    // --- Table Action Listeners ---
     tbody.addEventListener('click', (e) => {
         const btn = e.target.closest('button.pill');
         if (!btn) return;
@@ -334,15 +336,12 @@
         const user = users.find(u => u.AccountID == userId);
         if (btn.classList.contains('edit')) openEditModal(userId);
         else if (btn.classList.contains('delete')) showDeleteModal(userId, user?.Email);
-        // No 'view' action for admins
      });
 
-    // --- Search & Filter Listeners ---
     let searchTimeout;
     searchInput.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(loadUsers, 300); });
     filterSelect.addEventListener('change', loadUsers);
 
-    // --- Global Key Listener ---
     document.addEventListener('keydown', (ev) => {
         if (ev.key === 'Escape') {
             if (editModal?.classList.contains('show')) hideModal(editModal);
@@ -351,7 +350,6 @@
         }
      });
 
-    // --- Initial Load ---
     loadUsers();
 
-})(); // End Main IIFE
+})();
