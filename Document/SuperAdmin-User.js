@@ -112,10 +112,10 @@ console.log('SuperAdmin-User.js loaded');
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
     let deleteTargetId = null;
 
-    // Receipt Modal Elements - Ensure these exist in your HTML
-    const viewReceiptModal = document.getElementById('viewReceiptModal');
-    const receiptContent = document.getElementById('receiptContent');
-    const closeReceiptBtn = document.getElementById('closeReceiptBtn');
+    // Profile Modal Elements (REUSING old Receipt IDs for less HTML breakage)
+    const viewProfileModal = document.getElementById('viewReceiptModal'); 
+    const profileContent = document.getElementById('receiptContent');     
+    const closeProfileBtn = document.getElementById('closeReceiptBtn');    
 
     // --- Utility Functions ---
     function escapeHtml(str) {
@@ -130,6 +130,22 @@ console.log('SuperAdmin-User.js loaded');
     function formatPlan(plan) {
         return plan || 'N/A';
      }
+    // New function to format date/time
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        // Handle SQLite date format (YYYY-MM-DD HH:MM:SS or just YYYY-MM-DD)
+        try {
+            // Replace space with 'T' to ensure correct UTC/local time parsing in browsers
+            const date = new Date(dateString.replace(' ', 'T')); 
+            if (isNaN(date)) return dateString; // Return original if parsing fails
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        } catch (e) {
+            return dateString;
+        }
+    }
 
     // --- Core Data Fetching & Rendering ---
     async function loadUsers() {
@@ -141,7 +157,9 @@ console.log('SuperAdmin-User.js loaded');
         if (filterValue) params.append('filter', filterValue);
 
         try {
-            const response = await fetch(`Backend/user_fetch.php?${params.toString()}`);
+            // Update fetch URL to retrieve necessary columns for Profile View
+            // (SubsStarted, SubsEnd, Plan_Status, Payment_Method, Role are needed here or in user_fetch.php)
+            const response = await fetch(`Backend/user_fetch.php?${params.toString()}`); 
             const data = await response.json();
             if (!data.success) throw new Error(data.message || 'Failed to fetch.');
             users = data.users;
@@ -166,7 +184,7 @@ console.log('SuperAdmin-User.js loaded');
               <td>${escapeHtml(formatPaymentMethod(u.Payment_Method))}</td>
               <td>
                 <div class="actions">
-                  <button class="pill view" data-id="${escapeHtml(u.AccountID)}">View</button>
+                  <button class="pill view" data-id="${escapeHtml(u.AccountID)}">View Profile</button>
                   <button class="pill edit" data-id="${escapeHtml(u.AccountID)}">Edit</button>
                   <button class="pill delete" data-id="${escapeHtml(u.AccountID)}">Delete</button>
                 </div>
@@ -335,68 +353,70 @@ console.log('SuperAdmin-User.js loaded');
     cancelDeleteBtn.addEventListener('click', hideDeleteModal);
     deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) hideDeleteModal(); });
 
-    // --- Receipt View Logic ---
-    async function openReceiptModal(accountId) {
-        // Ensure modal elements exist
-        if (!viewReceiptModal || !receiptContent) {
-            console.error("Receipt modal elements not found in HTML.");
-            alert("Receipt modal structure is missing. Please check HTML IDs.");
+    // --- Profile View Logic (REPLACES Receipt View Logic) ---
+    async function openProfileModal(accountId) {
+        // Use the renamed modal elements
+        if (!viewProfileModal || !profileContent) {
+            console.error("Profile modal elements not found in HTML.");
+            alert("Profile modal structure is missing. Please check HTML IDs.");
             return;
         }
 
-        receiptContent.innerHTML = `<p style="text-align: center; padding: 40px; color: #888;">Loading receipt...</p>`;
-        showModal(viewReceiptModal);
+        profileContent.innerHTML = `<p style="text-align: center; padding: 40px; color: #888;">Loading profile...</p>`;
+        showModal(viewProfileModal);
 
         try {
-            const response = await fetch(`Backend/fetch_receipt.php?accountId=${accountId}`);
+            // NEW ENDPOINT: Fetch clean account details
+            const response = await fetch(`Backend/account_details.php?id=${accountId}`); 
             const data = await response.json();
-            if (!data.success) throw new Error(data.message || 'Failed to load receipt.');
+            if (!data.success) throw new Error(data.message || 'Failed to load profile.');
 
-            const r = data.receipt;
-            receiptContent.innerHTML = `
-                <div class="receipt-container" style="border: none; padding: 0;">
-                    <hr class="top-line" style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <h2 style="text-align: center; margin: 15px 0; font-size: 18px; font-weight: 600;">SUBSCRIPTION RECEIPT</h2>
-                    <hr class="divider" style="border-top: 2px dashed #333; margin: 10px 0;">
+            const p = data.profile; // Get the profile object from the new endpoint
+            
+            // --- Logic for Basic Plan Display ---
+            let subsStartText = p.SubsStarted || 'N/A';
+            let subsEndText = p.SubsEnd || 'N/A';
+            const isBasicPlan = p.Plan.toLowerCase() === 'basic plan';
+
+            if (isBasicPlan) {
+                // APPLY REQUESTED RULE: For Basic Plan, show "Free Plan" message instead of date
+                subsStartText = 'Free Plan';
+                subsEndText = 'Free Plan (No Expiry)';
+            }
+            
+            // Construct the new Profile HTML output
+            profileContent.innerHTML = `
+                <div class="profile-container" style="border: none; padding: 0;">
+                    <hr style="border-top: 2px dashed #333; margin: 10px 0;">
+                    <h2 style="text-align: center; margin: 15px 0; font-size: 18px; font-weight: 600;">ACCOUNT PROFILE</h2>
+                    <hr style="border-top: 2px dashed #333; margin: 10px 0;">
                     <div class="section" style="margin: 15px 0; line-height: 1.7;">
-                      <p><span style="font-weight: 500;">Receipt no.</span> : ${escapeHtml(r.receiptNo)}</p>
-                      <p><span style="font-weight: 500;">Date & Time</span> : ${escapeHtml(r.dateTime)}</p>
-                      <p><span style="font-weight: 500;">Email</span> : ${escapeHtml(r.email)}</p>
+                      <p><span style="font-weight: 500;">Email</span> : ${escapeHtml(p.Email)}</p>
+                      <p><span style="font-weight: 500;">Account Type</span> : ${escapeHtml(p.AccountType)}</p>
                     </div>
-                    <hr class="divider" style="border-top: 2px dashed #333; margin: 10px 0;">
+                    <hr style="border-top: 2px dashed #333; margin: 10px 0;">
                     <div class="section" style="margin: 15px 0; line-height: 1.7;">
-                      <p><span style="font-weight: 500;">Subscription Plan</span> : ${escapeHtml(r.planName)}</p>
-                      ${r.planName !== 'Basic Plan' ? `
-                      <p><span style="font-weight: 500;">Plan Duration</span> : ${escapeHtml(r.planDuration)}</p>
-                      <p><span style="font-weight: 500;">Start Date</span> : ${escapeHtml(r.startDate)}</p>
-                      <p><span style="font-weight: 500;">Expiry Date</span> : ${escapeHtml(r.expiryDate)}</p>
-                      ` : ''}
+                      <p><span style="font-weight: 500;">Subscription Plan</span> : ${escapeHtml(p.Plan)}</p>
+                      <p><span style="font-weight: 500;">Plan Status</span> : ${escapeHtml(p.Status)}</p>
                     </div>
-                    <hr class="divider" style="border-top: 2px dashed #333; margin: 10px 0;">
+                    <hr style="border-top: 2px dashed #333; margin: 10px 0;">
                     <div class="section" style="margin: 15px 0; line-height: 1.7;">
-                      <p><span style="font-weight: 500;">Amount Paid</span> : ${escapeHtml(r.amountPaid)}</p>
-                      <p><span style="font-weight: 500;">Payment Method</span> : ${escapeHtml(r.paymentMethod)}</p>
-                      ${r.planName !== 'Basic Plan' ? `
-                      <p><span style="font-weight: 500;">Payment Status</span> : ${escapeHtml(r.paymentStatus)}</p>
-                      ` : ''}
+                      <p><span style="font-weight: 500;">Subscription Start</span> : ${escapeHtml(subsStartText)}</p>
+                      <p><span style="font-weight: 500;">Subscription End</span> : ${escapeHtml(subsEndText)}</p>
                     </div>
-                    <hr class="divider" style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <p class="note" style="font-size: 14px; text-align: center; margin: 15px 0;">
-                      ${r.planName !== 'Basic Plan' ? 'Proof of subscription.' : 'User is on Basic Plan.'}
-                    </p>
-                    <hr class="bottom-line" style="border-top: 2px dashed #333; margin: 10px 0;">
+                    <hr style="border-top: 2px dashed #333; margin: 10px 0;">
                     <p class="footer-note" style="text-align: center; font-size: 13px; margin-top: 10px; color: #333;">
-                      * System-generated receipt.
+                      * This is the current account status.
                     </p>
                 </div>
             `;
         } catch (err) {
-            console.error("View Receipt Error:", err);
-            receiptContent.innerHTML = `<p style="text-align: center; padding: 40px; color: red;">Error: ${err.message}</p>`;
+            console.error("View Profile Error:", err);
+            profileContent.innerHTML = `<p style="text-align: center; padding: 40px; color: red;">Error: ${err.message}</p>`;
         }
      }
-    if (closeReceiptBtn) { closeReceiptBtn.addEventListener('click', () => hideModal(viewReceiptModal)); }
-    if (viewReceiptModal) { viewReceiptModal.addEventListener('click', (e) => { if (e.target === viewReceiptModal) hideModal(viewReceiptModal); }); }
+    if (closeProfileBtn) { closeProfileBtn.addEventListener('click', () => hideModal(viewProfileModal)); }
+    if (viewProfileModal) { viewProfileModal.addEventListener('click', (e) => { if (e.target === viewProfileModal) hideModal(viewProfileModal); }); }
 
     // --- Table Action Listeners ---
     tbody.addEventListener('click', (e) => {
@@ -406,7 +426,7 @@ console.log('SuperAdmin-User.js loaded');
         const user = users.find(u => u.AccountID == userId);
         if (btn.classList.contains('edit')) openEditModal(userId);
         else if (btn.classList.contains('delete')) showDeleteModal(userId, user?.Email);
-        else if (btn.classList.contains('view')) openReceiptModal(userId); // Re-added this call
+        else if (btn.classList.contains('view')) openProfileModal(userId); // *** CALLS NEW PROFILE FUNCTION ***
      });
 
     // --- Search & Filter Listeners ---
@@ -420,7 +440,7 @@ console.log('SuperAdmin-User.js loaded');
             if (editModal?.classList.contains('show')) hideModal(editModal);
             if (addModal?.classList.contains('show')) hideModal(addModal);
             if (deleteModal?.classList.contains('show')) hideDeleteModal();
-            if (viewReceiptModal?.classList.contains('show')) hideModal(viewReceiptModal); // Re-added check
+            if (viewProfileModal?.classList.contains('show')) hideModal(viewProfileModal); // Checks profile modal
         }
      });
 
