@@ -358,7 +358,10 @@ function openPreview(book) {
   document.getElementById("previewTitle").textContent = book.title;
   document.getElementById("previewGenre").textContent = book.genre;
   document.getElementById("previewDescription").textContent = book.description;
-  document.getElementById("viewBookBtn").href = book.pdfUrl;
+  // When opening the preview (or when card clicked) set link to our reader
+// Use encodeURIComponent so filenames with spaces/special chars work.
+document.getElementById("viewBookBtn").href = `BookReader.html?pdf=${encodeURIComponent(book.pdfUrl)}`;
+
   modal.style.display = "block";
 }
 

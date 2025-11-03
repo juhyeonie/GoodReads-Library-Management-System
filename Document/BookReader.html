@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GoodReads — Reader</title>
+  <link rel="stylesheet" href="BookReader.css">
+</head>
+<body>
+  <nav class="reader-top">
+    <div class="left">
+      <button id="btnToc" title="Table of Contents">TOC</button>
+      <button id="btnPrev" title="Prev (←)">←</button>
+      <button id="btnNext" title="Next (→)">→</button>
+      <span id="pageIndicator">0 / 0</span>
+    </div>
+
+    <div class="center">
+      <input id="pageNumber" type="number" min="1" style="width:72px" />
+      <button id="btnGo">Go</button>
+
+      <select id="modeSelect" title="Reading mode">
+        <option value="scroll">Continuous Scroll</option>
+        <option value="paginated">Paginated</option>
+      </select>
+
+      <button id="btnZoomOut" title="Zoom -">-</button>
+      <button id="btnZoomIn" title="Zoom +">+</button>
+      <button id="btnFit" title="Fit to width">Fit</button>
+    </div>
+
+    <div class="right">
+      <input id="searchInput" placeholder="Search (Ctrl/Cmd+F)" />
+      <button id="btnSearch">Search</button>
+      <button id="btnHighlight" title="Highlight selection">Annot</button>
+      <button id="btnBookmark" title="Bookmark page">🔖</button>
+      <button id="btnFullscreen" title="Fullscreen (F)">⛶</button>
+      <button id="btnClose" title="Close Reader">Close</button>
+    </div>
+  </nav>
+
+  <aside id="tocPanel" class="hidden">
+    <h3>Table of contents</h3>
+    <ul id="tocList"></ul>
+  </aside>
+
+  <main id="viewerContainer" class="scroll-mode">
+    <div id="viewer" class="viewer"></div>
+  </main>
+
+  <!-- Search results -->
+  <div id="searchResults" class="search-results hidden"></div>
+
+  <!-- LOAD reader as module (BookReader.js will import pdf.mjs) -->
+  <script type="module" src="BookReader.js"></script>
+</body>
+</html>
