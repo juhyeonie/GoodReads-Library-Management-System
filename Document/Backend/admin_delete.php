@@ -2,8 +2,10 @@
 // Backend/admin_delete.php
 header('Content-Type: application/json; charset=utf-8');
 
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
-require_once __DIR__ . '/config.php'; 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+require_once __DIR__ . '/config.php';
 
 $adminId = $_SESSION['user']['AccountID'] ?? 0;
 $input = json_decode(file_get_contents('php://input'), true);
@@ -29,20 +31,20 @@ try {
         exit;
     }
 
-    // Delete the user
-    $stmt = $pdo->prepare("DELETE FROM ACCOUNT WHERE AccountID = ? AND Role != 'Customer'");
+    // --- MODIFIED: Made the query more specific ---
+    // Only allows deleting SubsAdmin or UserAdmin, prevents deleting 'Customer' or other roles.
+    $stmt = $pdo->prepare("DELETE FROM ACCOUNT WHERE AccountID = ? AND Role IN ('SubsAdmin', 'UserAdmin')");
     $stmt->execute([$userId]);
     $deletedRows = $stmt->rowCount();
 
     if ($deletedRows > 0) {
         $log_stmt = $pdo->prepare("INSERT INTO ACTIVITY_LOG (AccountID, ActionType, Description) VALUES (?, 'DELETE_ADMIN', ?)");
-        $log_stmt->execute([$adminId, "SuperAdmin deleted admin ID: " . $userId . " (Email: " . $logEmail . ")"]); 
+        $log_stmt->execute([$adminId, "SuperAdmin deleted admin ID: " . $userId . " (Email: " . $logEmail . ")"]);
         echo json_encode(['success' => true, 'message' => 'Admin deleted successfully.']);
     } else {
-         http_response_code(404);
-         echo json_encode(['success' => false, 'message' => 'Admin not found or is a customer.']);
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Admin not found or is not a deletable role.']);
     }
-
 } catch (PDOException $e) {
     http_response_code(500);
     error_log('Admin delete error: ' . $e->getMessage());
