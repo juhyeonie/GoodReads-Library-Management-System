@@ -17,7 +17,7 @@ body {
     color: #0f2234;
 }
 
-/* Navbar */
+/* ===== NAVBAR (copied from homepage.css) ===== */
 .navbar {
     display: flex;
     justify-content: space-between;
@@ -39,20 +39,65 @@ body {
 
 .nav-icons {
     display: flex;
-    gap: 30px;
+    gap: 16px;
 }
 
-.nav-icons i {
-    width: 22px;
-    height: 22px;
-    color: white;
-    transition: 0.3s;
-    cursor: pointer;
+/* anchor-based icon targets to match feather svg */
+.nav-icons a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-decoration: none;
+  font-size: 24px;
+  padding: 8px;
+  border-radius: 8px;
+  transition: transform 0.22s ease, background-color 0.22s ease, color 0.22s ease;
+  outline: none;
 }
 
-.nav-icons i:hover {
-    color: #cdd9f0;
-    transform: scale(1.1);
+.nav-icons a svg,
+.nav-icons a svg * {
+  stroke: currentColor !important;
+  fill: none !important;
+  transition: stroke 0.22s ease, transform 0.22s ease;
+}
+
+.nav-icons a:hover,
+.nav-icons a:focus-visible {
+  background-color: rgba(255,255,255,0.12);
+  color: #ffcc00;
+  transform: translateY(-2px) scale(1.04);
+}
+
+.nav-icons a.active {
+  background-color: rgba(255,255,255,0.14);
+  color: #ffcc00;
+  transform: none;
+}
+
+.nav-icons a::after {
+  content:"";
+  position: absolute;
+  bottom: 4px;
+  left: 20%;
+  width: 60%;
+  height: 2px;
+  background-color: #ffcc00;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.nav-icons a:hover::after,
+.nav-icons a.active::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.nav-icons a.logout:hover {
+  color: #ff6b6b;
+  background-color: rgba(255,107,107,0.08);
 }
 
 /* Main content */
@@ -227,4 +272,3 @@ input, select {
 .cancel-membership:hover {
     background-color: #174a6e;
 }
-
