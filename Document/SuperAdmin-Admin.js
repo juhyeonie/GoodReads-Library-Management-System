@@ -1,4 +1,4 @@
-console.log('SuperAdmin-User.js loaded (UI-updated)');
+console.log('SuperAdmin-Admin.js loaded');
 
 // Sidebar behavior
 (function() {
@@ -90,33 +90,48 @@ console.log('SuperAdmin-User.js loaded (UI-updated)');
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
     let deleteTargetId = null;
     
-    // Password toggle functionality - FIXED
-    document.querySelectorAll('.password-toggle').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          
-          const targetId = this.getAttribute('data-target');
-          const input = document.getElementById(targetId);
-          if (!input) return;
-          
-          const svg = this.querySelector('svg');
-          
-          if (input.type === 'password') {
-            input.type = 'text';
-            svg.innerHTML = `
-              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-              <line x1="1" y1="1" x2="23" y2="23"></line>
-            `;
-          } else {
-            input.type = 'password';
-            svg.innerHTML = `
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            `;
-          }
+    // --- MODIFIED: Replaced buggy password toggle with known-good functions ---
+    function getOpenEyeSVG() {
+        return `
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        `;
+    }
+
+    function getClosedEyeSVG() {
+        return `
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path>
+          <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path>
+          <line x1="1" y1="1" x2="23" y2="23"></line>
+        `;
+    }
+
+    function initPasswordToggles() {
+        document.querySelectorAll('.password-toggle').forEach(toggle => {
+            const eyeIcon = toggle.querySelector('.eye-icon');
+            if (eyeIcon && eyeIcon.innerHTML.trim() === '') {
+                eyeIcon.innerHTML = getClosedEyeSVG();
+            }
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const targetId = this.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                const eyeIconLocal = this.querySelector('.eye-icon');
+
+                if (!passwordInput) return;
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    if (eyeIconLocal) eyeIconLocal.innerHTML = getOpenEyeSVG();
+                } else {
+                    passwordInput.type = 'password';
+                    if (eyeIconLocal) eyeIconLocal.innerHTML = getClosedEyeSVG();
+                }
+            });
         });
-    });
+    }
+    initPasswordToggles();
+    // --- END OF PASSWORD TOGGLE MODIFICATION ---
 
     function escapeHtml(str) {
         if (str == null) return '';
@@ -125,20 +140,26 @@ console.log('SuperAdmin-User.js loaded (UI-updated)');
         }[s]));
      }
     function formatRole(role) {
+        // This function will correctly display the friendly name
+        if (role === 'SubsAdmin') return 'Subscription Admin';
+        if (role === 'UserAdmin') return 'User Admin';
         return role || 'N/A';
      }
 
-     document.querySelectorAll('.floating select').forEach(sel => {
-  function toggleHasValue() {
-    if (sel.value) sel.classList.add('has-value');
-    else sel.classList.remove('has-value');
-  }
-  sel.addEventListener('change', toggleHasValue);
-  toggleHasValue(); // initialize on load
-});
-
+     // --- MODIFIED: Replaced select logic with known-good function ---
+     function initFloatingSelects(scope=document) {
+        scope.querySelectorAll('select').forEach(s => {
+            function updateValue() {
+                if (s.value && s.value !== '') s.classList.add('has-value'); 
+                else s.classList.remove('has-value');
+            }
+            s.addEventListener('change', updateValue);
+            updateValue(); // Run on init
+        });
+    }
+    initFloatingSelects(document); // Run for the whole page
+    // --- END OF SELECT MODIFICATION ---
      
-
     async function loadUsers() {
         const searchTerm = searchInput.value.trim();
         const filterValue = filterSelect.value;
@@ -212,7 +233,11 @@ console.log('SuperAdmin-User.js loaded (UI-updated)');
         if (!email || !validateEmail(email)) { showError(prefix + 'Email', 'Invalid email'); isValid = false; }
         if (!isEdit && !password) { showError(prefix + 'Password', 'Password required'); isValid = false; }
         else if (password && password.length < 6) { showError(prefix + 'Password', 'Password >= 6 chars'); isValid = false; }
-        if (!role) { showError(prefix + 'Role', 'Role required'); isValid = false; }
+        // MODIFIED: Role check uses backend values
+        if (!role || !['SubsAdmin', 'UserAdmin'].includes(role)) { 
+            showError(prefix + 'Role', 'Role required'); 
+            isValid = false; 
+        }
         return isValid;
      }
 
@@ -224,6 +249,7 @@ console.log('SuperAdmin-User.js loaded (UI-updated)');
         editPassword.value = '';
         editRole.value = user.Role;
         clearErrors(editForm);
+        initFloatingSelects(editForm); // Update select label
         showModal(editModal);
      }
 
@@ -262,7 +288,10 @@ console.log('SuperAdmin-User.js loaded (UI-updated)');
     editModal.addEventListener('click', (e) => { if (e.target === editModal) hideModal(editModal); });
 
     addUserBtn.addEventListener('click', () => {
-        addForm.reset(); clearErrors(addForm); showModal(addModal);
+        addForm.reset(); 
+        clearErrors(addForm); 
+        initFloatingSelects(addForm); // Reset select labels
+        showModal(addModal);
      });
     confirmAdd.addEventListener('click', async (e) => {
         e.preventDefault();
@@ -323,7 +352,7 @@ console.log('SuperAdmin-User.js loaded (UI-updated)');
         } catch (err) {
             console.error("Delete Admin Error:", err); alert(`Error: ${err.message}`);
         } finally {
-            confirmDeleteBtn.disabled = false; confirmDeleteBtn.textContent = 'YES, DELETE';
+            confirmDeleteBtn.disabled = false; confirmDeleteBtn.textContent = 'YES'; // Changed text back
         }
      });
     cancelDeleteBtn.addEventListener('click', hideDeleteModal);

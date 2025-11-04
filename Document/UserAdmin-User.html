@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GoodReads | Customer Management</title>
-  <link rel="stylesheet" href="SuperAdmin-User.css" />
-  </head>
+  <title>User Admin | Customer Management</title>
+  <link rel="stylesheet" href="SuperAdmin-User.css" /> 
+</head>
 <body>
 
   <button id="menuToggle" class="menu-toggle" aria-label="Toggle menu">☰</button>
@@ -35,7 +35,7 @@
 
       <div class="sidebar-bottom">
         <div class="user">
-          <p class="username">Super Admin</p>
+          <p class="username">User Admin</p>
           <a href="StartPage.html" class="logout-icon" title="Logout">
             <img src="logout.png" alt="Logout" />
           </a>
@@ -84,7 +84,7 @@
               </tr>
             </thead>
             <tbody>
-              </tbody>
+            </tbody>
           </table>
         </div>
 
@@ -93,51 +93,15 @@
     </main>
   </div>
 
-  <div id="viewModal" class="modal-overlay">
-    <div class="modal-box view-modal-box">
-      <div class="modal-topbar"></div>
-      <div class="modal-body">
-        <h2 class="modal-title">Customer Details</h2>
-        <div class="user-details">
-          <div class="view-row">
-            <div class="view-label">Account ID:</div>
-            <div id="viewAccountId" class="view-value"></div>
-          </div>
-          <div class="view-row">
-            <div class="view-label">Email:</div>
-            <div id="viewEmail" class="view-value"></div>
-          </div>
-          <div class="view-row">
-            <div class="view-label">Subscription Plan:</div>
-            <div id="viewPlan" class="view-value"></div>
-          </div>
-          <div class="view-row">
-            <div class="view-label">Payment Method:</div>
-            <div id="viewPayment" class="view-value"></div>
-          </div>
-          <div class="view-row">
-            <div class="view-label">Registered Date:</div>
-            <div id="viewRegisteredDate" class="view-value"></div>
-          </div>
-        </div>
-      </div>
-      <div class="modal-bottombar">
-        <div class="modal-actions">
-          <button id="viewInvoiceBtn" class="btn confirm" type="button">VIEW INVOICE</button>
-          <button id="closeViewBtn" class="btn cancel" type="button">CLOSE</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div id="editModal" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-topbar"></div>
       <div class="modal-body">
         <h2 class="modal-title">Edit user details</h2>
         <form id="editForm" class="user-form">
+
           <div class="floating field">
-            <input id="editEmail" name="email" type="email" placeholder=" " />
+            <input id="editEmail" name="email" type="email" placeholder=" " required />
             <label class="floating-label" for="editEmail">Email</label>
             <div class="error-message" id="editEmailError"></div>
           </div>
@@ -146,39 +110,15 @@
             <input id="editPassword" name="password" type="password" class="password-input" placeholder=" " />
             <label class="floating-label" for="editPassword">Password (leave blank to keep current)</label>
             <button type="button" class="password-toggle" data-target="editPassword" aria-label="Toggle password visibility">
-              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C5 20 1 12 1 12c1.7-3.21 4.57-5.75 8.27-6.9"></path>
-                <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
+              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
             </button>
             <div class="error-message" id="editPasswordError"></div>
+            <div class="password-helper-text" id="editPasswordHelper">
+              Must be 8+ chars, 1 uppercase, and 1 number.
+            </div>
           </div>
 
-          <div class="floating field">
-            <select id="editPlan" name="plan">
-              <option value=""></option>
-              <option value="Basic Plan">Basic Plan</option>
-              <option value="Standard Plan">Standard Plan</option>
-              <option value="Premium Plan">Premium Plan</option>
-            </select>
-            <label class="floating-label" for="editPlan">Subscription Plan</label>
-            <div class="error-message" id="editPlanError"></div>
-          </div>
-
-          <div class="floating field">
-            <select id="editPayment" name="payment">
-              <option value=""></option>
-              <option value="Credit Card">Credit Card</option>
-              <option value="Gcash">GCash</option>
-              <option value="Maya">Maya</option>
-              <option value="Paypal">PayPal</option>
-            </select>
-            <label class="floating-label" for="editPayment">Payment Method</label>
-            <div class="error-message" id="editPaymentError"></div>
-          </div>
-
-          <input type="hidden" id="editReceipt" name="receipt">
+          <input type="hidden" id="editUserId" name="userId">
         </form>
       </div>
       <div class="modal-bottombar">
@@ -197,46 +137,25 @@
         <h2 class="modal-title">Add a new user</h2>
         <form id="addForm" class="user-form">
           <div class="floating field">
-            <input id="addEmail" name="email" type="email" placeholder=" " />
+            <input id="addEmail" name="email" type="email" placeholder=" " required />
             <label class="floating-label" for="addEmail">Email</label>
             <div class="error-message" id="addEmailError"></div>
           </div>
 
           <div class="floating field password-field-wrapper">
-            <input id="addPassword" name="password" type="password" class="password-input" placeholder=" " />
+            <input id="addPassword" name="password" type="password" class="password-input" placeholder=" " required />
             <label class="floating-label" for="addPassword">Password</label>
             <button type="button" class="password-toggle" data-target="addPassword" aria-label="Toggle password visibility">
-              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C5 20 1 12 1 12c1.7-3.21 4.57-5.75 8.27-6.9"></path>
-                <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
+              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
             </button>
             <div class="error-message" id="addPasswordError"></div>
+            <div class="password-helper-text" id="addPasswordHelper">
+              Must be 8+ chars, 1 uppercase, and 1 number.
+            </div>
           </div>
-
-          <div class="floating field">
-            <select id="addPlan" name="plan">
-              <option value=""></option>
-              <option value="Basic Plan">Basic Plan</option>
-              <option value="Standard Plan">Standard Plan</option>
-              <option value="Premium Plan">Premium Plan</option>
-            </select>
-            <label class="floating-label" for="addPlan">Subscription Plan</label>
-            <div class="error-message" id="addPlanError"></div>
-          </div>
-
-          <div class="floating field">
-            <select id="addPayment" name="payment">
-              <option value=""></option>
-              <option value="Credit Card">Credit Card</option>
-              <option value="Gcash">GCash</option>
-              <option value="Maya">Maya</option>
-              <option value="Paypal">PayPal</option>
-            </select>
-            <label class="floating-label" for="addPayment">Payment Method</label>
-            <div class="error-message" id="addPaymentError"></div>
-          </div>
+          <p style="font-size: 13px; color: #555; margin-top: -10px;">
+            Note: User will be added with the <strong>Basic Plan</strong> and <strong>Admin Given</strong> payment method.
+          </p>
         </form>
       </div>
       <div class="modal-bottombar">
@@ -248,38 +167,40 @@
     </div>
   </div>
 
-  <!-- Delete Modal -->
-  <div id="deleteModal" class="modal-overlay">
-    <div class="modal-box delete-modal-box">
-      <div class="modal-topbar"></div>
-      <div class="modal-body">
-        <h2 class="modal-title">Confirm Deletion</h2>
-        <p id="deleteMessage" class="delete-message">Are you sure you want to delete this user?</p>
+  <div id="viewProfileModal" class="modal-overlay">
+    <div class="modal-box profile-modal-box">
+      <div class="modal-topbar" style="background-color: #1b3c53;"></div>
+      <div class="modal-body profile-modal-body" style="padding: 30px;">
+        <h2 style="text-align: center; font-size: 24px; font-weight: 700; color: #1b3c53; margin-bottom: 30px;">CUSTOMER PROFILE</h2>
+        <div id="profileContent" class="profile-content-area" style="padding: 0 10px;">
+          <p style="text-align: center; padding: 40px; color: #888;">Loading profile...</p>
+        </div>
       </div>
       <div class="modal-bottombar">
         <div class="modal-actions">
-          <button id="confirmDeleteBtn" class="btn confirm" type="button">YES</button>
-          <button id="cancelDeleteBtn" class="btn cancel" type="button">NO</button>
+          <button id="viewProfileReceiptBtn" class="btn confirm" type="button">VIEW RECEIPT</button>
+          <button id="closeProfileBtn" class="btn cancel" type="button">CLOSE</button>
         </div>
       </div>
     </div>
   </div>
 
-  <div id="viewReceiptModal" class="modal-overlay">
-    <div class="modal-box receipt-modal-box">
-      <div class="modal-topbar"></div>
+  <div id="viewPaymentReceiptModal" class="modal-overlay">
+    <div class="modal-box receipt-modal-box" style="width: 480px;">
+      <div class="modal-topbar" style="background-color: #1b3c53;"></div>
       <div class="modal-body receipt-modal-body">
-        <div id="receiptContent" class="receipt-content-area">
+        <div id="paymentReceiptContent" class="receipt-content-area">
           <p style="text-align: center; padding: 40px; color: #888;">Loading receipt...</p>
         </div>
       </div>
       <div class="modal-bottombar">
         <div class="modal-actions">
-          <button id="closeReceiptBtn" class="btn cancel" type="button">CLOSE</button>
+          <button id="closePaymentReceiptBtn" class="btn cancel" type="button">CLOSE</button>
         </div>
       </div>
     </div>
   </div>
-  <script src="SuperAdmin-User.js"></script>
+
+  <script src="UserAdmin-User.js"></script>
 </body>
 </html>

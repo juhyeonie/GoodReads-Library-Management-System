@@ -1,4 +1,4 @@
- console.log('SubsAdmin-UserSubscription (single-file) loaded');
+console.log('SubsAdmin-UserSubscription.js loaded');
 
     /* ---------- Sidebar (unchanged logic) ---------- */
     (function(){
@@ -47,38 +47,12 @@
     /* ---------- App data + modal logic ---------- */
     (function(){
       let users = []; // will be fetched
+      let currentViewAccountId = null; // Store the ID for the receipt button
 
       const tbody = document.querySelector('#usersTable tbody');
       const searchInput = document.getElementById('userSearch');
       const planFilter = document.getElementById('planFilter');
 
-      // View modal elements
-      const viewModal = document.getElementById('viewModal');
-      const viewAccountId = document.getElementById('viewAccountId');
-      const viewEmail = document.getElementById('viewEmail');
-      const viewPlan = document.getElementById('viewPlan');
-      const viewPayment = document.getElementById('viewPayment');
-      const viewInvoiceBtn = document.getElementById('viewInvoiceBtn');
-      const closeViewBtn = document.getElementById('closeViewBtn');
-      let currentViewAccountId = null;
-
-<<<<<<< HEAD
-    // Edit Modal Elements
-    const editModal = document.getElementById('editUserModal');
-    const editForm = document.getElementById('editUserForm');
-    const userEmailHidden = document.getElementById('userEmailHidden'); // MODIFIED: Hidden input
-    const userEmailDisplay = document.getElementById('userEmailDisplay'); // MODIFIED: Display span
-    const userPlan = document.getElementById('userPlan');
-    // REMOVED: const userPayment = document.getElementById('userPayment');
-    const userId = document.getElementById('userId'); // Hidden input for AccountID
-    const confirmBtn = document.getElementById('confirmUserEdit');
-    const cancelBtn = document.getElementById('cancelUserEdit');
-
-    // Profile/Receipt Modal Elements
-    const viewProfileModal = document.getElementById('viewReceiptModal'); // Renamed ID usage
-    const profileContent = document.getElementById('receiptContent'); // Renamed ID usage
-    const closeProfileBtn = document.getElementById('closeReceiptBtn'); // Renamed ID usage
-=======
       // Edit modal elements
       const editModal = document.getElementById('editModal');
       const editForm = document.getElementById('editForm');
@@ -89,13 +63,19 @@
       const confirmEdit = document.getElementById('confirmEdit');
       const cancelEdit = document.getElementById('cancelEdit');
 
-      // Receipt modal elements
-      const viewReceiptModal = document.getElementById('viewReceiptModal');
-      const receiptContent = document.getElementById('receiptContent');
-      const closeReceiptBtn = document.getElementById('closeReceiptBtn');
->>>>>>> b145637f981ee697f94ca474e82d261f790433d6
+      // Profile Modal Elements (from SuperAdmin)
+      const viewProfileModal = document.getElementById('viewProfileModal');
+      const profileContent = document.getElementById('profileContent');
+      const viewReceiptBtn = document.getElementById('viewReceiptBtn'); // Button inside profile modal
+      const closeProfileBtn = document.getElementById('closeProfileBtn');
 
-      /* Utility */
+      // Payment Receipt Modal Elements (from SuperAdmin)
+      const viewPaymentReceiptModal = document.getElementById('viewPaymentReceiptModal');
+      const paymentReceiptContent = document.getElementById('paymentReceiptContent');
+      const closePaymentReceiptBtn = document.getElementById('closePaymentReceiptBtn');
+
+
+      /* Utility Functions */
       function escapeHtml(str) {
         if (str == null) return '';
         return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
@@ -107,37 +87,59 @@
       function showModal(modal){ if(!modal) return; modal.classList.add('show'); modal.style.display = 'flex'; document.body.classList.add('no-scroll'); modal.setAttribute('aria-hidden','false'); }
       function hideModal(modal){ if(!modal) return; modal.classList.remove('show'); modal.style.display = ''; document.body.classList.remove('no-scroll'); modal.setAttribute('aria-hidden','true'); }
 
-<<<<<<< HEAD
-    // New function to format date/time (copied from SuperAdmin logic)
-    function formatDate(dateString) {
-        if (!dateString) return 'N/A';
-        try {
-            const date = new Date(dateString.replace(' ', 'T')); 
-            if (isNaN(date)) return dateString; 
-            return date.toLocaleDateString('en-US', { 
-                year: 'numeric', month: 'long', day: 'numeric',
-                hour: '2-digit', minute: '2-digit', hour12: true
-            }).replace(',', '');
-        } catch (e) {
-            return dateString;
-        }
-    }
+      // Date formatting function (from SuperAdmin)
+      function formatDate(dateString) {
+          if (!dateString) return 'N/A';
+          try {
+              const date = new Date(dateString.replace(' ', 'T')); 
+              if (isNaN(date)) return dateString; 
+              return date.toLocaleDateString('en-US', { 
+                  year: 'numeric', month: 'long', day: 'numeric',
+                  hour: '2-digit', minute: '2-digit', hour12: true
+              }).replace(',', '');
+          } catch (e) {
+              return dateString;
+          }
+      }
+      
+      // Receipt Date formatting function (from SuperAdmin)
+      function formatReceiptDate(dateString) {
+          if (!dateString) return 'N/A';
+          try {
+              const date = new Date(dateString.replace(' ', 'T'));
+              if (isNaN(date)) return dateString;
+              return date.toLocaleDateString('en-US', {
+                  year: 'numeric', month: 'long', day: 'numeric'
+              });
+          } catch (e) {
+              return dateString;
+          }
+      }
 
-
-    // --- Core Data Fetching & Rendering ---
-    async function loadUsers() {
-=======
       /* Floating selects: ensure label floats if select has value */
       function initFloatingSelects(scope=document){
-        scope.querySelectorAll('select').forEach(s => {
-          if(s.value && s.value !== '') s.classList.add('has-value'); else s.classList.remove('has-value');
-          s.addEventListener('change', function(){ if(this.value && this.value !== '') this.classList.add('has-value'); else this.classList.remove('has-value'); });
+        scope.querySelectorAll('select, input').forEach(s => {
+          if(s.value && s.value !== '') s.classList.add('has-value'); 
+          else s.classList.remove('has-value');
+          
+          s.addEventListener('change', function(){ 
+            if(this.value && this.value !== '') this.classList.add('has-value'); 
+            else this.classList.remove('has-value'); 
+          });
         });
+      }
+      
+      function clearErrors(form) {
+          if(!form) return;
+          form.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+          form.querySelectorAll('.error-message').forEach(el => { 
+              el.textContent = ''; 
+              el.classList.remove('show'); 
+          });
       }
 
       /* ---------- Data load & render ---------- */
       async function loadUsers() {
->>>>>>> b145637f981ee697f94ca474e82d261f790433d6
         const searchTerm = searchInput.value.trim();
         const filterValue = planFilter.value;
         const params = new URLSearchParams();
@@ -163,20 +165,6 @@
           return;
         }
         rows.forEach(u => {
-<<<<<<< HEAD
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${escapeHtml(u.AccountID)}</td>
-              <td>${escapeHtml(u.Email)}</td>
-              <td>${escapeHtml(formatPlan(u.Plan))}</td>
-              <td>${escapeHtml(formatPaymentMethod(u.Payment_Method))}</td>
-              <td style="text-align:right">
-                <button class="action-btn view-btn" data-id="${escapeHtml(u.AccountID)}">View Profile</button>
-                <button class="action-btn edit-btn" data-id="${escapeHtml(u.AccountID)}">Edit</button>
-              </td>
-            `;
-            tbody.appendChild(tr);
-=======
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${escapeHtml(u.AccountID)}</td>
@@ -184,137 +172,58 @@
             <td>${escapeHtml(formatPlan(u.Plan))}</td>
             <td>${escapeHtml(formatPayment(u.Payment_Method))}</td>
             <td style="text-align:right">
-              <button class="action-btn view-btn" data-id="${escapeHtml(u.AccountID)}">View</button>
+              <button class="action-btn view-btn" data-id="${escapeHtml(u.AccountID)}">View Profile</button>
               <button class="action-btn edit-btn" data-id="${escapeHtml(u.AccountID)}">Edit</button>
             </td>
           `;
           tbody.appendChild(tr);
->>>>>>> b145637f981ee697f94ca474e82d261f790433d6
         });
       }
 
-      /* ---------- View modal logic (matches Customer Management style) ---------- */
-      function openViewModal(accountId) {
-        const user = users.find(x => x.AccountID == accountId);
-        if(!user) return;
-        currentViewAccountId = user.AccountID;
-        viewAccountId.textContent = user.AccountID || '';
-        viewEmail.textContent = user.Email || '';
-        viewPlan.textContent = user.Plan || 'N/A';
-        viewPayment.textContent = user.Payment_Method || 'N/A';
-        showModal(viewModal);
-      }
-
-      if(closeViewBtn) closeViewBtn.addEventListener('click', () => { hideModal(viewModal); currentViewAccountId = null; });
-      if(viewInvoiceBtn) viewInvoiceBtn.addEventListener('click', () => { if(currentViewAccountId) openReceiptModal(currentViewAccountId); });
-      if(viewModal) viewModal.addEventListener('click', (e) => { if(e.target === viewModal) { hideModal(viewModal); currentViewAccountId = null; } });
-
-      /* ---------- Edit modal logic (email readonly, plan, payment) ---------- */
+      /* ---------- Edit modal logic ---------- */
       function openEditModal(accountId) {
         const user = users.find(x => x.AccountID == accountId);
         if(!user) return;
-        editUserId.value = user.AccountID; // for backward compatibility
-        editUserId && (editUserId.value = user.AccountID);
-        editUserId && (editUserId.setAttribute('value', user.AccountID));
-        editUserId && (editUserId.textContent = user.AccountID);
-
-<<<<<<< HEAD
-    // --- Edit User Logic (MODIFIED) ---
-    function openEditModal(accountId) {
-        const user = users.find(u => u.AccountID == accountId);
-        if (!user || !editModal) return;
-
-        userId.value = user.AccountID;
-        
-        // MODIFICATION: Set the value of the hidden input and the visible span
-        userEmailHidden.value = user.Email; 
-        userEmailDisplay.textContent = user.Email; 
-        
-        userPlan.value = user.Plan;
         
         clearErrors(editForm);
-=======
-        editUserId && (editUserId.value = user.AccountID); // ensure hidden set
-        editUserId && (editUserId.setAttribute('data-account', user.AccountID));
-
-        // main fields
-        editUserId && (editUserId.value = user.AccountID);
-        editUserId && (editUserId.setAttribute('value', user.AccountID));
-        document.getElementById('editUserId')?.setAttribute('value', user.AccountID);
-
-        // set visible form controls
+        
+        editUserId.value = user.AccountID;
         editEmail.value = user.Email || '';
         editPlan.value = user.Plan || '';
         editPayment.value = user.Payment_Method || '';
+        
+        // Manually trigger floating label check for pre-filled fields
         initFloatingSelects(editForm);
->>>>>>> b145637f981ee697f94ca474e82d261f790433d6
+        
         showModal(editModal);
       }
 
-      // small compatibility: some IDs used earlier
-      const editUserIdFallback = document.getElementById('editUserId');
-
-<<<<<<< HEAD
-        const accountId = userId.value;
-        const plan = userPlan.value;
-        // MODIFICATION: Get email value from the hidden input for submission
-        const email = userEmailHidden.value; 
-        
-        if (!plan) {
-            alert('Please select a plan.');
-            userPlan.classList.add('error');
-            return;
-        }
-         clearErrors(editForm);
-
-        confirmBtn.disabled = true; confirmBtn.textContent = 'SAVING...';
-        try {
-            const response = await fetch('Backend/subsadmin_user_update.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: accountId, email, plan })
-            });
-            const result = await response.json();
-
-            if (!result.success) {
-                 if (result.errors) {
-                     displayServerErrors(result.errors);
-                 } else {
-                     throw new Error(result.message || 'Failed to update user subscription.');
-                 }
-            } else {
-                hideModal(editModal);
-                loadUsers(); // Refresh table
-            }
-        } catch (err) {
-            console.error("Update User Sub Error:", err);
-            alert(`Error: ${err.message}`);
-        } finally {
-            confirmBtn.disabled = false; confirmBtn.textContent = 'CONFIRM';
-        }
-    });
-
-    cancelBtn.addEventListener('click', (e) => {
-=======
       confirmEdit.addEventListener('click', async (e) => {
->>>>>>> b145637f981ee697f94ca474e82d261f790433d6
         e.preventDefault();
-        const accountId = editUserIdFallback?.value || (document.getElementById('editUserId')?.value) || editUserId?.value || '';
+        const accountId = editUserId.value;
         const plan = editPlan.value;
         const payment = editPayment.value;
         const email = editEmail.value;
+        
+        clearErrors(editForm);
+        let isValid = true;
+        
         // simple validation
-        if(!plan) { editPlan.classList.add('error'); alert('Please select a plan.'); return; }
-        if(!payment) { editPayment.classList.add('error'); alert('Please select a payment method.'); return; }
-        editPlan.classList.remove('error'); editPayment.classList.remove('error');
+        if(!plan) { 
+            editPlan.classList.add('error'); 
+            document.getElementById('editPlanError').textContent = 'Plan is required.';
+            document.getElementById('editPlanError').classList.add('show');
+            isValid = false;
+        }
+        if(!payment) { 
+            editPayment.classList.add('error'); 
+            document.getElementById('editPaymentError').textContent = 'Payment method is required.';
+            document.getElementById('editPaymentError').classList.add('show');
+            isValid = false;
+        }
+        
+        if (!isValid) return;
 
-<<<<<<< HEAD
-    // --- Profile View Logic (MODIFIED) ---
-     async function openProfileModal(accountId) {
-        if (!viewProfileModal || !profileContent) {
-            console.error("Profile modal elements not found in HTML.");
-            alert("Profile modal structure is missing in the HTML file.");
-=======
         confirmEdit.disabled = true; confirmEdit.textContent = 'SAVING...';
         try {
           const resp = await fetch('Backend/subsadmin_user_update.php', {
@@ -325,8 +234,8 @@
           const result = await resp.json();
           if(!result.success) {
             if(result.errors) {
-              let msg = 'Validation errors:\\n';
-              Object.keys(result.errors).forEach(k => { msg += k+': '+result.errors[k]+'\\n'; });
+              let msg = 'Validation errors:\n';
+              Object.keys(result.errors).forEach(k => { msg += k+': '+result.errors[k]+'\n'; });
               alert(msg);
             } else throw new Error(result.message || 'Update failed');
           } else {
@@ -344,36 +253,29 @@
       cancelEdit.addEventListener('click', (e) => { e.preventDefault(); hideModal(editModal); });
       editModal.addEventListener('click', (e) => { if(e.target === editModal) hideModal(editModal); });
 
-      /* ---------- Receipt logic (kept) ---------- */
-      async function openReceiptModal(accountId) {
-        if (!viewReceiptModal || !receiptContent) {
-            console.error("Receipt modal elements not found in HTML.");
-            alert("Receipt modal structure is missing. Please check HTML IDs.");
->>>>>>> b145637f981ee697f94ca474e82d261f790433d6
+      /* ---------- Profile Modal Logic (from SuperAdmin) ---------- */
+      async function openProfileModal(accountId) {
+        if (!viewProfileModal || !profileContent) {
+            console.error("Profile modal elements not found in HTML.");
             return;
         }
 
         profileContent.innerHTML = `<p style="text-align: center; padding: 40px; color: #888;">Loading profile...</p>`;
         showModal(viewProfileModal);
+        currentViewAccountId = accountId; // Store ID for "View Receipt" button
 
         try {
-            // NOTE: This assumes you have a backend file named account_details.php 
-            // that returns Email, Role, Plan, Plan_Status, SubsStarted, SubsEnd, and Payment_Method.
-            const response = await fetch(`Backend/account_details.php?id=${accountId}`);
+            const response = await fetch(`Backend/account_details.php?id=${accountId}`); 
             const data = await response.json();
-<<<<<<< HEAD
+            if (!data.success) throw new Error(data.message || 'Failed to load profile.');
 
-            if (!data.success) {
-                throw new Error(data.message || 'Failed to load profile data.');
-            }
-
-            const p = data.profile;
+            const p = data.profile; 
             
-            // --- Logic for Subscription Text ---
             let subsStartText = p.SubsStarted ? formatDate(p.SubsStarted) : 'N/A';
             let subsEndText = p.SubsEnd ? formatDate(p.SubsEnd) : 'N/A';
             
-            const isBasicPlan = p.Plan.toLowerCase() === 'basic plan' || (p.Payment_Method && p.Payment_Method.toLowerCase() === 'free plan');
+            const isBasicPlan = p.Plan.toLowerCase() === 'basic plan' || 
+                               (p.Payment_Method && p.Payment_Method.toLowerCase() === 'free plan');
 
             if (isBasicPlan) {
                 subsStartText = 'N/A (Free Plan)';
@@ -382,7 +284,6 @@
 
             const statusColor = p.Status === 'Active' ? '#38a169' : '#e53e3e';
             
-            // --- HTML FOR CUSTOMER PROFILE FORMAT ---
             profileContent.innerHTML = `
                 <div class="profile-container" style="padding: 0 20px;">
                     <div class="section" style="margin-bottom: 20px;">
@@ -390,7 +291,7 @@
                         <p style="margin-bottom: 5px;"><strong style="font-weight: 700; display: inline-block; min-width: 150px;">Account ID:</strong> ${escapeHtml(p.AccountID)}</p>
                         <p style="margin-bottom: 5px;"><strong style="font-weight: 700; display: inline-block; min-width: 150px;">Email:</strong> ${escapeHtml(p.Email)}</p>
                         <p style="margin-bottom: 5px;"><strong style="font-weight: 700; display: inline-block; min-width: 150px;">Role:</strong> ${escapeHtml(p.Role)}</p>
-                        </div>
+                    </div>
 
                     <div class="section" style="margin-bottom: 20px;">
                         <h3 style="font-size: 16px; font-weight: 600; color: #555; margin-bottom: 10px;">Subscription Details</h3>
@@ -400,94 +301,115 @@
                         <p style="margin-bottom: 5px;"><strong style="font-weight: 700; display: inline-block; min-width: 150px;">Subscription Start:</strong> ${escapeHtml(subsStartText)}</p>
                         <p style="margin-bottom: 5px;"><strong style="font-weight: 700; display: inline-block; min-width: 150px;">Subscription End:</strong> ${escapeHtml(subsEndText)}</p>
                     </div>
-=======
-            if (!data.success) throw new Error(data.message || 'Failed to load receipt.');
-
-            const r = data.receipt;
-            receiptContent.innerHTML = `
-                <div class="receipt-container" style="border: none; padding: 0;">
-                    <hr class="top-line" style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <h2 style="text-align: center; margin: 15px 0; font-size: 18px; font-weight: 600;">SUBSCRIPTION RECEIPT</h2>
-                    <hr class="divider" style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <div class="section" style="margin: 15px 0; line-height: 1.7;">
-                      <p><span style="font-weight: 500;">Receipt no.</span> : ${escapeHtml(r.receiptNo)}</p>
-                      <p><span style="font-weight: 500;">Date & Time</span> : ${escapeHtml(r.dateTime)}</p>
-                      <p><span style="font-weight: 500;">Email</span> : ${escapeHtml(r.email)}</p>
-                    </div>
-                    <hr class="divider" style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <div class="section" style="margin: 15px 0; line-height: 1.7;">
-                      <p><span style="font-weight: 500;">Subscription Plan</span> : ${escapeHtml(r.planName)}</p>
-                      ${r.planName !== 'Basic Plan' ? `
-                      <p><span style="font-weight: 500;">Plan Duration</span> : ${escapeHtml(r.planDuration)}</p>
-                      <p><span style="font-weight: 500;">Start Date</span> : ${escapeHtml(r.startDate)}</p>
-                      <p><span style="font-weight: 500;">Expiry Date</span> : ${escapeHtml(r.expiryDate)}</p>
-                      ` : ''}
-                    </div>
-                    <hr class="divider" style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <div class="section" style="margin: 15px 0; line-height: 1.7;">
-                      <p><span style="font-weight: 500;">Amount Paid</span> : ${escapeHtml(r.amountPaid)}</p>
-                      <p><span style="font-weight: 500;">Payment Method</span> : ${escapeHtml(r.paymentMethod)}</p>
-                      ${r.planName !== 'Basic Plan' ? `
-                      <p><span style="font-weight: 500;">Payment Status</span> : ${escapeHtml(r.paymentStatus)}</p>
-                      ` : ''}
-                    </div>
-                    <hr class="divider" style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <p class="note" style="font-size: 14px; text-align: center; margin: 15px 0;">
-                      ${r.planName !== 'Basic Plan' ? 'Proof of subscription.' : 'User is on Basic Plan.'}
-                    </p>
-                    <hr class="bottom-line" style="border-top: 2px dashed #333; margin: 10px 0;">
-                    <p class="footer-note" style="text-align: center; font-size: 13px; margin-top: 10px; color: #333;">
-                      * System-generated receipt.
-                    </p>
->>>>>>> b145637f981ee697f94ca474e82d261f790433d6
                 </div>
             `;
         } catch (err) {
             console.error("View Profile Error:", err);
             profileContent.innerHTML = `<p style="text-align: center; padding: 40px; color: red;">Error: ${err.message}</p>`;
         }
-     }
-    if (closeReceiptBtn) { closeReceiptBtn.addEventListener('click', () => hideModal(viewReceiptModal)); }
-    if (viewReceiptModal) { viewReceiptModal.addEventListener('click', (e) => { if (e.target === viewReceiptModal) hideModal(viewReceiptModal); }); }
+      }
 
-<<<<<<< HEAD
-    if (closeProfileBtn) {
-        closeProfileBtn.addEventListener('click', () => hideModal(viewProfileModal));
-    }
-     if (viewProfileModal) {
-        viewProfileModal.addEventListener('click', (e) => { if (e.target === viewProfileModal) hideModal(viewProfileModal); });
-    }
-=======
+      if (closeProfileBtn) { closeProfileBtn.addEventListener('click', () => { hideModal(viewProfileModal); currentViewAccountId = null; }); }
+      if (viewProfileModal) { viewProfileModal.addEventListener('click', (e) => { if (e.target === viewProfileModal) { hideModal(viewProfileModal); currentViewAccountId = null; } }); }
+      
+      // Listener for the new button INSIDE the profile modal
+      if (viewReceiptBtn) {
+          viewReceiptBtn.addEventListener('click', () => {
+              if (currentViewAccountId) {
+                  openPaymentReceiptModal(currentViewAccountId);
+              }
+          });
+      }
+
+      /* ---------- Payment Receipt Modal Logic (from SuperAdmin) ---------- */
+      async function openPaymentReceiptModal(accountId) {
+        if (!viewPaymentReceiptModal || !paymentReceiptContent) {
+            console.error("Payment receipt modal elements not found.");
+            return;
+        }
+
+        paymentReceiptContent.innerHTML = `<p style="text-align: center; padding: 40px; color: #888;">Loading receipt...</p>`;
+        showModal(viewPaymentReceiptModal);
+
+        try {
+            const response = await fetch(`Backend/fetch_receipt.php?accountId=${accountId}`);
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to load receipt.');
+            }
+
+            const r = data.receipt;
+            
+            const formattedDateTime = formatReceiptDate(r.dateTime);
+            const formattedStartDate = formatReceiptDate(r.startDate);
+            const formattedExpiryDate = formatReceiptDate(r.expiryDate);
+
+            paymentReceiptContent.innerHTML = `
+                <hr class="top-line">
+                <h2>SUBSCRIPTION RECEIPT</h2>
+                <hr class="divider">
+                <div class="section">
+                  <p><span>Receipt no</span> ${escapeHtml(r.receiptNo)}</p>
+                  <p><span>Date & Time</span> ${escapeHtml(formattedDateTime)}</p>
+                  <p><span>Email</span> ${escapeHtml(r.email)}</p>
+                </div>
+                <hr class="divider">
+                <div class="section">
+                  <p><span>Subscription Plan</span> ${escapeHtml(r.planName)}</p>
+                  <p><span>Plan Duration</span> ${escapeHtml(r.planDuration)}</p>
+                  <p><span>Start Date</span> ${escapeHtml(formattedStartDate)}</p>
+                  <p><span>Expiry Date</span> ${escapeHtml(formattedExpiryDate)}</p>
+                </div>
+                <hr class="divider">
+                <div class="section">
+                  <p><span>Amount Paid</span> ${escapeHtml(r.amountPaid)}</p>
+                  <p><span>Payment Method</span> ${escapeHtml(r.paymentMethod)}</p>
+                  <p><span>Payment Status</span> ${escapeHtml(r.paymentStatus)}</p>
+                </div>
+                <hr class="divider">
+                <p class="note">
+                  This receipt serves as proof of subscription.
+                </p>
+                <hr class="bottom-line">
+                <p class="footer-note">
+                  * This is a system-generated receipt.
+                </p>
+            `;
+
+        } catch (err) {
+            console.error("View Receipt Error:", err);
+            paymentReceiptContent.innerHTML = `<p style="text-align: center; padding: 40px; color: red;">Error: ${err.message}</p>`;
+        }
+      }
+
+      if (closePaymentReceiptBtn) { closePaymentReceiptBtn.addEventListener('click', () => hideModal(viewPaymentReceiptModal)); }
+      if (viewPaymentReceiptModal) { viewPaymentReceiptModal.addEventListener('click', (e) => { if (e.target === viewPaymentReceiptModal) hideModal(viewPaymentReceiptModal); }); }
+
+
       /* ---------- Table action listeners ---------- */
       tbody.addEventListener('click', (e) => {
         const btn = e.target.closest('button.action-btn');
         if(!btn) return;
         const id = btn.dataset.id;
-        if(btn.classList.contains('edit-btn')) openEditModal(id);
-        else if(btn.classList.contains('view-btn')) openViewModal(id);
+        if(btn.classList.contains('edit-btn')) {
+            openEditModal(id);
+        } else if(btn.classList.contains('view-btn')) {
+            openProfileModal(id); // CHANGED to open profile modal
+        }
       });
->>>>>>> b145637f981ee697f94ca474e82d261f790433d6
 
       /* ---------- Search & filter ---------- */
       let searchTimeout;
       searchInput.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(loadUsers, 300); });
       planFilter.addEventListener('change', loadUsers);
 
-<<<<<<< HEAD
-        const userId = targetButton.dataset.id;
-
-        if (targetButton.classList.contains('edit-btn')) {
-            openEditModal(userId);
-        } else if (targetButton.classList.contains('view-btn')) {
-            openProfileModal(userId); // Renamed function call
-=======
       /* ---------- Keyboard global ---------- */
       document.addEventListener('keydown', (ev) => {
         if(ev.key === 'Escape'){
-          if(viewModal && viewModal.classList.contains('show')) hideModal(viewModal);
           if(editModal && editModal.classList.contains('show')) hideModal(editModal);
-          if(viewReceiptModal && viewReceiptModal.classList.contains('show')) hideModal(viewReceiptModal);
->>>>>>> b145637f981ee697f94ca474e82d261f790433d6
+          if(viewProfileModal && viewProfileModal.classList.contains('show')) { hideModal(viewProfileModal); currentViewAccountId = null; }
+          if(viewPaymentReceiptModal && viewPaymentReceiptModal.classList.contains('show')) hideModal(viewPaymentReceiptModal);
         }
       });
 
@@ -496,19 +418,7 @@
         initFloatingSelects(document);
       });
 
-<<<<<<< HEAD
-    // --- Global Key Listener ---
-    document.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Escape') {
-            if (editModal && editModal.classList.contains('show')) hideModal(editModal);
-            if (viewProfileModal && viewProfileModal.classList.contains('show')) hideModal(viewProfileModal);
-        }
-    });
-=======
       // initial fetch
       loadUsers();
->>>>>>> b145637f981ee697f94ca474e82d261f790433d6
 
-      // Expose a small helper for debugging in console if needed:
-      window._subsAdmin = { loadUsers, openEditModal, openViewModal, openReceiptModal };
     })();
