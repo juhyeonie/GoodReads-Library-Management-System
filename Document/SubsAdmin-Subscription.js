@@ -1,6 +1,19 @@
+// --- SESSION CHECK (GATEKEEPER) ---
+(function() {
+  const userRole = sessionStorage.getItem('user_role');
+  const expectedRole = 'subsadmin'; // <-- MODIFIED
+  
+  if (!userRole || userRole !== expectedRole) {
+      sessionStorage.clear();
+      alert('You do not have permission to view this page or your session has expired. Please log in.');
+      window.location.replace('StartPage.html');
+  }
+})();
+// --- END OF SESSION CHECK ---
+
 console.log('SubsAdmin-Subscription.js loaded');
 
-// Sidebar behavior (omitted for brevity, assume this section is unchanged)
+// Sidebar behavior
 (function() {
   const sidebar = document.getElementById('sidebar');
   const menuToggle = document.getElementById('menuToggle');
@@ -97,7 +110,6 @@ console.log('SubsAdmin-Subscription.js loaded');
       const data = await response.json();
 
       if (!data.success) {
-        // UPDATED: Pass the new debug message to the catch block
         const error = new Error(data.message || 'Failed to fetch plans.');
         error.serverMessage = data.debug_error || 'No debug info available.';
         throw error;
@@ -107,9 +119,8 @@ console.log('SubsAdmin-Subscription.js loaded');
       renderPlans(allPlansData);
 
     } catch (err) {
-      console.error('loadPlans error:', err.message); // The generic message
+      console.error('loadPlans error:', err.message); 
 
-      // UPDATED: Print the precise server error
       if (err.serverMessage) {
         console.error('--- PRECISE SERVER ERROR ---');
         console.error(err.serverMessage);
@@ -139,7 +150,6 @@ console.log('SubsAdmin-Subscription.js loaded');
       const priceText = `₱${parseFloat(plan.Price).toFixed(0)} / month`;
       
       let featuresHTML = '';
-      // This will be empty now, but that's okay for testing
       plan.features.forEach(feature => {
         featuresHTML += `<li>${escapeHTML(feature.FeatureText)}</li>`;
       });
@@ -303,3 +313,22 @@ console.log('SubsAdmin-Subscription.js loaded');
   // Initial load
   loadPlans();
 })();
+
+// --- ADDED: LOGOUT SCRIPT ---
+(function() {
+    const logoutButton = document.querySelector('.logout-icon');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', (e) => {
+            e.preventDefault(); // Stop the link from navigating
+            
+            // Clear the session "Hall Pass"
+            sessionStorage.removeItem('user_role');
+            sessionStorage.removeItem('user_plan');
+            sessionStorage.clear(); // Clears everything
+            
+            // Go to the login page
+            window.location.href = 'StartPage.html';
+        });
+    }
+})();
+// --- END OF LOGOUT SCRIPT ---

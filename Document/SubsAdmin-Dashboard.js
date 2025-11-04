@@ -1,3 +1,20 @@
+// --- SESSION CHECK (GATEKEEPER) ---
+(function() {
+  const userRole = sessionStorage.getItem('user_role');
+  
+  // 1. This page is for "subsadmin" (lowercase)
+  const expectedRole = 'subsadmin'; // <-- MODIFIED
+  
+  // 2. Check if the user is logged out OR has the wrong role
+  if (!userRole || userRole !== expectedRole) {
+      sessionStorage.clear(); // Clear all stale data
+      alert('You do not have permission to view this page or your session has expired. Please log in.');
+      window.location.replace('StartPage.html');
+  }
+})();
+// --- END OF SESSION CHECK ---
+
+
 // File: SubsAdmin-Dashboard.js
 // Fetches from 'subsadmin_dash_stats.php' and populates '#subsTable'.
 
@@ -172,3 +189,22 @@
   loadDashboardData();
   
 })();
+
+// --- ADDED: LOGOUT SCRIPT ---
+(function() {
+    const logoutButton = document.querySelector('.logout-icon');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', (e) => {
+            e.preventDefault(); // Stop the link from navigating
+            
+            // Clear the session "Hall Pass"
+            sessionStorage.removeItem('user_role');
+            sessionStorage.removeItem('user_plan');
+            sessionStorage.clear(); // Clears everything
+            
+            // Go to the login page
+            window.location.href = 'StartPage.html';
+        });
+    }
+})();
+// --- END OF LOGOUT SCRIPT ---
