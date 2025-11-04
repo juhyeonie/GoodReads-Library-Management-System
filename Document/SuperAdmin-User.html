@@ -105,43 +105,6 @@
     </main>
   </div>
 
-  <div id="viewModal" class="modal-overlay">
-    <div class="modal-box view-modal-box">
-      <div class="modal-topbar"></div>
-      <div class="modal-body">
-        <h2 class="modal-title">Customer Details</h2>
-        <div class="user-details">
-          <div class="view-row">
-            <div class="view-label">Account ID:</div>
-            <div id="viewAccountId" class="view-value"></div>
-          </div>
-          <div class="view-row">
-            <div class="view-label">Email:</div>
-            <div id="viewEmail" class="view-value"></div>
-          </div>
-          <div class="view-row">
-            <div class="view-label">Subscription Plan:</div>
-            <div id="viewPlan" class="view-value"></div>
-          </div>
-          <div class="view-row">
-            <div class="view-label">Payment Method:</div>
-            <div id="viewPayment" class="view-value"></div>
-          </div>
-          <div class="view-row">
-            <div class="view-label">Registered Date:</div>
-            <div id="viewRegisteredDate" class="view-value"></div>
-          </div>
-        </div>
-      </div>
-      <div class="modal-bottombar">
-        <div class="modal-actions">
-          <button id="viewReceiptBtn" class="btn confirm" type="button">VIEW RECEIPT</button>
-          <button id="closeViewBtn" class="btn cancel" type="button">CLOSE</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div id="editModal" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-topbar"></div>
@@ -262,6 +225,7 @@
       </div>
       <div class="modal-bottombar">
         <div class="modal-actions">
+          <button id="viewProfileReceiptBtn" class="btn confirm" type="button">VIEW RECEIPT</button>
           <button id="closeReceiptBtn" class="btn cancel" type="button">CLOSE</button>
         </div>
       </div>
