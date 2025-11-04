@@ -45,7 +45,7 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isMobile() && sidebar.classList.contains('mobile-open')) { sidebar.classList.remove('mobile-open'); overlay.classList.remove('active'); } });
 
   /* ---------------- Data / API ---------------- */
-  // MODIFIED: Use the same backend as SubsAdmin
+  // Uses the same backend as SubsAdmin
   const API_ROOT = 'Backend/subsadmin_dash_stats.php';
   let customers = []; // This will hold the 'recentUsers'
 
@@ -81,17 +81,15 @@
       }
   }
 
-  // MODIFIED: This function now uses the 'stats' object from the PHP file
+  // MODIFIED: This function now targets your original card IDs
   function updateStats(stats) {
     if (!stats) return;
     document.getElementById('freeCount').textContent = stats.free;
     document.getElementById('standardCount').textContent = stats.standard;
     document.getElementById('premiumCount').textContent = stats.premium;
-    document.getElementById('expiredCount').textContent = stats.expired;
-    document.getElementById('cancelledCount').textContent = stats.cancelled;
+    // "expired" and "cancelled" lines are removed
   }
 
-  // MODIFIED: This function now renders the 'recentUsers'
   function renderTable() {
     if (!tbody) {
         console.error("Critical Error: tbody '#customersTable tbody' not found!");
@@ -99,8 +97,7 @@
     }
     tbody.innerHTML = '';
     
-    // The 'customers' array is now the 'recentUsers' from PHP,
-    // which is already filtered to Standard/Premium and limited to 10.
+    // The 'customers' array is the 'recentUsers' from PHP
     if (!customers || customers.length === 0) {
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No recent paid subscriptions found.</td></tr>';
       return;
@@ -120,7 +117,6 @@
     });
   }
 
-  // MODIFIED: Fetches from the new PHP file and calls new functions
   async function loadCustomersFromServer() {
     try {
       const res = await fetch(API_ROOT, { method: 'GET' });
@@ -131,8 +127,8 @@
         throw new Error(data.message || 'Failed to load data from server.');
       }
 
-      customers = data.recentUsers; // This is now the filtered list
-      updateStats(data.stats); // Update the 5 stat cards
+      customers = data.recentUsers; // This is the filtered list
+      updateStats(data.stats); // Update the 3 stat cards
       renderTable(); // Render the filtered table
 
     } catch (err) {
@@ -140,8 +136,8 @@
       if (tbody) {
           tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: red;">Error: ${err.message}</td></tr>`;
       }
-      // Set stats to '—' on error
-      const stats = { free: '—', standard: '—', premium: '—', expired: '—', cancelled: '—' };
+      // MODIFIED: Error stats match the 3-card layout
+      const stats = { free: '—', standard: '—', premium: '—' };
       updateStats(stats);
     }
   }
