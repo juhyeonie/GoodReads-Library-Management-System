@@ -213,5 +213,24 @@ width:72px; }
 .pagination-btn { background:#fff; border:1px solid rgba(0,0,0,0.06); padding:8px 12px; border-radius:6px; cursor:pointer; }
 .pagination-btn:disabled { opacity:.5; cursor:default; }
 
+.admin-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  text-transform: capitalize;
+}
+
+/* Role colors */
+.admin-badge.superadmin { background-color: #1b3c53; }   /* Deep blue */
+.admin-badge.subsadmin { background-color: #6f6b9b; }    /* Violet */
+.admin-badge.libraryadmin { background-color: #2196f3; } /* Bright blue */
+.admin-badge.financeadmin { background-color: #009688; } /* Teal */
+.admin-badge.customeradmin { background-color: #ff9800; } /* Orange */
+
+
+
 @media (max-width:900px) { .activity-table { min-width:0; } }
 body.no-scroll { overflow:hidden; }
