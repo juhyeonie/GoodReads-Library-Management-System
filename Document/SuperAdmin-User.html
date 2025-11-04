@@ -105,7 +105,6 @@
     </main>
   </div>
 
-  <!-- View Modal -->
   <div id="viewModal" class="modal-overlay">
     <div class="modal-box view-modal-box">
       <div class="modal-topbar"></div>
@@ -136,14 +135,13 @@
       </div>
       <div class="modal-bottombar">
         <div class="modal-actions">
-          <button id="viewInvoiceBtn" class="btn confirm" type="button">VIEW INVOICE</button>
+          <button id="viewReceiptBtn" class="btn confirm" type="button">VIEW RECEIPT</button>
           <button id="closeViewBtn" class="btn cancel" type="button">CLOSE</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Edit Modal (NO PAYMENT METHOD) -->
   <div id="editModal" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-topbar"></div>
@@ -161,13 +159,12 @@
             <input id="editPassword" name="password" type="password" class="password-input" placeholder=" " />
             <label class="floating-label" for="editPassword">Password (leave blank to keep current)</label>
             <button type="button" class="password-toggle" data-target="editPassword" aria-label="Toggle password visibility">
-              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C5 20 1 12 1 12c1.7-3.21 4.57-5.75 8.27-6.9"></path>
-                <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
+              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
             </button>
             <div class="error-message" id="editPasswordError"></div>
+            <div class="password-helper-text" id="editPasswordHelper">
+              Must be 8+ chars, 1 uppercase, and 1 number.
+            </div>
           </div>
 
           <div class="floating field">
@@ -193,7 +190,6 @@
     </div>
   </div>
 
-  <!-- Add Modal (NO PAYMENT METHOD) -->
   <div id="addModal" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-topbar"></div>
@@ -210,13 +206,12 @@
             <input id="addPassword" name="password" type="password" class="password-input" placeholder=" " required />
             <label class="floating-label" for="addPassword">Password</label>
             <button type="button" class="password-toggle" data-target="addPassword" aria-label="Toggle password visibility">
-              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C5 20 1 12 1 12c1.7-3.21 4.57-5.75 8.27-6.9"></path>
-                <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
+              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
             </button>
             <div class="error-message" id="addPasswordError"></div>
+            <div class="password-helper-text" id="addPasswordHelper">
+              Must be 8+ chars, 1 uppercase, and 1 number.
+            </div>
           </div>
 
           <div class="floating field">
@@ -240,7 +235,6 @@
     </div>
   </div>
 
-  <!-- Delete Modal -->
   <div id="deleteModal" class="modal-overlay">
     <div class="modal-box delete-modal-box">
       <div class="modal-topbar"></div>
@@ -257,7 +251,6 @@
     </div>
   </div>
 
-  <!-- Profile Modal -->
   <div id="viewReceiptModal" class="modal-overlay">
     <div class="modal-box profile-modal-box">
       <div class="modal-topbar" style="background-color: #1b3c53;"></div>
@@ -274,6 +267,23 @@
       </div>
     </div>
   </div>
+
+  <div id="viewPaymentReceiptModal" class="modal-overlay">
+    <div class="modal-box receipt-modal-box" style="width: 480px;">
+      <div class="modal-topbar" style="background-color: #1b3c53;"></div>
+      <div class="modal-body receipt-modal-body">
+        <div id="paymentReceiptContent" class="receipt-content-area">
+          <p style="text-align: center; padding: 40px; color: #888;">Loading receipt...</p>
+        </div>
+      </div>
+      <div class="modal-bottombar">
+        <div class="modal-actions">
+          <button id="closePaymentReceiptBtn" class="btn cancel" type="button">CLOSE</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   <script src="SuperAdmin-User.js"></script>
 </body>

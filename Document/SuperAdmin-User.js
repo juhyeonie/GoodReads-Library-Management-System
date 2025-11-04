@@ -91,7 +91,7 @@ console.log('SuperAdmin-User.js loaded (Fixed Version)');
     const viewRegisteredDate = document.getElementById('viewRegisteredDate');
     const viewPlan = document.getElementById('viewPlan');
     const viewPayment = document.getElementById('viewPayment');
-    const viewInvoiceBtn = document.getElementById('viewInvoiceBtn');
+    const viewReceiptBtn = document.getElementById('viewReceiptBtn'); // <-- UPDATED ID
     const closeViewBtn = document.getElementById('closeViewBtn');
     let currentViewAccountId = null;
 
@@ -100,6 +100,7 @@ console.log('SuperAdmin-User.js loaded (Fixed Version)');
     const editForm = document.getElementById('editForm');
     const editEmail = document.getElementById('editEmail');
     const editPassword = document.getElementById('editPassword');
+    const editPasswordHelper = document.getElementById('editPasswordHelper'); // <-- NEW
     const editPlan = document.getElementById('editPlan');
     const editUserIdInput = document.getElementById('editReceipt');
     const confirmEdit = document.getElementById('confirmEdit');
@@ -110,6 +111,7 @@ console.log('SuperAdmin-User.js loaded (Fixed Version)');
     const addForm = document.getElementById('addForm');
     const addEmail = document.getElementById('addEmail');
     const addPassword = document.getElementById('addPassword');
+    const addPasswordHelper = document.getElementById('addPasswordHelper'); // <-- NEW
     const addPlan = document.getElementById('addPlan');
     const confirmAdd = document.getElementById('confirmAdd');
     const cancelAdd = document.getElementById('cancelAdd');
@@ -125,6 +127,11 @@ console.log('SuperAdmin-User.js loaded (Fixed Version)');
     const viewProfileModal = document.getElementById('viewReceiptModal'); 
     const profileContent = document.getElementById('receiptContent');     
     const closeProfileBtn = document.getElementById('closeReceiptBtn');    
+    
+    // NEW: Payment Receipt Modal Elements
+    const viewPaymentReceiptModal = document.getElementById('viewPaymentReceiptModal');
+    const paymentReceiptContent = document.getElementById('paymentReceiptContent');
+    const closePaymentReceiptBtn = document.getElementById('closePaymentReceiptBtn');
 
     // --- Utility Functions ---
     function escapeHtml(str) {
@@ -151,6 +158,20 @@ console.log('SuperAdmin-User.js loaded (Fixed Version)');
                 year: 'numeric', month: 'long', day: 'numeric',
                 hour: '2-digit', minute: '2-digit', hour12: true
             }).replace(',', '');
+        } catch (e) {
+            return dateString;
+        }
+    }
+    
+    // --- NEW: Format Date for Receipt (Date only) ---
+    function formatReceiptDate(dateString) {
+        if (!dateString) return 'N/A';
+        try {
+            const date = new Date(dateString.replace(' ', 'T'));
+            if (isNaN(date)) return dateString;
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
         } catch (e) {
             return dateString;
         }
@@ -196,6 +217,35 @@ console.log('SuperAdmin-User.js loaded (Fixed Version)');
     }
 
     initPasswordToggles();
+
+    // --- NEW: Password Helper Logic ---
+    function initPasswordHelpers() {
+        if (addPassword && addPasswordHelper) {
+            addPassword.addEventListener('focus', () => {
+                // Only show helper if no error is currently shown
+                if (!document.getElementById('addPasswordError').classList.contains('show')) {
+                    addPasswordHelper.style.display = 'block';
+                }
+            });
+            addPassword.addEventListener('blur', () => {
+                addPasswordHelper.style.display = 'none';
+            });
+        }
+
+        if (editPassword && editPasswordHelper) {
+            editPassword.addEventListener('focus', () => {
+                // Only show helper if no error is currently shown
+                if (!document.getElementById('editPasswordError').classList.contains('show')) {
+                    editPasswordHelper.style.display = 'block';
+                }
+            });
+            editPassword.addEventListener('blur', () => {
+                editPasswordHelper.style.display = 'none';
+            });
+        }
+    }
+    initPasswordHelpers(); // Call the new function
+
 
     // --- Floating Label Logic ---
     function initFloatingSelects(scope=document) {
@@ -294,6 +344,11 @@ console.log('SuperAdmin-User.js loaded (Fixed Version)');
             el.textContent = ''; 
             el.classList.remove('show'); 
         });
+
+        // --- NEW: Also hide helpers ---
+        if (addPasswordHelper) addPasswordHelper.style.display = 'none';
+        if (editPasswordHelper) editPasswordHelper.style.display = 'none';
+        // --- End NEW ---
     }
 
     function showError(fieldId, message) {
@@ -304,6 +359,15 @@ console.log('SuperAdmin-User.js loaded (Fixed Version)');
             errorDiv.textContent = message; 
             errorDiv.classList.add('show'); 
         }
+
+        // --- NEW: Hide helper text when error is shown ---
+        if (fieldId === 'addPassword' && addPasswordHelper) {
+            addPasswordHelper.style.display = 'none';
+        }
+        if (fieldId === 'editPassword' && editPasswordHelper) {
+            editPasswordHelper.style.display = 'none';
+        }
+        // --- End NEW ---
     }
 
     function displayServerErrors(errors, prefix) {
@@ -323,6 +387,21 @@ console.log('SuperAdmin-User.js loaded (Fixed Version)');
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); 
     }
 
+    // --- NEW: Password Validation Utility ---
+    function validatePassword(password) {
+        if (password.length < 8) {
+            return { valid: false, message: 'Password must be at least 8 characters.' };
+        }
+        if (!/[A-Z]/.test(password)) {
+            return { valid: false, message: 'Must contain one uppercase letter.' };
+        }
+        if (!/\d/.test(password)) {
+            return { valid: false, message: 'Must contain one number.' };
+        }
+        return { valid: true, message: '' };
+    }
+
+    // --- UPDATED: Form Validation ---
     function validateForm(email, password, plan, isEdit = false) {
         let isValid = true;
         const prefix = isEdit ? 'edit' : 'add';
@@ -332,13 +411,33 @@ console.log('SuperAdmin-User.js loaded (Fixed Version)');
             showError(prefix + 'Email', 'Invalid email'); 
             isValid = false; 
         }
-        if (!isEdit && !password) { 
-            showError(prefix + 'Password', 'Password required'); 
-            isValid = false; 
-        } else if (password && password.length < 6) { 
-            showError(prefix + 'Password', 'Password >= 6 chars'); 
-            isValid = false; 
+
+        // --- Password Validation Logic ---
+        if (isEdit) {
+            // In EDIT mode, password is optional. 
+            // But IF a password is provided, it MUST be valid.
+            if (password && password.length > 0) {
+                const passValidation = validatePassword(password);
+                if (!passValidation.valid) {
+                    showError(prefix + 'Password', passValidation.message);
+                    isValid = false;
+                }
+            }
+        } else {
+            // In ADD mode, password is required AND must be valid.
+            if (!password) {
+                showError(prefix + 'Password', 'Password required'); 
+                isValid = false;
+            } else {
+                const passValidation = validatePassword(password);
+                if (!passValidation.valid) {
+                    showError(prefix + 'Password', passValidation.message);
+                    isValid = false;
+                }
+            }
         }
+        // --- End Password Validation ---
+
         if (!plan) { 
             showError(prefix + 'Plan', 'Plan required'); 
             isValid = false; 
@@ -346,6 +445,7 @@ console.log('SuperAdmin-User.js loaded (Fixed Version)');
         
         return isValid;
     }
+
 
     // --- View Customer Details ---
     function openViewModal(userId) {
@@ -369,10 +469,12 @@ console.log('SuperAdmin-User.js loaded (Fixed Version)');
         });
     }
 
-    if (viewInvoiceBtn) {
-        viewInvoiceBtn.addEventListener('click', () => {
+    // --- UPDATED: Listener for the new "View Receipt" button ---
+    if (viewReceiptBtn) {
+        viewReceiptBtn.addEventListener('click', () => {
             if (currentViewAccountId) {
-                openProfileModal(currentViewAccountId);
+                // Calls the NEW function
+                openPaymentReceiptModal(currentViewAccountId);
             }
         });
     }
@@ -615,6 +717,82 @@ console.log('SuperAdmin-User.js loaded (Fixed Version)');
             if (e.target === viewProfileModal) hideModal(viewProfileModal); 
         }); 
     }
+    
+    // --- NEW: Payment Receipt View ---
+    async function openPaymentReceiptModal(accountId) {
+        if (!viewPaymentReceiptModal || !paymentReceiptContent) {
+            console.error("Payment receipt modal elements not found.");
+            return;
+        }
+
+        paymentReceiptContent.innerHTML = `<p style="text-align: center; padding: 40px; color: #888;">Loading receipt...</p>`;
+        showModal(viewPaymentReceiptModal);
+
+        try {
+            const response = await fetch(`Backend/fetch_receipt.php?accountId=${accountId}`);
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to load receipt.');
+            }
+
+            const r = data.receipt;
+            
+            // Re-format dates using the receipt-specific function
+            const formattedDateTime = formatReceiptDate(r.dateTime);
+            const formattedStartDate = formatReceiptDate(r.startDate);
+            const formattedExpiryDate = formatReceiptDate(r.expiryDate);
+
+            // Build receipt HTML based on Paymentreceipt.html format
+            paymentReceiptContent.innerHTML = `
+                <hr class="top-line">
+                <h2>SUBSCRIPTION RECEIPT</h2>
+                <hr class="divider">
+                <div class="section">
+                  <p><span>Receipt no</span> ${escapeHtml(r.receiptNo)}</p>
+                  <p><span>Date & Time</span> ${escapeHtml(formattedDateTime)}</p>
+                  <p><span>Email</span> ${escapeHtml(r.email)}</p>
+                </div>
+                <hr class="divider">
+                <div class="section">
+                  <p><span>Subscription Plan</span> ${escapeHtml(r.planName)}</p>
+                  <p><span>Plan Duration</span> ${escapeHtml(r.planDuration)}</p>
+                  <p><span>Start Date</span> ${escapeHtml(formattedStartDate)}</p>
+                  <p><span>Expiry Date</span> ${escapeHtml(formattedExpiryDate)}</p>
+                </div>
+                <hr class="divider">
+                <div class="section">
+                  <p><span>Amount Paid</span> ${escapeHtml(r.amountPaid)}</p>
+                  <p><span>Payment Method</span> ${escapeHtml(r.paymentMethod)}</p>
+                  <p><span>Payment Status</span> ${escapeHtml(r.paymentStatus)}</p>
+                </div>
+                <hr class="divider">
+                <p class="note">
+                  This receipt serves as proof of subscription.
+                </p>
+                <hr class="bottom-line">
+                <p class="footer-note">
+                  * This is a system-generated receipt.
+                </p>
+            `;
+
+        } catch (err) {
+            console.error("View Receipt Error:", err);
+            paymentReceiptContent.innerHTML = `<p style="text-align: center; padding: 40px; color: red;">Error: ${err.message}</p>`;
+        }
+    }
+
+    // NEW: Close listener for Payment Receipt Modal
+    if (closePaymentReceiptBtn) {
+        closePaymentReceiptBtn.addEventListener('click', () => hideModal(viewPaymentReceiptModal));
+    }
+    
+    // NEW: Overlay click listener for Payment Receipt Modal
+    if (viewPaymentReceiptModal) {
+        viewPaymentReceiptModal.addEventListener('click', (e) => {
+            if (e.target === viewPaymentReceiptModal) hideModal(viewPaymentReceiptModal);
+        });
+    }
 
     // --- Table Action Listeners ---
     tbody.addEventListener('click', (e) => {
@@ -625,7 +803,8 @@ console.log('SuperAdmin-User.js loaded (Fixed Version)');
         
         if (btn.classList.contains('edit')) openEditModal(userId);
         else if (btn.classList.contains('delete')) showDeleteModal(userId, user?.Email);
-        else if (btn.classList.contains('view')) openViewModal(userId);
+        // --- UPDATED: 'view' button now opens detailed profile modal ---
+        else if (btn.classList.contains('view')) openProfileModal(userId); 
     });
 
     // --- Search & Filter ---
@@ -643,6 +822,7 @@ console.log('SuperAdmin-User.js loaded (Fixed Version)');
             if (addModal?.classList.contains('show')) hideModal(addModal);
             if (deleteModal?.classList.contains('show')) hideDeleteModal();
             if (viewProfileModal?.classList.contains('show')) hideModal(viewProfileModal);
+            if (viewPaymentReceiptModal?.classList.contains('show')) hideModal(viewPaymentReceiptModal); // <-- NEW
             if (viewModal?.classList.contains('show')) {
                 hideModal(viewModal);
                 currentViewAccountId = null;
