@@ -5,7 +5,40 @@
   <title>GoodReads | Sign-in</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="SignIn.css">
-</head>
+
+  <script>
+    // This 'pageshow' event runs on initial load AND when using the 'Back' button.
+    window.addEventListener('pageshow', function(event) {
+      const userRole = sessionStorage.getItem('user_role');
+
+      // If a user role EXISTS, they are already logged in.
+      // Redirect them away from the sign-in page.
+      if (userRole) {
+        console.log('User already logged in. Redirecting from sign-in page...');
+        
+        switch(userRole) {
+          case 'superadmin':
+            window.location.replace('SuperAdmin-Dashboard.html');
+            break;
+          case 'useradmin':
+            window.location.replace('UserAdmin-Dashboard.html');
+            break;
+          case 'subsadmin':
+            window.location.replace('SubsAdmin-Dashboard.html');
+            break;
+          case 'user':
+          case 'customer':
+            window.location.replace('homepage.html');
+            break;
+          default:
+            // Safe default if role is weird, but they are logged in
+            window.location.replace('homepage.html');
+        }
+      }
+      // If no userRole, do nothing and let the sign-in page load.
+    });
+  </script>
+  </head>
 <body>
 
   <header class="header">
@@ -14,7 +47,6 @@
     </div>
   </header>
 
-  <!-- BACK BUTTON BELOW HEADER -->
   <div class="back-container">
     <button class="back-btn" onclick="history.back()">← Back</button>
   </div>
@@ -24,7 +56,6 @@
       <h1>Sign in</h1>
 
       <form id="signinForm" novalidate autocomplete="off">
-        <!-- Hidden fake fields to trick browser autofill -->
         <input type="text" name="fake-email" style="position:absolute;top:-9999px;" tabindex="-1" autocomplete="off">
         <input type="password" name="fake-password" style="position:absolute;top:-9999px;" tabindex="-1" autocomplete="off">
         
