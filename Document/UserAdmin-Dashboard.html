@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GoodReads | Dashboard</title>
   <link rel="stylesheet" href="UserAdmin-Dashboard.css" />
+
+  <script>
+    // This 'pageshow' event runs on initial load AND when using the 'Back' button.
+    window.addEventListener('pageshow', function(event) {
+      const userRole = sessionStorage.getItem('user_role');
+      
+      // Check if the user is not logged in or is not a useradmin
+      if (!userRole || userRole !== 'useradmin') {
+        sessionStorage.clear(); // Clear the session
+        alert('You do not have permission or your session has expired. Please log in.');
+        // Use replace() to prevent this page from being in the browser history
+        window.location.replace('StartPage.html');
+      }
+    });
+  </script>
 </head>
 <body>
 
@@ -40,8 +55,7 @@
       <div class="sidebar-bottom">
         <div class="user">
           <p class="username">User Admin1</p>
-          <a href="#" class="logout-icon" title="Logout">
-            <img src="logout.png" alt="Logout" /></a>
+          <a href="StartPage.html" class="logout-icon" title="Logout"> <img src="logout.png" alt="Logout" /></a>
         </div>
       </div>
     </aside>

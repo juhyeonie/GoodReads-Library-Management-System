@@ -157,12 +157,22 @@
 
 })();
 
-// Logout: redirect to sign in
-document.querySelectorAll('.logout-icon').forEach(el => {
-  el.addEventListener('click', (ev) => {
-    ev.preventDefault();
-    localStorage.removeItem('sidebar_collapsed');
-    sessionStorage.clear();
-    window.location.href = 'StartPage.html';
-  });
-});
+// --- ADDED: LOGOUT SCRIPT (Standardized) ---
+(function() {
+    // Find the logout link (same class used in all your HTML files)
+    const logoutButton = document.querySelector('.logout-icon');
+    
+    if (logoutButton) {
+        logoutButton.addEventListener('click', (e) => {
+            e.preventDefault(); // Stop the link from navigating immediately
+            
+            // Clear the session "Hall Pass"
+            sessionStorage.removeItem('user_role');
+            sessionStorage.clear(); // Clears everything just in case
+            
+            // Go to the login page
+            window.location.href = 'StartPage.html';
+        });
+    }
+})();
+// --- END OF LOGOUT SCRIPT ---
