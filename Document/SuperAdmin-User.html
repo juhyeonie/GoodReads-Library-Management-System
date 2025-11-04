@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GoodReads | Customer Management</title>
-  <!-- ======= Styles (original styles preserved and extended for floating labels & view layout) ======= -->
   <link rel="stylesheet" href="SuperAdmin-User.css" />
 </head>
 <body>
@@ -149,17 +148,10 @@
       <div class="modal-body">
         <h2 class="modal-title">Edit user details</h2>
         <form id="editForm" class="user-form">
-<<<<<<< HEAD
           <div class="field">
              <label class="field-label">Email</label>
             <span id="editEmailDisplay" class="uneditable-text-display"></span>
             <input id="editEmail" name="email" type="hidden" /> 
-=======
-
-          <div class="floating field">
-            <input id="editEmail" name="email" type="email" placeholder=" " />
-            <label class="floating-label" for="editEmail">Email</label>
->>>>>>> b145637f981ee697f94ca474e82d261f790433d6
             <div class="error-message" id="editEmailError"></div>
           </div>
 
@@ -167,9 +159,7 @@
             <input id="editPassword" name="password" type="password" class="password-input" placeholder=" " />
             <label class="floating-label" for="editPassword">Password (leave blank to keep current)</label>
             <button type="button" class="password-toggle" data-target="editPassword" aria-label="Toggle password visibility">
-
               <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
                 <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C5 20 1 12 1 12c1.7-3.21 4.57-5.75 8.27-6.9"></path>
                 <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path>
                 <line x1="1" y1="1" x2="23" y2="23"></line>
@@ -187,18 +177,6 @@
             </select>
             <label class="floating-label" for="editPlan">Subscription Plan</label>
             <div class="error-message" id="editPlanError"></div>
-          </div>
-
-          <div class="floating field">
-            <select id="editPayment" name="payment">
-              <option value=""></option>
-              <option value="Credit Card">Credit Card</option>
-              <option value="Gcash">GCash</option>
-              <option value="Maya">Maya</option>
-              <option value="Paypal">PayPal</option>
-            </select>
-            <label class="floating-label" for="editPayment">Payment Method</label>
-            <div class="error-message" id="editPaymentError"></div>
           </div>
 
           <input type="hidden" id="editReceipt" name="receipt">
@@ -249,18 +227,7 @@
             <div class="error-message" id="addPlanError"></div>
           </div>
 
-          <div class="floating field">
-            <select id="addPayment" name="payment">
-              <option value=""></option>
-              <option value="Credit Card">Credit Card</option>
-              <option value="Gcash">GCash</option>
-              <option value="Maya">Maya</option>
-              <option value="Paypal">PayPal</option>
-            </select>
-            <label class="floating-label" for="addPayment">Payment Method</label>
-            <div class="error-message" id="addPaymentError"></div>
-          </div>
-        </form>
+          </form>
       </div>
       <div class="modal-bottombar">
         <div class="modal-actions">
@@ -302,11 +269,6 @@
       </div>
     </div>
   </div>
-<<<<<<< HEAD
   <script src="SuperAdmin-User.js"></script>
-=======
-
-<script src="SuperAdmin-User.js"></script>
->>>>>>> b145637f981ee697f94ca474e82d261f790433d6
 </body>
 </html>
