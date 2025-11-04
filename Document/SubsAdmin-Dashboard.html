@@ -5,7 +5,21 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GoodReads | Subscription Admin Dashboard</title>
   <link rel="stylesheet" href="SubsAdmin-Dashboard.css" />
-</head>
+
+  <script>
+    // This 'pageshow' event runs on initial load AND when using the 'Back' button.
+    // This is the complete fix for the back-forward cache issue.
+    window.addEventListener('pageshow', function(event) {
+      const userRole = sessionStorage.getItem('user_role');
+      
+      if (!userRole || userRole !== 'subsadmin') {
+        sessionStorage.clear();
+        alert('You do not have permission or your session has expired. Please log in.');
+        window.location.replace('StartPage.html');
+      }
+    });
+  </script>
+  </head>
 <body>
 
   <button id="menuToggle" class="menu-toggle" aria-label="Toggle menu">☰</button>

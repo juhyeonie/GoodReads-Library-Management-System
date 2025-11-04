@@ -172,3 +172,22 @@
   loadDashboardData();
   
 })();
+
+// --- ADDED: LOGOUT SCRIPT ---
+(function() {
+    const logoutButton = document.querySelector('.logout-icon');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', (e) => {
+            e.preventDefault(); // Stop the link from navigating
+            
+            // Clear the session "Hall Pass"
+            sessionStorage.removeItem('user_role');
+            sessionStorage.removeItem('user_plan');
+            sessionStorage.clear(); // Clears everything
+            
+            // Go to the login page
+            window.location.href = 'StartPage.html';
+        });
+    }
+})();
+// --- END OF LOGOUT SCRIPT ---

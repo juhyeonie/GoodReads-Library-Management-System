@@ -8,50 +8,46 @@
 </head>
 <body>
   <nav class="reader-top">
-    <div class="left">
-      <button id="btnToc" title="Table of Contents">TOC</button>
-      <button id="btnPrev" title="Prev (←)">←</button>
-      <button id="btnNext" title="Next (→)">→</button>
-      <span id="pageIndicator">0 / 0</span>
+    <div class="reader-group left">
+      <button id="btnToc" title="Table of Contents">☰ TOC</button>
+      <button id="btnPrev" title="Previous Page">←</button>
+      <button id="btnNext" title="Next Page">→</button>
+      <span id="pageIndicator" class="page-indicator">0 / 0</span>
     </div>
 
-    <div class="center">
-      <input id="pageNumber" type="number" min="1" style="width:72px" />
-      <button id="btnGo">Go</button>
+    <div class="reader-group center">
+      <input id="pageNumber" type="number" min="1" class="page-input" placeholder="Page #" />
+      <button id="btnGo" class="btn-small">Go</button>
 
-      <select id="modeSelect" title="Reading mode">
+      <select id="modeSelect" title="Reading mode" class="mode-select">
         <option value="scroll">Continuous Scroll</option>
         <option value="paginated">Paginated</option>
       </select>
 
-      <button id="btnZoomOut" title="Zoom -">-</button>
-      <button id="btnZoomIn" title="Zoom +">+</button>
-      <button id="btnFit" title="Fit to width">Fit</button>
+      <button id="btnZoomOut" title="Zoom Out">−</button>
+      <button id="btnZoomIn" title="Zoom In">+</button>
+      <button id="btnFit" title="Fit to Width">Fit</button>
     </div>
 
-    <div class="right">
-      <input id="searchInput" placeholder="Search (Ctrl/Cmd+F)" />
-      <button id="btnSearch">Search</button>
-      <button id="btnHighlight" title="Highlight selection">Annot</button>
-      <button id="btnBookmark" title="Bookmark page">🔖</button>
+    <div class="reader-group right">
+      <input id="searchInput" placeholder="Search..." class="search-input" />
+      <button id="btnSearch" title="Search">🔍</button>
       <button id="btnFullscreen" title="Fullscreen (F)">⛶</button>
-      <button id="btnClose" title="Close Reader">Close</button>
+      <button id="btnClose" title="Close Reader" class="btn-close">✖</button>
     </div>
   </nav>
 
-  <aside id="tocPanel" class="hidden">
-    <h3>Table of contents</h3>
+  <aside id="tocPanel" class="toc-panel hidden">
+    <h3>Table of Contents</h3>
     <ul id="tocList"></ul>
   </aside>
 
-  <main id="viewerContainer" class="scroll-mode">
+  <main id="viewerContainer" class="viewer-container scroll-mode">
     <div id="viewer" class="viewer"></div>
   </main>
 
-  <!-- Search results -->
   <div id="searchResults" class="search-results hidden"></div>
 
-  <!-- LOAD reader as module (BookReader.js will import pdf.mjs) -->
   <script type="module" src="BookReader.js"></script>
 </body>
 </html>

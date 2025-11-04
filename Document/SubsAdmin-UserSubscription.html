@@ -5,7 +5,18 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GoodReads | Customer Subscription</title>
   <link rel="stylesheet" href="SubsAdmin-UserSubscription.css" />
-</head>
+
+  <script>
+    window.addEventListener('pageshow', function(event) {
+      const userRole = sessionStorage.getItem('user_role');
+      if (!userRole || userRole !== 'subsadmin') {
+        sessionStorage.clear();
+        alert('You do not have permission or your session has expired. Please log in.');
+        window.location.replace('StartPage.html');
+      }
+    });
+  </script>
+  </head>
 <body>
 
   <button id="menuToggle" class="menu-toggle" aria-label="Toggle menu">☰</button>
@@ -16,7 +27,7 @@
       <div class="sidebar-top">
         <div class="logo">
           <img src="logo.png" alt="GoodReads Logo" class="logo-img" />
-          <img src="logopic.png" alt="GoodReads" class="logo-pic" />
+          <img src="logopic.png" alt="GoodReads" class_=("logo-pic") />
         </div>
 
         <button id="collapseBtn" class="collapse-btn">☰</button>
@@ -110,18 +121,6 @@
             </select>
             <label class="floating-label" for="editPlan">Subscription Plan</label>
             <div class="error-message" id="editPlanError"></div>
-          </div>
-
-          <div class="floating field">
-            <select id="editPayment" name="payment">
-              <option value=""></option>
-              <option value="Credit Card">Credit Card</option>
-              <option value="Gcash">GCash</option>
-              <option value="Maya">Maya</option>
-              <option value="Paypal">PayPal</option>
-            </select>
-            <label class="floating-label" for="editPayment">Payment Method</label>
-            <div class="error-message" id="editPaymentError"></div>
           </div>
 
           <input type="hidden" id="editUserId" name="id" />

@@ -89,6 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const storageKey = getStorageKey(plan); 
       sessionStorage.setItem('user_plan', storageKey); // Stores 'basic', 'standardplan', etc.
       console.log('📘 User plan stored:', storageKey); 
+
+      // --- THIS IS THE NEW LINE YOU MUST ADD ---
+      sessionStorage.setItem('user_role', role); // Stores 'superadmin', 'useradmin', etc.
+      // ----------------------------------------
       
       // Clear previous plan expiration flags
       sessionStorage.removeItem('is_plan_expired');

@@ -1,3 +1,6 @@
+// --- SESSION CHECK (GATEKEEPER) SCRIPT REMOVED FROM HERE ---
+// (It is now in the HTML <head>)
+
 console.log('SubsAdmin-UserSubscription.js loaded');
 
     /* ---------- Sidebar (unchanged logic) ---------- */
@@ -58,7 +61,7 @@ console.log('SubsAdmin-UserSubscription.js loaded');
       const editForm = document.getElementById('editForm');
       const editEmail = document.getElementById('editEmail');
       const editPlan = document.getElementById('editPlan');
-      const editPayment = document.getElementById('editPayment');
+      // const editPayment = document.getElementById('editPayment'); // <-- REMOVED
       const editUserId = document.getElementById('editUserId');
       const confirmEdit = document.getElementById('confirmEdit');
       const cancelEdit = document.getElementById('cancelEdit');
@@ -82,12 +85,17 @@ console.log('SubsAdmin-UserSubscription.js loaded');
       }
 
       function formatPlan(p){ return p || 'N/A'; }
-      function formatPayment(m){ return m || 'N/A'; }
+
+      // MODIFIED: This function now formats 'admingiven'
+      function formatPayment(m){
+        if (!m) return 'N/A';
+        if (m.toLowerCase() === 'admingiven') return 'Admin Given';
+        return m;
+      }
 
       function showModal(modal){ if(!modal) return; modal.classList.add('show'); modal.style.display = 'flex'; document.body.classList.add('no-scroll'); modal.setAttribute('aria-hidden','false'); }
       function hideModal(modal){ if(!modal) return; modal.classList.remove('show'); modal.style.display = ''; document.body.classList.remove('no-scroll'); modal.setAttribute('aria-hidden','true'); }
 
-      // Date formatting function (from SuperAdmin)
       function formatDate(dateString) {
           if (!dateString) return 'N/A';
           try {
@@ -102,7 +110,6 @@ console.log('SubsAdmin-UserSubscription.js loaded');
           }
       }
       
-      // Receipt Date formatting function (from SuperAdmin)
       function formatReceiptDate(dateString) {
           if (!dateString) return 'N/A';
           try {
@@ -116,16 +123,28 @@ console.log('SubsAdmin-UserSubscription.js loaded');
           }
       }
 
-      /* Floating selects: ensure label floats if select has value */
+      // MODIFIED: This function now handles select tags
       function initFloatingSelects(scope=document){
-        scope.querySelectorAll('select, input').forEach(s => {
-          if(s.value && s.value !== '') s.classList.add('has-value'); 
-          else s.classList.remove('has-value');
-          
-          s.addEventListener('change', function(){ 
-            if(this.value && this.value !== '') this.classList.add('has-value'); 
-            else this.classList.remove('has-value'); 
-          });
+        scope.querySelectorAll('select').forEach(s => { // Only selects
+          function updateValue() {
+            if(s.value && s.value !== '') s.classList.add('has-value'); 
+            else s.classList.remove('has-value');
+          }
+          s.addEventListener('change', updateValue);
+          updateValue();
+        });
+      }
+      
+      // ADDED: This function handles text inputs (for the email field)
+      function initFloatingTextInputs(scope=document) {
+        scope.querySelectorAll('input[type="email"], input[type="text"]').forEach(inp => { // Only text/email inputs
+            function update() {
+                if (!inp) return;
+                if (inp.value && inp.value !== '') inp.classList.add('has-val'); 
+                else inp.classList.remove('has-val');
+            }
+            inp.addEventListener('input', update);
+            update(); // Run on init
         });
       }
       
@@ -190,10 +209,11 @@ console.log('SubsAdmin-UserSubscription.js loaded');
         editUserId.value = user.AccountID;
         editEmail.value = user.Email || '';
         editPlan.value = user.Plan || '';
-        editPayment.value = user.Payment_Method || '';
+        // editPayment.value = user.Payment_Method || ''; // <-- REMOVED
         
-        // Manually trigger floating label check for pre-filled fields
+        // Manually trigger floating label checks
         initFloatingSelects(editForm);
+        initFloatingTextInputs(editForm); // <-- ADDED
         
         showModal(editModal);
       }
@@ -202,25 +222,19 @@ console.log('SubsAdmin-UserSubscription.js loaded');
         e.preventDefault();
         const accountId = editUserId.value;
         const plan = editPlan.value;
-        const payment = editPayment.value;
+        // const payment = editPayment.value; // <-- REMOVED
         const email = editEmail.value;
         
         clearErrors(editForm);
         let isValid = true;
         
-        // simple validation
         if(!plan) { 
             editPlan.classList.add('error'); 
             document.getElementById('editPlanError').textContent = 'Plan is required.';
             document.getElementById('editPlanError').classList.add('show');
             isValid = false;
         }
-        if(!payment) { 
-            editPayment.classList.add('error'); 
-            document.getElementById('editPaymentError').textContent = 'Payment method is required.';
-            document.getElementById('editPaymentError').classList.add('show');
-            isValid = false;
-        }
+        // Validation for payment removed
         
         if (!isValid) return;
 
@@ -229,7 +243,8 @@ console.log('SubsAdmin-UserSubscription.js loaded');
           const resp = await fetch('Backend/subsadmin_user_update.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: accountId, email, plan, payment })
+            // MODIFIED: Removed 'payment' from the request body
+            body: JSON.stringify({ userId: accountId, email, plan })
           });
           const result = await resp.json();
           if(!result.success) {
@@ -253,7 +268,7 @@ console.log('SubsAdmin-UserSubscription.js loaded');
       cancelEdit.addEventListener('click', (e) => { e.preventDefault(); hideModal(editModal); });
       editModal.addEventListener('click', (e) => { if(e.target === editModal) hideModal(editModal); });
 
-      /* ---------- Profile Modal Logic (from SuperAdmin) ---------- */
+      /* ---------- Profile Modal Logic (unchanged) ---------- */
       async function openProfileModal(accountId) {
         if (!viewProfileModal || !profileContent) {
             console.error("Profile modal elements not found in HTML.");
@@ -262,7 +277,7 @@ console.log('SubsAdmin-UserSubscription.js loaded');
 
         profileContent.innerHTML = `<p style="text-align: center; padding: 40px; color: #888;">Loading profile...</p>`;
         showModal(viewProfileModal);
-        currentViewAccountId = accountId; // Store ID for "View Receipt" button
+        currentViewAccountId = accountId; 
 
         try {
             const response = await fetch(`Backend/account_details.php?id=${accountId}`); 
@@ -312,7 +327,6 @@ console.log('SubsAdmin-UserSubscription.js loaded');
       if (closeProfileBtn) { closeProfileBtn.addEventListener('click', () => { hideModal(viewProfileModal); currentViewAccountId = null; }); }
       if (viewProfileModal) { viewProfileModal.addEventListener('click', (e) => { if (e.target === viewProfileModal) { hideModal(viewProfileModal); currentViewAccountId = null; } }); }
       
-      // Listener for the new button INSIDE the profile modal
       if (viewReceiptBtn) {
           viewReceiptBtn.addEventListener('click', () => {
               if (currentViewAccountId) {
@@ -321,7 +335,7 @@ console.log('SubsAdmin-UserSubscription.js loaded');
           });
       }
 
-      /* ---------- Payment Receipt Modal Logic (from SuperAdmin) ---------- */
+      /* ---------- Payment Receipt Modal Logic (unchanged) ---------- */
       async function openPaymentReceiptModal(accountId) {
         if (!viewPaymentReceiptModal || !paymentReceiptContent) {
             console.error("Payment receipt modal elements not found.");
@@ -395,7 +409,7 @@ console.log('SubsAdmin-UserSubscription.js loaded');
         if(btn.classList.contains('edit-btn')) {
             openEditModal(id);
         } else if(btn.classList.contains('view-btn')) {
-            openProfileModal(id); // CHANGED to open profile modal
+            openProfileModal(id);
         }
       });
 
@@ -416,9 +430,30 @@ console.log('SubsAdmin-UserSubscription.js loaded');
       /* ---------- Init ---------- */
       document.addEventListener('DOMContentLoaded', () => {
         initFloatingSelects(document);
+        // We call this here too, in case of future non-modal inputs
+        initFloatingTextInputs(document); 
       });
 
       // initial fetch
       loadUsers();
 
     })();
+
+// --- LOGOUT SCRIPT ---
+(function() {
+    const logoutButton = document.querySelector('.logout-icon');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', (e) => {
+            e.preventDefault(); // Stop the link from navigating
+            
+            // Clear the session "Hall Pass"
+            sessionStorage.removeItem('user_role');
+            sessionStorage.removeItem('user_plan');
+            sessionStorage.clear(); // Clears everything
+            
+            // Go to the login page
+            window.location.href = 'StartPage.html';
+        });
+    }
+})();
+// --- END OF LOGOUT SCRIPT ---
