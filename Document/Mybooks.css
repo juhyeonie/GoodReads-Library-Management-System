@@ -39,45 +39,6 @@ body {
     width: 200px;
 }
 
-<<<<<<< HEAD
-/* nav icons container */
-.nav-icons {
-    display: flex;
-    gap: 16px;
-}
-
-/* use anchors so generated feather svg stroke can follow currentColor */
-.nav-icons a {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  text-decoration: none;
-  font-size: 24px;
-  padding: 8px;
-  border-radius: 8px;
-  transition: transform 0.22s ease, background-color 0.22s ease, color 0.22s ease;
-  outline: none;
-}
-
-/* ensure the generated svg stroke follows the anchor color */
-.nav-icons a svg,
-.nav-icons a svg * {
-  stroke: currentColor !important;
-  fill: none !important;
-  transition: stroke 0.22s ease, transform 0.22s ease;
-}
-
-/* hover / focus */
-.nav-icons a:hover,
-.nav-icons a:focus-visible {
-  background-color: rgba(255,255,255,0.12);
-  color: #ffcc00;
-  transform: translateY(-2px) scale(1.04);
-}
-
-=======
 .nav-icons a {
   position: relative;
   display: inline-flex;
@@ -108,7 +69,6 @@ body {
   transform: translateY(-2px) scale(1.04);
 }
 
->>>>>>> 9bd483745f0477b3c45226064971bdb7a9679a0b
 /* active page indicator */
 .nav-icons a.active {
   background-color: rgba(255,255,255,0.14);
@@ -140,13 +100,10 @@ body {
   color: #ff6b6b;
   background-color: rgba(255,107,107,0.08);
 }
-<<<<<<< HEAD
-=======
 
 
 
 
->>>>>>> 9bd483745f0477b3c45226064971bdb7a9679a0b
 
 /* --- MAIN CONTENT --- */
 main {
