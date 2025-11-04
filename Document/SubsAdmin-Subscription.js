@@ -1,16 +1,3 @@
-// --- SESSION CHECK (GATEKEEPER) ---
-(function() {
-  const userRole = sessionStorage.getItem('user_role');
-  const expectedRole = 'subsadmin'; // <-- MODIFIED
-  
-  if (!userRole || userRole !== expectedRole) {
-      sessionStorage.clear();
-      alert('You do not have permission to view this page or your session has expired. Please log in.');
-      window.location.replace('StartPage.html');
-  }
-})();
-// --- END OF SESSION CHECK ---
-
 console.log('SubsAdmin-Subscription.js loaded');
 
 // Sidebar behavior
