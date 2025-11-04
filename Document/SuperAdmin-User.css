@@ -266,3 +266,14 @@ body.no-scroll { overflow: hidden; }
     cursor: default;
     user-select: none; 
 }
+
+/* --- ADDED: Styles for Profile Modal --- */
+.profile-modal-box {
+    width: 500px; /* Or your preferred width */
+}
+.profile-modal-body {
+    padding: 30px;
+}
+.profile-content-area {
+    padding: 0 10px;
+}

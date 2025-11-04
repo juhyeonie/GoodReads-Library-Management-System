@@ -445,7 +445,6 @@ console.log('SuperAdmin-User.js loaded (UI-updated)');
         const plan = addPlan.value;
         
         // MODIFIED: Implement payment logic
-        // const payment = addPayment.value; // Removed
         const payment_method = (plan === 'Basic Plan') ? 'Free' : 'AdminGiven';
 
         // MODIFIED: Validation call no longer includes payment
