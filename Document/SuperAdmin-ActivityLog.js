@@ -124,7 +124,11 @@
       return `
         <tr>
           <td class="activity-timestamp">${escapeHtml(formatTimestamp24Hour(log.Timestamp || log.timestamp || log.time))}</td>
-          <td class="activity-admin">${escapeHtml(log.AdminName || log.admin || 'System')}</td>
+<td class="activity-admin">
+  ${escapeHtml(log.AdminName || log.admin || 'System')}
+  ${log.Role || log.role ? `<span class="admin-badge ${escapeHtml((log.Role || log.role).toLowerCase())}">${escapeHtml(log.Role || log.role)}</span>` : ''}
+</td>
+
           <td>${escapeHtml(log.Description || log.description || '')}</td>
         </tr>`;
     }).join('');

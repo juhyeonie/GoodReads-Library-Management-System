@@ -394,6 +394,22 @@
   .plan-badge.expired { background: #fdecea; color: #dc3545; }
   .plan-badge.cancelled { background: #f1f3f5; color: #6c757d; }
 
+  .payment-badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.payment-badge.gcash { background: #e6f7f1; color: #2d25c3; }
+.payment-badge.maya { background: #e6f0ff; color: #20993f; }
+.payment-badge.creditcard { background: #fff1e6; color: #da761e; }
+.payment-badge.paypal { background: #f3e6ff; color: #8e44ad; }
+.payment-badge.admingiven { background: #f3e6ff; color: #ba2e2e; }
+
+
   /* ===== Modal overlay / box ===== */
   .modal-overlay {
     position: fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(10,14,18,0.6); z-index:10000; padding:28px;

@@ -109,8 +109,33 @@
       tr.innerHTML = `
         <td>${escapeHtml(u.AccountID)}</td>
         <td>${escapeHtml(u.Email)}</td>
-        <td><span class="plan-badge ${escapeHtml(u.Plan.toLowerCase().replace(' ','-'))}">${escapeHtml(formatPlan(u.Plan))}</span></td>
-        <td>${escapeHtml(formatPaymentMethod(u.Payment_Method))}</td>
+        <td>
+  <span class="plan-badge ${
+    escapeHtml(
+      u.Plan
+        ?.toLowerCase()
+        .replace(/\bplan\b/g, '')      // remove the word "plan"
+        .replace(/[_\s-]+/g, '')       // remove spaces, underscores, hyphens
+        .trim()
+    )
+  }">
+    ${escapeHtml(formatPlan(u.Plan))}
+  </span>
+</td>
+
+<td>
+  <span class="payment-badge ${
+    escapeHtml(
+      (u.Payment_Method || '')
+        .toLowerCase()
+        .replace(/\s+/g, '')
+        .replace(/[^a-z]/g, '')
+        .trim()
+    )
+  }">
+    ${escapeHtml(formatPaymentMethod(u.Payment_Method))}
+  </span>
+</td>
         <td style="text-align:right">${escapeHtml(formatDate(u.SubsStarted))}</td>
       `;
       tbody.appendChild(tr);
@@ -145,8 +170,6 @@
   // initial load
   loadCustomersFromServer();
 
-  /* ======= ALL MODAL LOGIC (EDIT, ADD, DELETE) AND LISTENERS REMOVED ======= */
-
   // Listen for updates dispatched by UserAdmin-User.js
   window.addEventListener('customers-updated', () => {
     loadCustomersFromServer();
@@ -175,4 +198,3 @@
         });
     }
 })();
-// --- END OF LOGOUT SCRIPT ---

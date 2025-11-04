@@ -189,16 +189,30 @@ console.log('SuperAdmin-Admin.js loaded');
         rows.forEach(u => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-              <td>${escapeHtml(u.AccountID)}</td>
-              <td>${escapeHtml(u.Email)}</td>
-              <td>${escapeHtml(formatRole(u.Role))}</td>
-              <td>
-                <div class="actions">
-                  <button class="pill edit" data-id="${escapeHtml(u.AccountID)}">Edit</button>
-                  <button class="pill delete" data-id="${escapeHtml(u.AccountID)}">Delete</button>
-                </div>
-              </td>
-            `;
+  <td>${escapeHtml(u.AccountID)}</td>
+  <td>${escapeHtml(u.Email)}</td>
+  <td>
+  <span class="role-badge ${
+    escapeHtml(
+      (u.Role || '')
+        .toLowerCase()
+        .replace(/\b(role|admin)\b/g, '')  // remove the words "role"/"admin" if repeated
+        .replace(/[^a-z]/g, '')            // remove symbols and spaces
+        .trim()
+    )
+  }">
+    ${escapeHtml(formatRole(u.Role))}
+  </span>
+</td>
+
+  <td>
+    <div class="actions">
+      <button class="pill edit" data-id="${escapeHtml(u.AccountID)}">Edit</button>
+      <button class="pill delete" data-id="${escapeHtml(u.AccountID)}">Delete</button>
+    </div>
+  </td>
+`;
+
             tbody.appendChild(tr);
         });
      }

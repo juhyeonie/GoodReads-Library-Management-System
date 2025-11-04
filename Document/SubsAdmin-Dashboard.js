@@ -111,32 +111,56 @@
       }
   }
 
-  function renderTable() {
-    if (!tbody) {
-        console.error("Critical Error: tbody '#subsTable tbody' not found!");
-        return;
-    }
 
-    tbody.innerHTML = '';
-    // The 'users' array is now the 'recentUsers' from PHP,
-    // which is already filtered to Standard/Premium and limited to 10.
-    if (!users || users.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No recent paid subscriptions found.</td></tr>';
-      return;
-    }
-    
-    users.forEach(u => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${escapeHtml(u.AccountID)}</td>
-        <td>${escapeHtml(u.Email)}</td>
-        <td>${escapeHtml(formatPlan(u.Plan))}</td>
-        <td>${escapeHtml(formatPaymentMethod(u.Payment_Method))}</td>
-        <td style="text-align:right">${escapeHtml(formatDate(u.SubsStarted))}</td>
-      `;
-      tbody.appendChild(tr);
-    });
+
+  function renderTable() {
+  if (!tbody) {
+    console.error("Critical Error: tbody '#subsTable tbody' not found!");
+    return;
   }
+
+  tbody.innerHTML = '';
+
+  if (!users || users.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No recent paid subscriptions found.</td></tr>';
+    return;
+  }
+
+  users.forEach(u => {
+    // --- Normalize Plan ---
+    const planClass = (u.Plan || '')
+      .toLowerCase()
+      .replace(/\bplan\b/g, '')   // remove the word 'plan'
+      .replace(/[_\s-]+/g, '')    // remove spaces, underscores, hyphens
+      .trim();
+
+    // --- Normalize Payment Method ---
+    const payClass = (u.Payment_Method || '')
+      .toLowerCase()
+      .replace(/[_\s-]+/g, '')    // remove spaces, underscores, hyphens
+      .replace(/[^a-z]/g, '')     // letters only
+      .trim();
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(u.AccountID)}</td>
+      <td>${escapeHtml(u.Email)}</td>
+      <td>
+        <span class="plan-badge ${escapeHtml(planClass)}">
+          ${escapeHtml(formatPlan(u.Plan))}
+        </span>
+      </td>
+      <td>
+        <span class="payment-badge ${escapeHtml(payClass)}">
+          ${escapeHtml(formatPaymentMethod(u.Payment_Method))}
+        </span>
+      </td>
+      <td style="text-align:left">${escapeHtml(formatDate(u.SubsStarted))}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
   
   async function loadDashboardData() {
     try {

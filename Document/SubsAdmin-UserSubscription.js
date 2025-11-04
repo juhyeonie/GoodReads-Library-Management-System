@@ -188,8 +188,35 @@ console.log('SubsAdmin-UserSubscription.js loaded');
           tr.innerHTML = `
             <td>${escapeHtml(u.AccountID)}</td>
             <td>${escapeHtml(u.Email)}</td>
-            <td>${escapeHtml(formatPlan(u.Plan))}</td>
-            <td>${escapeHtml(formatPayment(u.Payment_Method))}</td>
+
+            <td>
+  <span class="plan-badge ${
+    escapeHtml(
+      u.Plan
+        ?.toLowerCase()
+        .replace(/\bplan\b/g, '')   
+        .replace(/[_\s-]+/g, '')   
+        .trim()
+    )
+  }">
+    ${escapeHtml(formatPlan(u.Plan))}
+  </span>
+</td>
+
+<td>
+  <span class="payment-badge ${
+    escapeHtml(
+      (u.Payment_Method || '')
+        .toLowerCase()
+        .replace(/\s+/g, '')
+        .replace(/[^a-z]/g, '')
+        .trim()
+    )
+  }">
+    ${escapeHtml(formatPayment(u.Payment_Method))}
+  </span>
+</td>
+
             <td style="text-align:right">
               <button class="action-btn view-btn" data-id="${escapeHtml(u.AccountID)}">View Profile</button>
               <button class="action-btn edit-btn" data-id="${escapeHtml(u.AccountID)}">Edit</button>

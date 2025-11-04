@@ -296,8 +296,35 @@ console.log('SuperAdmin-User.js loaded (Fixed Version)');
             tr.innerHTML = `
               <td>${escapeHtml(u.AccountID)}</td>
               <td>${escapeHtml(u.Email)}</td>
-              <td>${escapeHtml(formatPlan(u.Plan))}</td>
-              <td>${escapeHtml(formatPaymentMethod(u.Payment_Method))}</td>
+              <td>
+  <span class="plan-badge ${
+    escapeHtml(
+      u.Plan
+        ?.toLowerCase()
+        .replace(/\bplan\b/g, '')   
+        .replace(/[_\s-]+/g, '')   
+        .trim()
+    )
+  }">
+    ${escapeHtml(formatPlan(u.Plan))}
+  </span>
+</td>
+
+<td>
+  <span class="payment-badge ${
+    escapeHtml(
+      (u.Payment_Method || '')
+        .toLowerCase()
+        .replace(/\s+/g, '')
+        .replace(/[^a-z]/g, '')
+        .trim()
+    )
+  }">
+    ${escapeHtml(formatPaymentMethod(u.Payment_Method))}
+  </span>
+</td>
+
+
               <td>
                 <div class="actions">
                   <button class="pill view" data-id="${escapeHtml(u.AccountID)}">View Profile</button>
