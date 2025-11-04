@@ -382,3 +382,23 @@ console.log('SuperAdmin-Admin.js loaded');
     loadUsers();
 
 })();
+
+// --- ADDED: LOGOUT SCRIPT ---
+(function() {
+    // Find the logout link (same class used in all your HTML files)
+    const logoutButton = document.querySelector('.logout-icon');
+    
+    if (logoutButton) {
+        logoutButton.addEventListener('click', (e) => {
+            e.preventDefault(); // Stop the link from navigating immediately
+            
+            // Clear the session "Hall Pass"
+            sessionStorage.removeItem('user_role');
+            sessionStorage.clear(); // Clears everything just in case
+            
+            // Go to the login page
+            window.location.href = 'StartPage.html';
+        });
+    }
+})();
+// --- END OF LOGOUT SCRIPT ---

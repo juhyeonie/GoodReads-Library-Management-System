@@ -156,15 +156,19 @@
   }
 
   function applyFilters() {
-    const adminFilter = (document.getElementById('filterAdmin')?.value || '').trim();
+    // --- MODIFIED: Corrected selector ---
+    const adminFilter = (document.getElementById('filterSelect')?.value || 'all');
     const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
 
     filteredLogs = allLogs.filter(log => {
+      // --- MODIFIED: Standardized property access ---
       const adminName = (log.AdminName || log.admin || '').toString();
       const desc = (log.Description || log.description || '').toString();
       const ts = formatTimestamp24Hour(log.Timestamp || log.timestamp || log.time).toLowerCase();
-
-      const matchesAdmin = !adminFilter || adminName === adminFilter;
+      
+      // --- MODIFIED: Uses correct admin role name (e.g., 'SubsAdmin') ---
+      const matchesAdmin = (adminFilter === 'all') || (adminName === adminFilter);
+      
       const matchesSearch = !searchTerm ||
         adminName.toLowerCase().includes(searchTerm) ||
         desc.toLowerCase().includes(searchTerm) ||
@@ -177,15 +181,17 @@
     renderTable();
   }
 
+
   async function loadActivityLogs() {
     try {
       const resp = await fetch('Backend/activity_log.php', {cache: 'no-store'});
       const json = await resp.json();
       if (!resp.ok || !json.success) throw new Error(json.message || 'Failed to fetch');
       allLogs = json.logs || [];
-      filteredLogs = [...allLogs];
+      // --- MODIFIED: Apply filters right after loading ---
+      applyFilters(); 
       updateStats();
-      renderTable();
+      // renderTable(); // This is now called inside applyFilters()
     } catch (err) {
       console.error('Failed to load activity logs', err);
       document.getElementById('activityTableBody').innerHTML = `
@@ -199,19 +205,51 @@
   }
 
   /* Event wiring */
-  document.getElementById('filterAdmin')?.addEventListener('change', applyFilters);
-  document.getElementById('applyFilterBtn')?.addEventListener('click', (e)=>{ e.preventDefault(); applyFilters(); });
+  // --- MODIFIED: Corrected selector and event ---
+  document.getElementById('filterSelect')?.addEventListener('change', applyFilters);
+  
+  // --- MODIFIED: Added search button listener ---
+  const searchBtn = document.querySelector('.search-btn');
+  if (searchBtn) {
+    searchBtn.addEventListener('click', (e)=>{ e.preventDefault(); applyFilters(); });
+  }
 
-  document.getElementById('searchBtn')?.addEventListener('click', (e)=>{ e.preventDefault(); applyFilters(); });
   document.getElementById('searchInput')?.addEventListener('keydown', (ev)=>{ if(ev.key==='Enter'){ ev.preventDefault(); applyFilters(); } });
-  document.getElementById('searchInput')?.addEventListener('input', ()=>{ applyFilters(); });
+  
+  // --- MODIFIED: Changed input to trigger applyFilters ---
+  let searchTimeout;
+  document.getElementById('searchInput')?.addEventListener('input', ()=>{ 
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(applyFilters, 300); // Debounce search
+  });
 
-  document.getElementById('refreshBtn')?.addEventListener('click', (e)=>{ e.preventDefault(); loadActivityLogs(); });
+  // (refreshBtn is not in the HTML, but this won't break anything)
+  document.getElementById('refreshBtn')?.addEventListener('click', (e)=>{ e.preventDefault(); loadActivityLogs(); }); 
 
   document.getElementById('prevBtn')?.addEventListener('click', ()=>{ if(currentPage>1){ currentPage--; renderTable(); }});
   document.getElementById('nextBtn')?.addEventListener('click', ()=>{ const totalPages = Math.ceil(filteredLogs.length/itemsPerPage); if(currentPage<totalPages){ currentPage++; renderTable(); }});
 
   /* initial */
   loadActivityLogs();
-  setInterval(loadActivityLogs, 60000);
+  setInterval(loadActivityLogs, 60000); // Auto-refresh every 60 seconds
 })();
+
+// --- ADDED: LOGOUT SCRIPT ---
+(function() {
+    // Find the logout link (same class used in all your HTML files)
+    const logoutButton = document.querySelector('.logout-icon');
+    
+    if (logoutButton) {
+        logoutButton.addEventListener('click', (e) => {
+            e.preventDefault(); // Stop the link from navigating immediately
+            
+            // Clear the session "Hall Pass"
+            sessionStorage.removeItem('user_role');
+            sessionStorage.clear(); // Clears everything just in case
+            
+            // Go to the login page
+            window.location.href = 'StartPage.html';
+        });
+    }
+})();
+// --- END OF LOGOUT SCRIPT ---
