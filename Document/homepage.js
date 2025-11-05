@@ -164,7 +164,7 @@ const books = [
 ];
 
 
-// ====== DOM Elements ======
+// ====== DOM Elements & grids mapping ======
 const grids = {
   recommendationGrid: "Book Recommendation",
   educationalGrid: "Educational",
@@ -175,36 +175,55 @@ const grids = {
 const modal = document.getElementById("bookPreviewModal");
 const closeModal = document.getElementById("closeModal");
 const addBookBtn = document.getElementById("addBookBtn");
+const viewBookBtn = document.getElementById("viewBookBtn");
 const warningModal = document.getElementById("warningModal");
 const warningMessage = document.getElementById("warningMessage");
 const warningTitle = warningModal.querySelector('h2'); 
 const closeWarning = document.getElementById("closeWarning");
 const okBtn = document.getElementById("warningOkBtn");
 
+// Inject like/dislike UI into preview modal (we style minimally inline to avoid requiring CSS edits).
+(function injectLikeDislikeUI() {
+  const modalContent = document.querySelector('#bookPreviewModal .modal-content');
+  if (!modalContent) return;
+  const container = document.createElement('div');
+  container.className = 'like-dislike-container';
+  container.style.display = 'flex';
+  container.style.gap = '8px';
+  container.style.alignItems = 'center';
+  container.style.marginTop = '10px';
+  container.innerHTML = `
+    <button id="likeBtn" class="like-btn" title="Like" style="padding:8px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;"><span id="likeCount">0</span> 👍</button>
+    <button id="dislikeBtn" class="dislike-btn" title="Dislike" style="padding:8px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;"><span id="dislikeCount">0</span> 👎</button>
+  `;
+  const confirmation = modalContent.querySelector('.confirmation-text');
+  if (confirmation) modalContent.insertBefore(container, confirmation);
+  else modalContent.appendChild(container);
+})();
+const likeBtn = document.getElementById('likeBtn');
+const dislikeBtn = document.getElementById('dislikeBtn');
+const likeCountEl = document.getElementById('likeCount');
+const dislikeCountEl = document.getElementById('dislikeCount');
+
 let selectedBook = null;
 
-// ====== 🧠 PLAN VALIDATION AND INITIALIZATION ======
-// Prioritize sessionStorage as it's set by SignIn.js on successful login
+// ====== PLAN LOGIC ======
 let userPlan = sessionStorage.getItem("user_plan") || localStorage.getItem("user_plan");
-
 if (!userPlan || userPlan === 'null') {
-  // If not signed in or session expired, redirect to sign-in
   if (window.location.pathname.split('/').pop() === 'homepage.html') {
     console.warn("User plan not found. Redirecting to sign-in.");
     window.location.href = 'SignIn.html';
   }
-  userPlan = "Basic"; // Fallback to Basic for development/testing environment
+  userPlan = "Basic";
 }
-
-// Process the userPlan to a clean key (e.g., "basic plan" -> "basic")
-userPlan = userPlan.trim().toLowerCase().replace(/\s/g, ''); 
+userPlan = userPlan.trim().toLowerCase().replace(/\s/g, '');
 console.log("📘 Current plan:", userPlan.toUpperCase());
 
-// --- FIX APPLIED HERE: Basic Plan now correctly includes "novel" ---
+// Allowed genres mapping
+// BASIC now only has "novel"
 const allowedGenres = {
-  // NOTE: Based on your Step 1 HTML, Basic allows "Novel" (limited)
-  basic: ["educational", "novel"], 
-  standardplan: ["educational", "novel", "graphic novel", "book recommendation"], // Grant full access to Standard/Premium
+  basic: ["novel"],
+  standardplan: ["educational", "novel", "graphic novel", "book recommendation"],
   premiumplan: ["educational", "novel", "graphic novel", "book recommendation"],
   standard: ["educational", "novel", "graphic novel", "book recommendation"],
   premium: ["educational", "novel", "graphic novel", "book recommendation"]
@@ -212,48 +231,51 @@ const allowedGenres = {
 
 function requiredPlan(genre) {
   const g = genre.toLowerCase();
-  // If a category is listed in Basic, but the access is limited (like the 30-page restriction), 
-  // we still allow it but the restriction should be enforced in the read view.
-  if (g === "educational") return "Basic";
-  if (g === "novel" || g === "book recommendation") return "Standard";
+  if (g === "educational") return "Standard";
+  if (g === "novel") return "Basic";
+  if (g === "book recommendation") return "Standard";
   if (g === "graphic novel") return "Premium";
   return "Premium";
 }
 
-/**
- * Checks for and displays the subscription expiration warning on page load.
- */
-function checkSubscriptionExpiration() {
-    const isExpired = sessionStorage.getItem('is_plan_expired');
-    const originalPlan = sessionStorage.getItem('original_plan');
-
-    if (isExpired === 'true' && originalPlan) {
-        // Clear the flags immediately so the modal doesn't show on subsequent visits
-        sessionStorage.removeItem('is_plan_expired');
-        sessionStorage.removeItem('original_plan');
-
-        // Update the modal content for the expiration message
-        warningTitle.textContent = "Subscription Expired";
-        warningMessage.innerHTML = `Your **${originalPlan}** plan has expired. Your account has been automatically adjusted to the **Basic** plan, and you will have limited access to features.`;
-        
-        // Ensure OK button closes the modal
-        const close = () => (warningModal.style.display = "none");
-        closeWarning.onclick = close;
-        okBtn.onclick = close;
-        window.onclick = e => {
-            if (e.target === warningModal) close();
-        };
-
-        // Show the modal
-        warningModal.style.display = "block";
-    }
+// ----------------- Like / Dislike persistence -----------------
+function likesKeyFor(book) {
+  return `gr_likes::${book.title}::${book.pdfUrl || ''}`;
+}
+function dislikesKeyFor(book) {
+  return `gr_dislikes::${book.title}::${book.pdfUrl || ''}`;
+}
+function getLikes(book) {
+  return parseInt(localStorage.getItem(likesKeyFor(book)) || '0', 10);
+}
+function getDislikes(book) {
+  return parseInt(localStorage.getItem(dislikesKeyFor(book)) || '0', 10);
+}
+function setLikes(book, n) {
+  localStorage.setItem(likesKeyFor(book), String(n));
+}
+function setDislikes(book, n) {
+  localStorage.setItem(dislikesKeyFor(book), String(n));
 }
 
+// Helper to show warning modal
+function showWarning(title, message) {
+  warningTitle.textContent = title;
+  warningMessage.textContent = message;
+  warningModal.style.display = "block";
+  const close = () => (warningModal.style.display = "none");
+  closeWarning.onclick = close;
+  okBtn.onclick = close;
+  window.onclick = e => {
+    if (e.target === warningModal) close();
+  };
+}
 
-// ====== Render Books ======
+// ----------------- UI: Render books -----------------
 function loadBooks() {
   Object.entries(grids).forEach(([gridId, category]) => {
     const grid = document.getElementById(gridId);
+    if (!grid) return;
     grid.innerHTML = "";
     books
       .filter(book => book.genre === category)
@@ -264,9 +286,7 @@ function loadBooks() {
         const coverUrl = book.cover || 'https://placehold.co/150x225/A5B4FC/3730A3?text=No+Cover'; 
         card.innerHTML = `<img src="${coverUrl}" alt="${book.title}" onerror="this.onerror=null;this.src='https://placehold.co/150x225/A5B4FC/3730A3?text=No+Cover'">`;
 
-
         const genre = book.genre.toLowerCase();
-        // Check if the current plan (e.g., 'basic') is listed in the allowedGenres for this book's genre
         const isAllowed = allowedGenres[userPlan]?.includes(genre);
 
         if (!isAllowed) {
@@ -277,23 +297,14 @@ function loadBooks() {
 
           card.addEventListener("click", () => {
              const required = requiredPlan(book.genre);
-             warningTitle.textContent = "Access Restricted";
-             // NOTE: Updated the warning message to reflect the Basic Plan's limitation based on the Step 1 description
-             if (userPlan === 'basic' && genre === 'novel') {
-                 warningMessage.textContent = `"${book.title}" is restricted due to the page/time limits on your current Basic plan. Upgrade to Standard or Premium to unlock full access!`;
+             if (userPlan === 'basic') {
+               showWarning("Access Restricted", `"${book.title}" is not accessible on the Basic plan. Upgrade to ${required} to access this genre.`);
              } else {
-                 warningMessage.textContent = `"${book.title}" is not available in your current plan (${userPlan.toUpperCase()}). Upgrade to ${required} to unlock this genre!`;
+               showWarning("Access Restricted", `"${book.title}" is not available on your plan. Upgrade to ${required} to access this genre.`);
              }
-             warningModal.style.display = "block";
-
-            const close = () => (warningModal.style.display = "none");
-            closeWarning.onclick = close;
-            okBtn.onclick = close;
-            window.onclick = e => {
-                if (e.target === warningModal) close();
-            };
-        });
+          });
         } else {
+          card.style.cursor = "pointer";
           card.addEventListener("click", () => openPreview(book));
         }
 
@@ -302,31 +313,103 @@ function loadBooks() {
   });
 }
 
-// ====== Modal Logic (Unchanged) ======
+// ----------------- Preview modal logic -----------------
 function openPreview(book) {
   selectedBook = book;
   document.getElementById("previewCover").src = book.cover || '';
   document.getElementById("previewTitle").textContent = book.title || '';
-  // NEW: set author
   const authorEl = document.getElementById("previewAuthor");
   if (authorEl) authorEl.textContent = book.author ? `By ${book.author}` : '';
   document.getElementById("previewGenre").textContent = book.genre || '';
   document.getElementById("previewDescription").textContent = book.description || '';
+
   document.getElementById("viewBookBtn").href = `BookReader.html?pdf=${encodeURIComponent(book.pdfUrl)}`;
+
+  // Update like/dislike UI
+  updateLikeDislikeUI(book);
+
+  // For Basic users: since Basic can only view Novels, there should be no preview for blocked genres — homepage prevents it.
   modal.style.display = "block";
 }
 
+function updateLikeDislikeUI(book) {
+  if (!book) return;
+  const likes = getLikes(book);
+  const dislikes = getDislikes(book);
+  if (likeCountEl) likeCountEl.textContent = likes;
+  if (dislikeCountEl) dislikeCountEl.textContent = dislikes;
 
-closeModal.addEventListener("click", () => {
-  modal.style.display = "none";
+  // Enable buttons only for premium. For standard, show but disabled (and show warning on click).
+  const isPremium = (userPlan === 'premium' || userPlan === 'premiumplan');
+  const isStandard = (userPlan === 'standard' || userPlan === 'standardplan');
+
+  if (likeBtn) {
+    likeBtn.disabled = !isPremium;
+    likeBtn.style.opacity = isPremium ? '1' : '0.5';
+    likeBtn.style.cursor = isPremium ? 'pointer' : 'not-allowed';
+  }
+  if (dislikeBtn) {
+    dislikeBtn.disabled = !isPremium;
+    dislikeBtn.style.opacity = isPremium ? '1' : '0.5';
+    dislikeBtn.style.cursor = isPremium ? 'pointer' : 'not-allowed';
+  }
+
+  // If a Standard user clicks, show upgrade message (we attach handlers below)
+}
+
+if (likeBtn) {
+  likeBtn.addEventListener('click', () => {
+    if (!selectedBook) return;
+    const isPremium = (userPlan === 'premium' || userPlan === 'premiumplan');
+    if (!isPremium) {
+      showWarning("Feature Locked", "Like is available for Premium users only. Upgrade to Premium to like books.");
+      return;
+    }
+    const prev = getLikes(selectedBook);
+    setLikes(selectedBook, prev + 1);
+    updateLikeDislikeUI(selectedBook);
+  });
+}
+
+if (dislikeBtn) {
+  dislikeBtn.addEventListener('click', () => {
+    if (!selectedBook) return;
+    const isPremium = (userPlan === 'premium' || userPlan === 'premiumplan');
+    if (!isPremium) {
+      showWarning("Feature Locked", "Dislike is available for Premium users only. Upgrade to Premium to dislike books.");
+      return;
+    }
+    const prev = getDislikes(selectedBook);
+    setDislikes(selectedBook, prev + 1);
+    updateLikeDislikeUI(selectedBook);
+  });
+}
+
+// View book button behavior
+viewBookBtn.addEventListener('click', (e) => {
+  if (!selectedBook) return;
+  const genre = (selectedBook.genre || '').toLowerCase();
+  const isAllowed = allowedGenres[userPlan]?.includes(genre);
+  if (!isAllowed) {
+    // prevent navigation if not allowed (shouldn't happen because homepage blocks), but guard anyway
+    e.preventDefault();
+    showWarning("Access Restricted", `Your plan cannot open this book. Upgrade to access it.`);
+    return;
+  }
+  // If Standard or Premium, they have unlimited time/pages and full access (reader will accept).
+  // If Basic and allowed (Novel), reader will enforce the 60min + 30-pages-per-day limit.
 });
 
+// Close preview modal
+closeModal.addEventListener("click", () => {
+  modal.style.display = "none";
+  selectedBook = null;
+});
 window.addEventListener("click", e => {
   if (e.target === modal) modal.style.display = "none";
 });
 
-// FIX: Replaced alert() with in-page notification (using warning modal)
-// --- My Books localStorage helpers ---
+// ---- My Books localStorage helpers (unchanged) ----
 function getMyBooks() {
   try {
     const json = localStorage.getItem('my_books');
@@ -350,7 +433,6 @@ function saveMyBooks(arr) {
 function isBookInMyBooks(book) {
   if (!book) return false;
   const list = getMyBooks();
-  // Use title + pdfUrl as unique key (adjust if you have ISBN or id)
   return list.some(b => b.title === book.title && (b.pdfUrl || '') === (book.pdfUrl || ''));
 }
 
@@ -358,64 +440,38 @@ function addBookToMyBooks(book) {
   if (!book) return false;
   const list = getMyBooks();
   if (isBookInMyBooks(book)) return false;
-  // store minimal required fields
- const toStore = {
-  title: book.title || 'Untitled',
-  author: book.author || 'Unknown',
-  cover: book.cover || '',
-  genre: book.genre || '',
-  description: book.description || '',
-  pdfUrl: book.pdfUrl || ''
-};
-  list.unshift(toStore); // add newest first
+  const toStore = {
+    title: book.title || 'Untitled',
+    author: book.author || 'Unknown',
+    cover: book.cover || '',
+    genre: book.genre || '',
+    description: book.description || '',
+    pdfUrl: book.pdfUrl || ''
+  };
+  list.unshift(toStore);
   saveMyBooks(list);
   return true;
 }
 
-// --- Replace the old addBookBtn listener with this updated one ---
+// Add book button in modal
 addBookBtn.addEventListener("click", () => {
   if (!selectedBook) return;
+  // Bookmark / Add to My Books: allowed for all plans in homepage (it's just a collection)
   const added = addBookToMyBooks(selectedBook);
 
   if (!added) {
-    // already in My Books
-    warningTitle.textContent = "Already Added";
-    warningMessage.textContent = `${selectedBook.title} is already in your My Books.`;
-    warningModal.style.display = "block";
+    showWarning("Already Added", `${selectedBook.title} is already in your My Books.`);
   } else {
-    // Successfully added
-    warningTitle.textContent = "Success!";
-    warningMessage.textContent = `${selectedBook.title} has been added to your My Books.`;
-    warningModal.style.display = "block";
-    
-    // update UI: close preview after a short delay
-    const close = () => (warningModal.style.display = "none");
-    closeWarning.onclick = close;
-    okBtn.onclick = close;
-    window.onclick = e => {
-      if (e.target === warningModal) close();
-    };
-
+    showWarning("Success!", `${selectedBook.title} has been added to your My Books.`);
     setTimeout(() => {
-      close();
+      warningModal.style.display = "none";
       modal.style.display = "none";
       selectedBook = null;
-    }, 1200);
+    }, 1100);
   }
 });
 
-
-
-const closeModalBtn = document.getElementById("closeModal");
-closeModalBtn.addEventListener("click", () => {
-  modal.style.display = "none";
-  selectedBook = null;
-});
-
-// ====== Initialize ======
-loadBooks();
-checkSubscriptionExpiration(); // Check for and show expiration message on load
-
+// Nav active mark
 (function markActiveNav() {
   const navLinks = document.querySelectorAll(".nav-icons a");
   const current = window.location.pathname.split("/").pop() || "homepage.html";
@@ -434,3 +490,19 @@ checkSubscriptionExpiration(); // Check for and show expiration message on load
 if (window.feather && typeof feather.replace === "function") {
   feather.replace();
 }
+
+// Initialize UI
+loadBooks();
+
+// subscription expiration checker left intact (optional)
+function checkSubscriptionExpiration() {
+    const isExpired = sessionStorage.getItem('is_plan_expired');
+    const originalPlan = sessionStorage.getItem('original_plan');
+
+    if (isExpired === 'true' && originalPlan) {
+        sessionStorage.removeItem('is_plan_expired');
+        sessionStorage.removeItem('original_plan');
+        showWarning("Subscription Expired", `Your ${originalPlan} plan has expired. Your account has been adjusted to Basic; you'll have limited access.`);
+    }
+}
+checkSubscriptionExpiration();

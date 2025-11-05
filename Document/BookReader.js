@@ -1,13 +1,27 @@
-// BookReader.js (ES module) - Merged version
+// BookReader.js (ES module)
+// Enforces plans:
+// - Basic: 60 min/day, 30 pages/day (across all books). Theme toggle disabled. Bookmarks disabled. Likes disabled.
+// - Standard: unlimited time/pages, can toggle theme (dark mode), likes/bookmarks disabled.
+// - Premium: full features including bookmarks + like/dislike.
 
 import * as pdfjsLib from './vendor/pdfjs/pdf.mjs';
 pdfjsLib.GlobalWorkerOptions.workerSrc = './vendor/pdfjs/pdf.worker.mjs';
 
 // ---------- CONFIG ----------
 const DEFAULT_SCALE = 1.2;
-const SCALE_STEP = 0.2;
+const BASIC_DAILY_SECONDS = 60 * 60; // 60 minutes
+const BASIC_DAILY_PAGE_LIMIT = 30;   // 30 pages per day across all books
 
-// Get PDF from query parameter
+// ---------- UTIL: read user plan ----------
+function getUserPlan() {
+  let plan = sessionStorage.getItem("user_plan") || localStorage.getItem("user_plan");
+  if (!plan || plan === 'null') plan = "Basic";
+  return plan.trim().toLowerCase().replace(/\s/g, '');
+}
+const userPlan = getUserPlan();
+console.log('Reader started — userPlan =', userPlan);
+
+// ---------- GET PDF QUERY ----------
 function getQueryParam(name) {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get(name);
@@ -34,7 +48,7 @@ const btnTheme = document.getElementById('btnTheme');
 const btnFont = document.getElementById('btnFont');
 const btnMode = document.getElementById('btnMode');
 const btnSearch = document.getElementById('btnSearch');
-const btnBookmark = document.getElementById('btnBookmark');
+let btnBookmark = document.getElementById('btnBookmark');
 const btnFullscreen = document.getElementById('btnFullscreen');
 const btnClose = document.getElementById('btnClose');
 const fontDropdown = document.getElementById('fontDropdown');
@@ -54,6 +68,29 @@ const scrollNextBtn = document.getElementById('scrollNextBtn');
 const pdfTitle = document.getElementById('pdfTitle');
 const pdfAuthor = document.getElementById('pdfAuthor');
 
+// small in-reader warning bar
+let readerWarningBar = document.getElementById('readerWarningBar');
+if (!readerWarningBar) {
+  readerWarningBar = document.createElement('div');
+  readerWarningBar.id = 'readerWarningBar';
+  readerWarningBar.style.position = 'fixed';
+  readerWarningBar.style.bottom = '16px';
+  readerWarningBar.style.left = '50%';
+  readerWarningBar.style.transform = 'translateX(-50%)';
+  readerWarningBar.style.background = 'rgba(0,0,0,0.75)';
+  readerWarningBar.style.color = '#fff';
+  readerWarningBar.style.padding = '10px 14px';
+  readerWarningBar.style.borderRadius = '8px';
+  readerWarningBar.style.zIndex = '9999';
+  readerWarningBar.style.display = 'none';
+  document.body.appendChild(readerWarningBar);
+}
+function showReaderWarning(text, ms = 4000) {
+  readerWarningBar.textContent = text;
+  readerWarningBar.style.display = 'block';
+  setTimeout(() => readerWarningBar.style.display = 'none', ms);
+}
+
 // ---------- STATE ----------
 let pdfDoc = null;
 let currentPage = 1;
@@ -70,30 +107,50 @@ let bookmarks = loadBookmarks();
 let outline = null;
 let textLayerActive = false;
 
-// Initialize theme
-body.classList.add(currentTheme + '-mode');
-if (currentTheme === 'dark') {
-  btnTheme.innerHTML = '<i data-feather="moon"></i>';
+// Reading time and pages viewed (per date, global across books)
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+}
+function readingTimeKey() { return `gr_readtime::${todayKey()}`; }         // seconds int
+function pagesViewedKey() { return `gr_pages_viewed::${todayKey()}`; }      // object mapping keys to true
+
+let readingSeconds = parseInt(localStorage.getItem(readingTimeKey()) || '0', 10) || 0;
+let pagesViewed = {}; // object with keys `${pdfUrl}::${pageNum}` true
+try {
+  pagesViewed = JSON.parse(localStorage.getItem(pagesViewedKey()) || '{}') || {};
+} catch(e) {
+  pagesViewed = {};
+}
+function pagesViewedCount() {
+  return Object.keys(pagesViewed).length;
+}
+function markPageViewed(pdf, pageNum) {
+  const k = `${pdf}::${pageNum}`;
+  if (!pagesViewed[k]) {
+    pagesViewed[k] = true;
+    localStorage.setItem(pagesViewedKey(), JSON.stringify(pagesViewed));
+    return true;
+  }
+  return false; // already counted
 }
 
-// Initialize mode
+// Initialize theme and mode classes
+body.classList.add(currentTheme + '-mode');
+if (currentTheme === 'dark') {
+  if (btnTheme) btnTheme.innerHTML = '<i data-feather="moon"></i>';
+}
 if (mode === 'paginated') {
   readingArea.classList.remove('scroll-mode');
   readingArea.classList.add('paginated-mode');
   modeToggleBtns.forEach(btn => {
-    if (btn.dataset.mode === 'paginated') {
-      btn.classList.add('active');
-    } else {
-      btn.classList.remove('active');
-    }
+    if (btn.dataset.mode === 'paginated') btn.classList.add('active');
+    else btn.classList.remove('active');
   });
 } else {
   modeToggleBtns.forEach(btn => {
-    if (btn.dataset.mode === 'scroll') {
-      btn.classList.add('active');
-    } else {
-      btn.classList.remove('active');
-    }
+    if (btn.dataset.mode === 'scroll') btn.classList.add('active');
+    else btn.classList.remove('active');
   });
 }
 
@@ -107,36 +164,65 @@ function saveState() {
 }
 
 function loadAnnotations() {
-  try {
-    return JSON.parse(localStorage.getItem(storageKeyPrefix + '::annotations') || '[]');
-  } catch(e) { return []; }
+  try { return JSON.parse(localStorage.getItem(storageKeyPrefix + '::annotations') || '[]'); } catch(e) { return []; }
 }
-
-function storeAnnotations() {
-  localStorage.setItem(storageKeyPrefix + '::annotations', JSON.stringify(annotations));
-}
-
+function storeAnnotations() { localStorage.setItem(storageKeyPrefix + '::annotations', JSON.stringify(annotations)); }
 function loadBookmarks() {
-  try {
-    return JSON.parse(localStorage.getItem(storageKeyPrefix + '::bookmarks') || '[]');
-  } catch(e) { return []; }
+  try { return JSON.parse(localStorage.getItem(storageKeyPrefix + '::bookmarks') || '[]'); } catch(e) { return []; }
 }
-
-function storeBookmarks() {
-  localStorage.setItem(storageKeyPrefix + '::bookmarks', JSON.stringify(bookmarks));
-}
-
+function storeBookmarks() { localStorage.setItem(storageKeyPrefix + '::bookmarks', JSON.stringify(bookmarks)); }
 function addBookmark(page) {
   if (!bookmarks.includes(page)) {
     bookmarks.push(page);
     storeBookmarks();
-    alert('Bookmarked page ' + page);
+    showReaderWarning('Bookmarked page ' + page, 2200);
   } else {
-    alert('Page ' + page + ' is already bookmarked');
+    showReaderWarning('Page ' + page + ' already bookmarked', 2200);
   }
 }
 
-// ---------- RENDERING ----------
+// Gate bookmark to premium
+function updateBookmarkAvailability() {
+  const isPremium = (userPlan === 'premium' || userPlan === 'premiumplan');
+  if (!btnBookmark) return;
+  if (!isPremium) {
+    btnBookmark.disabled = true;
+    btnBookmark.title = 'Bookmarks available for Premium only';
+    // show upgrade message when clicked
+    btnBookmark.addEventListener('click', (e) => {
+      e.preventDefault();
+      showReaderWarning('Bookmarks are available for Premium users only. Upgrade to Premium to enable this feature.', 4000);
+    }, { once: true });
+  } else {
+    // replace node to remove potential previous handlers
+    const newBtn = btnBookmark.cloneNode(true);
+    btnBookmark.parentNode.replaceChild(newBtn, btnBookmark);
+    btnBookmark = document.getElementById('btnBookmark');
+    btnBookmark.addEventListener('click', () => addBookmark(currentPage));
+  }
+}
+
+// Gate theme toggle: only Standard and Premium can toggle
+function updateThemeAvailability() {
+  const isStandardOrPremium = (userPlan === 'standard' || userPlan === 'standardplan' || userPlan === 'premium' || userPlan === 'premiumplan');
+  if (!btnTheme) return;
+  if (!isStandardOrPremium) {
+    // disable theme button
+    btnTheme.disabled = true;
+    btnTheme.title = 'Theme toggle is available for Standard and Premium users';
+    btnTheme.addEventListener('click', (e) => {
+      e.preventDefault();
+      showReaderWarning('Theme toggle is available for Standard and Premium users. Upgrade to change themes.', 3500);
+    }, { once: true });
+  } else {
+    // ensure the button performs theme switching (normal behavior)
+    btnTheme.disabled = false;
+    btnTheme.title = 'Toggle Theme';
+    // (handler defined later in UI events; but enable it)
+  }
+}
+
+// ---------- RENDER PAGE (same as before but we block new page renders when Basic daily pages exhausted) ----------
 function renderPage(pageNum, container, opts = {}) {
   const userScale = opts.scaleOverride || scale;
   const reuseWrap = opts.reuseWrap || null;
@@ -213,6 +299,17 @@ function renderPage(pageNum, container, opts = {}) {
 
         if (textLayerActive) textLayerDiv.classList.add('visible');
 
+        // Mark this page as viewed for Basic counting (only if Basic plan)
+        if (userPlan === 'basic') {
+          const newlyCounted = markPageViewed(pdfUrl, pageNum);
+          if (newlyCounted) {
+            // if we just incremented and we've reached the limit, show a message
+            if (pagesViewedCount() >= BASIC_DAILY_PAGE_LIMIT) {
+              showReaderWarning(`You've reached your ${BASIC_DAILY_PAGE_LIMIT} pages/day limit for Basic plan. Upgrade to continue reading.`, 6000);
+            }
+          }
+        }
+
         return wrap;
       });
     }).catch(err => {
@@ -235,7 +332,7 @@ function renderPage(pageNum, container, opts = {}) {
   return pdfDoc.getPage(pageNum).then(pdfPage => doRender(pdfPage, wrap));
 }
 
-// Intersection observer
+// Intersection observer lazy-render
 let pageObserver = null;
 function createObserver() {
   if (pageObserver) return;
@@ -246,12 +343,31 @@ function createObserver() {
   };
   pageObserver = new IntersectionObserver(onPageIntersect, options);
 }
-
 function onPageIntersect(entries) {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
       const wrap = entry.target;
       const pageNum = parseInt(wrap.dataset.pageNumber, 10);
+
+      // If Basic: check daily seconds and pages limit before rendering
+      if (userPlan === 'basic') {
+        if (readingSeconds >= BASIC_DAILY_SECONDS) {
+          wrap.innerHTML = `<div style="padding:40px;text-align:center;color:#666">Daily reading time limit reached (60 minutes). Upgrade to continue reading.</div>`;
+          wrap.classList.remove('placeholder');
+          if (pageObserver) pageObserver.unobserve(wrap);
+          return;
+        }
+        // if page would exceed daily page limit, block it
+        const alreadyViewedKey = `${pdfUrl}::${pageNum}`;
+        const alreadyViewed = !!pagesViewed[alreadyViewedKey];
+        if (!alreadyViewed && pagesViewedCount() >= BASIC_DAILY_PAGE_LIMIT) {
+          wrap.innerHTML = `<div style="padding:40px;text-align:center;color:#666">Daily page limit reached (${BASIC_DAILY_PAGE_LIMIT} pages). Upgrade to continue reading.</div>`;
+          wrap.classList.remove('placeholder');
+          if (pageObserver) pageObserver.unobserve(wrap);
+          return;
+        }
+      }
+
       if (!wrap.dataset.rendered) {
         renderPage(pageNum, viewer, { reuseWrap: wrap }).then(() => {
           if (pageObserver) pageObserver.unobserve(wrap);
@@ -290,21 +406,50 @@ function goToPage(n, smooth = true) {
   if (!pdfDoc) return;
   if (n < 1) n = 1;
   if (n > totalPages) n = totalPages;
+
+  // Basic checks: time + pages
+  if (userPlan === 'basic') {
+    if (readingSeconds >= BASIC_DAILY_SECONDS) {
+      showReaderWarning('Daily reading time limit reached (60 minutes). Upgrade to continue reading today.', 6000);
+      return;
+    }
+    const alreadyViewedKey = `${pdfUrl}::${n}`;
+    const alreadyViewed = !!pagesViewed[alreadyViewedKey];
+    if (!alreadyViewed && pagesViewedCount() >= BASIC_DAILY_PAGE_LIMIT) {
+      showReaderWarning(`Daily page limit reached (${BASIC_DAILY_PAGE_LIMIT} pages). Upgrade to continue reading.`, 6000);
+      return;
+    }
+  }
+
   currentPage = n;
   pageIndicator.textContent = `${currentPage} / ${totalPages}`;
   saveState();
-  
+
   if (mode === 'paginated') {
     renderSinglePage(currentPage);
   } else {
     const el = viewer.querySelector(`[data-page-number='${currentPage}']`);
     if (el) el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
   }
-  
+
   updateNavButtons();
 }
 
 function renderSinglePage(pageNum) {
+  // Basic checks
+  if (userPlan === 'basic') {
+    if (readingSeconds >= BASIC_DAILY_SECONDS) {
+      viewer.innerHTML = `<div style="padding:40px;text-align:center;color:#666">Daily reading time limit reached (60 minutes). Upgrade to continue reading.</div>`;
+      return;
+    }
+    const alreadyViewedKey = `${pdfUrl}::${pageNum}`;
+    const alreadyViewed = !!pagesViewed[alreadyViewedKey];
+    if (!alreadyViewed && pagesViewedCount() >= BASIC_DAILY_PAGE_LIMIT) {
+      viewer.innerHTML = `<div style="padding:40px;text-align:center;color:#666">Daily page limit reached (${BASIC_DAILY_PAGE_LIMIT} pages). Upgrade to continue reading.</div>`;
+      return;
+    }
+  }
+
   viewer.innerHTML = '';
   renderPage(pageNum, viewer).then(wrap => {
     viewer.appendChild(wrap);
@@ -313,33 +458,42 @@ function renderSinglePage(pageNum) {
 
 function updateNavButtons() {
   btnPrev.disabled = currentPage === 1;
-  btnNext.disabled = currentPage === totalPages;
+  // Next disabled if at end or basic and pages would be blocked
+  const atEnd = currentPage === totalPages;
+  if (userPlan === 'basic') {
+    const nextWouldBeBlocked = !(() => {
+      const nextKey = `${pdfUrl}::${currentPage + 1}`;
+      const alreadyViewed = !!pagesViewed[nextKey];
+      if (readingSeconds >= BASIC_DAILY_SECONDS) return false;
+      if (!alreadyViewed && pagesViewedCount() >= BASIC_DAILY_PAGE_LIMIT) return false;
+      return true;
+    })();
+    btnNext.disabled = atEnd || nextWouldBeBlocked;
+  } else {
+    btnNext.disabled = atEnd;
+  }
 }
 
-// ---------- SEARCH ----------
+// ---------- SEARCH (unchanged) ----------
 function searchAll(term) {
   if (!term) {
     searchResultsContainer.innerHTML = '<div class="no-results">Enter a search term</div>';
     return;
   }
-  
+
   const results = [];
   const q = term.toLowerCase();
-  
+
   for (let i = 0; i < pageTextContent.length; i++) {
     const t = (pageTextContent[i] || '').toLowerCase();
     if (t.includes(q)) {
       const idx = t.indexOf(q);
       const start = Math.max(0, idx - 40);
       const snippet = (pageTextContent[i] || '').substring(start, start + 160);
-      results.push({ 
-        page: i + 1, 
-        snippet: snippet.replace(/\n/g, ' '),
-        text: snippet
-      });
+      results.push({ page: i + 1, snippet: snippet.replace(/\n/g, ' '), text: snippet });
     }
   }
-  
+
   if (results.length === 0) {
     searchResultsContainer.innerHTML = '<div class="no-results">No results found</div>';
   } else {
@@ -349,7 +503,7 @@ function searchAll(term) {
         <div class="search-result-page">Page ${r.page}</div>
       </div>
     `).join('');
-    
+
     searchResultsContainer.querySelectorAll('.search-result-item').forEach(item => {
       item.addEventListener('click', () => {
         const page = parseInt(item.dataset.page, 10);
@@ -364,16 +518,10 @@ function highlightText(text, searchTerm) {
   const regex = new RegExp(`(${escapeRegex(searchTerm)})`, 'gi');
   return text.replace(regex, '<span class="highlight">$1</span>');
 }
+function escapeHtml(s) { return (s+'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot'}[c])); }
+function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
-function escapeHtml(s) { 
-  return (s+'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); 
-}
-
-function escapeRegex(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-// ---------- TOC ----------
+// ---------- TOC (unchanged) ----------
 function renderOutline() {
   tocList.innerHTML = '';
   if (!outline || outline.length === 0) {
@@ -426,8 +574,6 @@ function renderOutline() {
           });
           return;
         }
-
-        console.warn('TOC item has no destination:', it);
       });
 
       parentUl.appendChild(li);
@@ -457,8 +603,14 @@ btnToc.addEventListener('click', () => {
 btnPrev.addEventListener('click', () => goToPage(currentPage - 1));
 btnNext.addEventListener('click', () => goToPage(currentPage + 1));
 
-// Theme Toggle
+// Theme Toggle (only available for Standard & Premium; updateThemeAvailability() enforces)
 btnTheme.addEventListener('click', () => {
+  const allowed = (userPlan === 'standard' || userPlan === 'standardplan' || userPlan === 'premium' || userPlan === 'premiumplan');
+  if (!allowed) {
+    showReaderWarning('Theme toggle is available for Standard and Premium users. Upgrade to change themes.', 3500);
+    return;
+  }
+
   if (currentTheme === 'light') {
     currentTheme = 'dark';
     body.classList.remove('light-mode');
@@ -475,7 +627,7 @@ btnTheme.addEventListener('click', () => {
   closeAllDropdowns();
 });
 
-// Dropdown Management
+// Dropdown management
 function closeAllDropdowns() {
   fontDropdown.classList.remove('active');
   modeDropdown.classList.remove('active');
@@ -486,18 +638,14 @@ btnFont.addEventListener('click', (e) => {
   e.stopPropagation();
   const isOpen = fontDropdown.classList.contains('active');
   closeAllDropdowns();
-  if (!isOpen) {
-    fontDropdown.classList.add('active');
-  }
+  if (!isOpen) fontDropdown.classList.add('active');
 });
 
 btnMode.addEventListener('click', (e) => {
   e.stopPropagation();
   const isOpen = modeDropdown.classList.contains('active');
   closeAllDropdowns();
-  if (!isOpen) {
-    modeDropdown.classList.add('active');
-  }
+  if (!isOpen) modeDropdown.classList.add('active');
 });
 
 btnSearch.addEventListener('click', (e) => {
@@ -516,53 +664,39 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Font Size Control
+// Font size controls
 decreaseFont.addEventListener('click', () => {
   if (currentFontSize > 8) {
     currentFontSize -= 1;
     updateFontSize();
   }
 });
-
 increaseFont.addEventListener('click', () => {
   if (currentFontSize < 50) {
     currentFontSize += 1;
     updateFontSize();
   }
 });
-
 function updateFontSize() {
   viewer.style.fontSize = currentFontSize + 'px';
   fontSizeDisplay.textContent = currentFontSize + 'px';
   saveState();
-  
-  if (mode === 'scroll') {
-    setTimeout(() => rerenderVisible(), 100);
-  } else {
-    renderSinglePage(currentPage);
-  }
+  if (mode === 'scroll') setTimeout(() => rerenderVisible(), 100);
+  else renderSinglePage(currentPage);
 }
-
-// Font Family Control
 fontSelect.addEventListener('change', (e) => {
   viewer.style.fontFamily = e.target.value;
-  
-  if (mode === 'scroll') {
-    setTimeout(() => rerenderVisible(), 100);
-  } else {
-    renderSinglePage(currentPage);
-  }
+  if (mode === 'scroll') setTimeout(() => rerenderVisible(), 100);
+  else renderSinglePage(currentPage);
 });
 
-// Mode Toggle
+// Mode toggle
 modeToggleBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     const newMode = btn.dataset.mode;
     mode = newMode;
-    
     modeToggleBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    
     if (mode === 'scroll') {
       readingArea.classList.remove('paginated-mode');
       readingArea.classList.add('scroll-mode');
@@ -572,68 +706,52 @@ modeToggleBtns.forEach(btn => {
       readingArea.classList.add('paginated-mode');
       renderSinglePage(currentPage);
     }
-    
     saveState();
     closeAllDropdowns();
     feather.replace();
   });
 });
 
-// Search
+// Search input
 searchInput.addEventListener('input', (e) => {
   searchAll(e.target.value.trim());
 });
-
 searchInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    searchAll(searchInput.value.trim());
-  }
+  if (e.key === 'Enter') searchAll(searchInput.value.trim());
 });
 
-// Bookmark
-btnBookmark.addEventListener('click', () => {
-  addBookmark(currentPage);
-});
+// Bookmark handling - setup based on plan
+updateBookmarkAvailability();
 
 // Fullscreen
 btnFullscreen.addEventListener('click', () => {
   const doc = document.documentElement;
-  if (!document.fullscreenElement) {
-    doc.requestFullscreen?.();
-  } else {
-    document.exitFullscreen?.();
-  }
+  if (!document.fullscreenElement) doc.requestFullscreen?.();
+  else document.exitFullscreen?.();
 });
 
-// Close
+// Close reader
 btnClose.addEventListener('click', () => {
   if (confirm('Are you sure you want to close this document?')) {
     window.history.back();
   }
 });
 
-// Next Page Button in Scroll Mode
+// Next page in scroll mode
 scrollNextBtn.addEventListener('click', () => {
-  if (currentPage < totalPages) {
-    goToPage(currentPage + 1);
-  }
+  if (currentPage < totalPages) goToPage(currentPage + 1);
 });
 
-// Detect scroll position
+// Scroll detection updates currentPage
 readingArea.addEventListener('scroll', () => {
   if (mode === 'scroll') {
     const scrollTop = readingArea.scrollTop;
     const scrollHeight = readingArea.scrollHeight;
     const clientHeight = readingArea.clientHeight;
-    
-    // Show next button when near bottom
-    if (scrollHeight - scrollTop - clientHeight < 100 && currentPage < totalPages) {
-      nextPageIndicator.classList.add('show');
-    } else {
-      nextPageIndicator.classList.remove('show');
-    }
 
-    // Update current page based on scroll position
+    if (scrollHeight - scrollTop - clientHeight < 100 && currentPage < totalPages) nextPageIndicator.classList.add('show');
+    else nextPageIndicator.classList.remove('show');
+
     const visiblePages = viewer.querySelectorAll('.pageCanvasWrap');
     visiblePages.forEach((page) => {
       const rect = page.getBoundingClientRect();
@@ -649,7 +767,7 @@ readingArea.addEventListener('scroll', () => {
   }
 });
 
-// Keyboard Shortcuts
+// Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
     if (e.key === 'Escape') {
@@ -659,15 +777,10 @@ document.addEventListener('keydown', (e) => {
     return;
   }
 
-  if (e.key === 'ArrowLeft') {
-    goToPage(currentPage - 1);
-  } else if (e.key === 'ArrowRight') {
-    goToPage(currentPage + 1);
-  } else if (e.key === 'PageDown') {
-    goToPage(currentPage + 1);
-  } else if (e.key === 'PageUp') {
-    goToPage(currentPage - 1);
-  }
+  if (e.key === 'ArrowLeft') goToPage(currentPage - 1);
+  else if (e.key === 'ArrowRight') goToPage(currentPage + 1);
+  else if (e.key === 'PageDown') goToPage(currentPage + 1);
+  else if (e.key === 'PageUp') goToPage(currentPage - 1);
 
   if (e.key === 'Escape') {
     closeAllDropdowns();
@@ -692,14 +805,12 @@ document.addEventListener('keydown', (e) => {
 
   if (e.key.toLowerCase() === 'f') {
     const doc = document.documentElement;
-    if (!document.fullscreenElement) {
-      doc.requestFullscreen?.();
-    } else {
-      document.exitFullscreen?.();
-    }
+    if (!document.fullscreenElement) doc.requestFullscreen?.();
+    else document.exitFullscreen?.();
   }
 });
 
+// Rerender visible pages
 function rerenderVisible() {
   saveState();
   if (mode === 'paginated') {
@@ -722,17 +833,68 @@ function rerenderVisible() {
   }
 }
 
+// ---------- READING TIME (BASIC plan) ----------
+let readingTimerInterval = null;
+function startReadingTimer() {
+  if (userPlan !== 'basic') return;
+  if (readingTimerInterval) return;
+
+  readingTimerInterval = setInterval(() => {
+    if (document.hidden) return;
+    readingSeconds += 1;
+    localStorage.setItem(readingTimeKey(), String(readingSeconds));
+
+    const remaining = Math.max(0, BASIC_DAILY_SECONDS - readingSeconds);
+    if (remaining === 60) showReaderWarning('1 minute remaining for today on Basic plan', 5000);
+
+    if (readingSeconds >= BASIC_DAILY_SECONDS) {
+      stopReadingTimer();
+      showReaderWarning('Daily reading time reached for Basic plan. Upgrade to continue today.', 7000);
+    }
+  }, 1000);
+}
+function stopReadingTimer() {
+  if (!readingTimerInterval) return;
+  clearInterval(readingTimerInterval);
+  readingTimerInterval = null;
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopReadingTimer();
+  else startReadingTimer();
+});
+
+// On load check daily limits
+function checkDailyLimits() {
+  if (userPlan !== 'basic') return true;
+  readingSeconds = parseInt(localStorage.getItem(readingTimeKey()) || '0', 10) || 0;
+  try {
+    pagesViewed = JSON.parse(localStorage.getItem(pagesViewedKey()) || '{}') || {};
+  } catch(e) {
+    pagesViewed = {};
+  }
+
+  if (readingSeconds >= BASIC_DAILY_SECONDS) {
+    showReaderWarning('Daily reading time reached for Basic plan. Upgrade to continue today.', 7000);
+    return false;
+  }
+  if (pagesViewedCount() >= BASIC_DAILY_PAGE_LIMIT) {
+    showReaderWarning(`Daily page limit reached (${BASIC_DAILY_PAGE_LIMIT} pages). Upgrade to continue reading.`, 7000);
+    return false;
+  }
+  return true;
+}
+
 // ---------- PDF LOAD ----------
 pdfjsLib.getDocument({ url: pdfUrl }).promise.then(doc => {
   pdfDoc = doc;
   totalPages = doc.numPages;
-  
+
   const lastPage = parseInt(localStorage.getItem(storageKeyPrefix + '::lastPage') || '1', 10);
   currentPage = Math.min(Math.max(1, lastPage), totalPages);
-  
+
   const lastScale = parseFloat(localStorage.getItem(storageKeyPrefix + '::scale') || '') || DEFAULT_SCALE;
   scale = lastScale;
-  
+
   const lastFontSize = parseInt(localStorage.getItem(storageKeyPrefix + '::fontSize') || '12', 10);
   currentFontSize = lastFontSize;
   fontSizeDisplay.textContent = currentFontSize + 'px';
@@ -740,27 +902,21 @@ pdfjsLib.getDocument({ url: pdfUrl }).promise.then(doc => {
 
   pageIndicator.textContent = `${currentPage} / ${totalPages}`;
 
-  // Load PDF metadata
+  // Load metadata
   doc.getMetadata().then(metadata => {
     if (metadata && metadata.info) {
-      if (metadata.info.Title) {
-        pdfTitle.textContent = metadata.info.Title;
-      }
-      if (metadata.info.Author) {
-        pdfAuthor.textContent = metadata.info.Author;
-      }
+      if (metadata.info.Title) pdfTitle.textContent = metadata.info.Title;
+      if (metadata.info.Author) pdfAuthor.textContent = metadata.info.Author;
     }
-  }).catch(err => {
-    console.warn('Failed to load metadata', err);
-  });
+  }).catch(err => { console.warn('Failed to load metadata', err); });
 
-  // Load outline
+  // Outline
   doc.getOutline().then(o => {
     outline = o || [];
     renderOutline();
   });
 
-  // Load all page text
+  // Preload text content for search
   const textPromises = [];
   for (let i = 1; i <= totalPages; i++) {
     textPromises.push(
@@ -771,19 +927,32 @@ pdfjsLib.getDocument({ url: pdfUrl }).promise.then(doc => {
   }
 
   Promise.all(textPromises).then(() => {
-    if (mode === 'scroll') {
-      renderAllPages();
-    } else {
-      renderSinglePage(currentPage);
+    // Enforce plan-specific UI availability
+    updateBookmarkAvailability();
+    updateThemeAvailability();
+
+    // Check daily limits and start timer if allowed
+    const allowed = checkDailyLimits();
+    if (!allowed && userPlan === 'basic') {
+      // let the UI show and block pages as appropriate
     }
+
+    if (mode === 'scroll') renderAllPages();
+    else renderSinglePage(currentPage);
+
     updateNavButtons();
   });
-  
-  // Initialize Feather Icons
-  if (window.feather) {
-    feather.replace();
-  }
+
+  if (window.feather) feather.replace();
+
+  // start reading timer if allowed
+  if (userPlan === 'basic' && checkDailyLimits()) startReadingTimer();
+
 }).catch(err => {
   console.error('PDF load error', err);
   alert('Failed to load PDF: ' + err.message);
 });
+
+// finalize UI
+if (window.feather) feather.replace();
+updateNavButtons();
