@@ -1,3 +1,6 @@
+
+if (typeof requireAuth === 'function') requireAuth();
+
 function searchBooks() {
   const input = document.getElementById("searchInput").value.toLowerCase();
   const cards = document.querySelectorAll(".book-card");

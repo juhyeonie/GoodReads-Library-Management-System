@@ -6,6 +6,9 @@
   <title>GoodReads - Homepage</title>
   <link rel="stylesheet" href="homepage.css">
   <script src="https://unpkg.com/feather-icons"></script>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 </head>
 <body>
   <header class="navbar">
@@ -84,8 +87,11 @@
       </div>
     </div>
   </div>
-
+  <script src="auth.js"></script>
   <script src="homepage.js"></script>
-  
+    <script>
+    // make sure logout links and popstate handling are set
+    if (typeof callOnProtectedPage === 'function') callOnProtectedPage();
+  </script>
 </body>
 </html>

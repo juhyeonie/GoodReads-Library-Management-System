@@ -1,3 +1,5 @@
+if (typeof requireAuth === 'function') requireAuth();
+
 document.addEventListener("DOMContentLoaded", () => {
     const tabs = document.querySelectorAll(".tab-btn");
     const panels = document.querySelectorAll(".tab-panel");

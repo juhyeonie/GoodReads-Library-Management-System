@@ -139,7 +139,13 @@
 <div class="page-indicator-bottom" id="pageIndicatorBottom">
   <span id="pageIndicator">0 / 0</span>
 </div>
+<script src="auth.js"></script>
 
 <script type="module" src="BookReader.js"></script>
+
+<script>
+  if (typeof callOnProtectedPage === "function") callOnProtectedPage();
+</script>
+
 </body>
 </html>

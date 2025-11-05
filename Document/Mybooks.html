@@ -80,8 +80,11 @@
   </main>
 
   <footer></footer>
-
+  <script src="auth.js"></script>
   <script src="Mybooks.js"></script>
+    <script>
+    if (typeof callOnProtectedPage === 'function') callOnProtectedPage();
+  </script>
   <script>
         // initialize feather icons
         feather.replace();

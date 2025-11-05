@@ -81,8 +81,11 @@
             </div>
         </div>
     </main>
-
+    <script src="auth.js"></script>
     <script src="Setting.js"></script>
+      <script>
+    if (typeof callOnProtectedPage === 'function') callOnProtectedPage();
+  </script>
     <script>
         // initialize feather icons
         feather.replace();
