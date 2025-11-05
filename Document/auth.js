@@ -6,7 +6,7 @@ function isAuthenticated() {
 
 function requireAuth() {
   if (!isAuthenticated()) {
-    location.replace('SignIn.html');
+    location.replace('Startpage.html');
   } else {
     // Replace history entry so "back" from homepage doesn’t land on SignIn
     history.replaceState(null, '', window.location.href);
@@ -25,10 +25,10 @@ function logoutAll() {
     // localStorage.removeItem('is_logged_in');
 
     // Redirect using replace to prevent back navigation
-    location.replace('SignIn.html');
+    location.replace('Startpage.html');
   } catch (err) {
     console.error('Logout failed:', err);
-    location.replace('SignIn.html');
+    location.replace('Startpage.html');
   }
 }
 
@@ -69,7 +69,7 @@ function preventCacheAndForceReload() {
 function securePopStateHandler() {
   window.addEventListener('popstate', function () {
     if (!isAuthenticated()) {
-      location.replace('SignIn.html');
+      location.replace('Startpage.html');
     }
   });
 }
