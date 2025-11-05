@@ -122,5 +122,24 @@
   </div>
 
   <script src="SubsAdmin-Dashboard.js"></script>
-</body>
+
+  <script>
+    (function() {
+      try {
+        // Find the username element in the sidebar
+        const usernameElement = document.querySelector('.sidebar-bottom .user .username');
+        
+        // Get the email from session storage
+        const userEmail = sessionStorage.getItem('user_email');
+        
+        if (usernameElement && userEmail) {
+          // Set the element's text to the stored email
+          usernameElement.textContent = userEmail;
+        }
+      } catch (e) {
+        console.error('Error setting username from email:', e);
+      }
+    })();
+  </script>
+  </body>
 </html>

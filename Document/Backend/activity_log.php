@@ -19,12 +19,13 @@ if (($_SESSION['user']['Role'] ?? '') !== 'SuperAdmin') {
 
 try {
     // 1. Prepare the query
-    // We LEFT JOIN ACCOUNT table to get the Admin's Role
+    // We LEFT JOIN ACCOUNT to get both Email (as AdminName) and Role
     // We use COALESCE to show 'System' if the AccountID is 0 or NULL
     $stmt = $pdo->query("
         SELECT 
             L.Timestamp,
-            COALESCE(A.Role, 'System') AS AdminName,
+            COALESCE(A.Email, 'System') AS AdminName,
+            A.Role,
             L.Description
         FROM 
             ACTIVITY_LOG AS L
