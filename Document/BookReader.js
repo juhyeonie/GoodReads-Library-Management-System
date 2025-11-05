@@ -68,6 +68,13 @@ const scrollNextBtn = document.getElementById('scrollNextBtn');
 const pdfTitle = document.getElementById('pdfTitle');
 const pdfAuthor = document.getElementById('pdfAuthor');
 
+// Upgrade Modal Elements
+const upgradeModalOverlay = document.getElementById('upgradeModalOverlay');
+const upgradeModal = document.getElementById('upgradeModal');
+const closeUpgradeModalBtn = document.getElementById('closeUpgradeModalBtn');
+const upgradeNowBtn = document.getElementById('upgradeNowBtn');
+
+
 // small in-reader warning bar
 let readerWarningBar = document.getElementById('readerWarningBar');
 if (!readerWarningBar) {
@@ -89,6 +96,19 @@ function showReaderWarning(text, ms = 4000) {
   readerWarningBar.textContent = text;
   readerWarningBar.style.display = 'block';
   setTimeout(() => readerWarningBar.style.display = 'none', ms);
+}
+
+// ---------- MODAL FUNCTIONS ----------
+function showUpgradeModal() {
+  if (upgradeModalOverlay) {
+    upgradeModalOverlay.classList.add('show');
+  }
+}
+
+function hideUpgradeModal() {
+  if (upgradeModalOverlay) {
+    upgradeModalOverlay.classList.remove('show');
+  }
 }
 
 // ---------- STATE ----------
@@ -186,12 +206,12 @@ function updateBookmarkAvailability() {
   const isPremium = (userPlan === 'premium' || userPlan === 'premiumplan');
   if (!btnBookmark) return;
   if (!isPremium) {
-    btnBookmark.disabled = true;
     btnBookmark.title = 'Bookmarks available for Premium only';
     // show upgrade message when clicked
     btnBookmark.addEventListener('click', (e) => {
       e.preventDefault();
-      showReaderWarning('Bookmarks are available for Premium users only. Upgrade to Premium to enable this feature.', 4000);
+      // Show the upgrade modal instead of the warning
+      showUpgradeModal();
     }, { once: true });
   } else {
     // replace node to remove potential previous handlers
@@ -208,12 +228,12 @@ function updateThemeAvailability() {
   if (!btnTheme) return;
   if (!isStandardOrPremium) {
     // disable theme button
-    btnTheme.disabled = true;
     btnTheme.title = 'Theme toggle is available for Standard and Premium users';
     btnTheme.addEventListener('click', (e) => {
       e.preventDefault();
-      showReaderWarning('Theme toggle is available for Standard and Premium users. Upgrade to change themes.', 3500);
-    }, { once: true });
+      // Show the new upgrade modal
+      showUpgradeModal();
+    }, { once: true }); // Use 'once' so it doesn't conflict with the main handler
   } else {
     // ensure the button performs theme switching (normal behavior)
     btnTheme.disabled = false;
@@ -607,7 +627,8 @@ btnNext.addEventListener('click', () => goToPage(currentPage + 1));
 btnTheme.addEventListener('click', () => {
   const allowed = (userPlan === 'standard' || userPlan === 'standardplan' || userPlan === 'premium' || userPlan === 'premiumplan');
   if (!allowed) {
-    showReaderWarning('Theme toggle is available for Standard and Premium users. Upgrade to change themes.', 3500);
+    // Show the modal instead of the warning
+    showUpgradeModal();
     return;
   }
 
@@ -788,6 +809,8 @@ document.addEventListener('keydown', (e) => {
       tocSidebar.classList.remove('open');
       tocOpen = false;
     }
+    // Also close the modal on Escape
+    hideUpgradeModal();
   }
 
   if (e.key === 't' || e.key === 'T') {
@@ -956,3 +979,21 @@ pdfjsLib.getDocument({ url: pdfUrl }).promise.then(doc => {
 // finalize UI
 if (window.feather) feather.replace();
 updateNavButtons();
+
+// ---------- MODAL EVENT LISTENERS (MODIFIED) ----------
+if (closeUpgradeModalBtn) {
+  closeUpgradeModalBtn.addEventListener('click', hideUpgradeModal);
+}
+if (upgradeModalOverlay) {
+  upgradeModalOverlay.addEventListener('click', (e) => {
+    if (e.target === upgradeModalOverlay) {
+      hideUpgradeModal();
+    }
+  });
+}
+if (upgradeNowBtn) {
+  upgradeNowBtn.addEventListener('click', () => {
+    // Redirect to the settings page, membership tab
+    window.location.href = 'Setting.html#membership';
+  });
+}

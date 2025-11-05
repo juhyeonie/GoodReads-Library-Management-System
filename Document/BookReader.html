@@ -7,6 +7,125 @@
   <script src="https://unpkg.com/feather-icons"></script>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="BookReader.css">
+  
+  <style>
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      color: #333;
+      padding: 24px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 480px; /* Changed from 420px */
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      text-align: left; /* Changed from center */
+      transform: scale(0.95);
+      transition: transform 0.3s ease;
+    }
+    
+    .modal-overlay.show .modal-content {
+      transform: scale(1);
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      font-family: 'Archivo', sans-serif;
+    }
+
+    .modal-body {
+      font-size: 1rem;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .modal-icon {
+      /* This class is no longer used in the updated modal */
+      color: #6366f1; /* Indigo color */
+      margin-bottom: 16px;
+    }
+
+    .modal-actions {
+      display: flex;
+      flex-direction: row; /* Changed from column */
+      justify-content: flex-end; /* Added */
+      gap: 12px;
+    }
+
+    .modal-btn {
+      padding: 10px 20px; /* Adjusted padding */
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem; /* Adjusted font size */
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s ease, box-shadow 0.2s ease;
+      font-family: 'Archivo', sans-serif;
+    }
+
+    .modal-btn-primary {
+      background-color: #6366f1;
+      color: white;
+    }
+    .modal-btn-primary:hover {
+      background-color: #4f46e5;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .modal-btn-secondary {
+      background-color: #eef2ff;
+      color: #4f46e5;
+    }
+    .modal-btn-secondary:hover {
+      background-color: #e0e7ff;
+    }
+
+    /* === DARK MODE STYLES (MODIFIED TO MATCH IMAGE) === */
+    body.dark-mode .modal-content {
+      background-color: #19191B; /* Changed to match image (darker) */
+      color: #E8EAED; /* Lighter text for better contrast */
+    }
+    
+    /* (modal-icon is removed, so no dark style needed) */
+    
+    body.dark-mode .modal-btn-primary {
+      background-color: #BCB4FF; /* Lavender color from image */
+      color: #19191B; /* Dark text from image */
+    }
+    body.dark-mode .modal-btn-primary:hover {
+      background-color: #D6D2FF; /* Lighter hover */
+      box-shadow: none;
+    }
+    
+    body.dark-mode .modal-btn-secondary {
+      background-color: transparent; /* Transparent bg from image */
+      color: #E8EAED; /* Light text from image */
+      border: 1px solid #5F6368; /* Dark border from image */
+    }
+    body.dark-mode .modal-btn-secondary:hover {
+      background-color: rgba(232, 234, 237, 0.1); /* Subtle hover */
+    }
+    /* === END OF MODIFIED STYLES === */
+
+  </style>
 </head>
 <body class="light-mode">
 
@@ -56,7 +175,6 @@
   </div>
 </nav>
 
-<!-- Font Dropdown -->
 <div class="dropdown-menu" id="fontDropdown">
   <div class="dropdown-title">Font Settings</div>
   
@@ -82,7 +200,6 @@
   </div>
 </div>
 
-<!-- Mode Dropdown -->
 <div class="dropdown-menu" id="modeDropdown">
   <div class="dropdown-title">Reading Mode</div>
   
@@ -100,7 +217,6 @@
   </div>
 </div>
 
-<!-- Search Dropdown -->
 <div class="dropdown-menu" id="searchDropdown">
   <div class="dropdown-title">Search in Document</div>
   
@@ -111,7 +227,6 @@
   </div>
 </div>
 
-<!-- TOC Sidebar -->
 <aside class="toc-sidebar" id="tocSidebar">
   <div class="book-info" id="bookInfo">
     <div class="book-title" id="pdfTitle">PDF Document</div>
@@ -124,7 +239,6 @@
   </ul>
 </aside>
 
-<!-- Main Viewer -->
 <main id="viewerContainer" class="reader-container">
   <div class="reading-area scroll-mode" id="readingArea">
     <div class="content-wrapper" id="viewer"></div>
@@ -135,9 +249,23 @@
   </div>
 </main>
 
-<!-- Page indicator for bottom (optional, can be used for paginated mode) -->
 <div class="page-indicator-bottom" id="pageIndicatorBottom">
   <span id="pageIndicator">0 / 0</span>
+</div>
+
+<div class="modal-overlay" id="upgradeModalOverlay">
+  <div class="modal-content" id="upgradeModal">
+    <div class="modal-title">Upgrade Your Plan</div>
+    
+    <div class="modal-body">
+      Access to this feature requires a <strong>Standard plan</strong> or higher. Upgrade your plan to unlock dark mode and more!
+    </div>
+    
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-secondary" id="closeUpgradeModalBtn">Close</button>
+      <button class="modal-btn modal-btn-primary" id="upgradeNowBtn">Upgrade Now</button>
+    </div>
+  </div>
 </div>
 <script src="auth.js"></script>
 

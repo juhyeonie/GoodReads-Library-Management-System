@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let json = null;
       try { json = JSON.parse(text); } catch(e){}
       return { res, json, text };
-    } catch (err) {
+    } catch (err) {o
       return { res: { ok:false, status:0 }, json: null, text: null, error: err };
     }
   }
