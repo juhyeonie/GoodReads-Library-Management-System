@@ -544,3 +544,14 @@ body.no-scroll { overflow: hidden; }
   .modal-box { width: 100%; margin: 8px; }
   .view-row .view-label { min-width: 120px; font-size: 13px; padding:10px; }
 }
+
+.role-badge {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .role-badge.user { background: #e7f7f9; color: #17a2b8; }
+.role-badge.subs { background: #fff8e1; color: #e69500; }
+.role-badge.super { background: #e8f5e9; color: #28a745; }

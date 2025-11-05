@@ -5,6 +5,22 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GoodReads | Subscription Plans</title>
   <link rel="stylesheet" href="SubsAdmin-Subscription.css" />
+
+  <script>
+    // This 'pageshow' event runs on initial load AND when using the 'Back' button.
+    // This handles the back-forward cache issue after logout.
+    window.addEventListener('pageshow', function(event) {
+      const userRole = sessionStorage.getItem('user_role');
+      
+      // Check if the user is not logged in or is not a superadmin
+      if (!userRole || userRole !== 'superadmin') {
+        sessionStorage.clear(); // Clear the session
+        alert('You do not have permission or your session has expired. Please log in.');
+        // Use replace() to prevent this page from being in the browser history
+        window.location.replace('StartPage.html');
+      }
+    });
+  </script>
 </head>
 <body>
 
@@ -39,7 +55,7 @@
             <span class="text">Plan Management</span>
           </a>
           <a href="SuperAdmin-ActivityLog.html" class="menu-item" data-tooltip="Customer Management">
-            <span class="icon"><img src="user.png" alt="" /></span>
+            <span class="icon"><img src="activitylog.png" alt="" /></span>
             <span class="text">Activity Log</span>
           </a>
         </nav>

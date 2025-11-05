@@ -1,11 +1,24 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-de" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GoodReads | Subscription Plans</title>
   <link rel="stylesheet" href="SubsAdmin-Subscription.css" />
-</head>
+
+  <script>
+    // This 'pageshow' event runs on initial load AND when using the 'Back' button.
+    window.addEventListener('pageshow', function(event) {
+      const userRole = sessionStorage.getItem('user_role');
+      
+      if (!userRole || userRole !== 'subsadmin') {
+        sessionStorage.clear();
+        alert('You do not have permission or your session has expired. Please log in.');
+        window.location.replace('StartPage.html');
+      }
+    });
+  </script>
+  </head>
 <body>
 
   <button id="menuToggle" class="menu-toggle" aria-label="Toggle menu">☰</button>

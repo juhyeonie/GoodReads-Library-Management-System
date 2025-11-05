@@ -4,54 +4,142 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GoodReads — Reader</title>
+  <script src="https://unpkg.com/feather-icons"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="BookReader.css">
 </head>
-<body>
-  <nav class="reader-top">
-    <div class="left">
-      <button id="btnToc" title="Table of Contents">TOC</button>
-      <button id="btnPrev" title="Prev (←)">←</button>
-      <button id="btnNext" title="Next (→)">→</button>
-      <span id="pageIndicator">0 / 0</span>
+<body class="light-mode">
+
+<nav class="top-nav">
+  <div class="nav-left">
+    <button id="btnToc" class="nav-icons">
+      <i data-feather="menu"></i>
+    </button>
+    <div class="logo">
+      <img src="logo.png" alt="GoodReads Logo">
     </div>
+  </div>
 
-    <div class="center">
-      <input id="pageNumber" type="number" min="1" style="width:72px" />
-      <button id="btnGo">Go</button>
+  <div class="nav-center">
+    <button class="nav-btn" id="btnPrev">
+      <i data-feather="chevron-left"></i>
+      <span>Previous</span>
+    </button>
+    <button class="nav-btn" id="btnNext">
+      <span>Next</span>
+      <i data-feather="chevron-right"></i>
+    </button>
+  </div>
 
-      <select id="modeSelect" title="Reading mode">
-        <option value="scroll">Continuous Scroll</option>
-        <option value="paginated">Paginated</option>
-      </select>
+  <div class="nav-icons">
+    <button class="icon-btn" id="btnTheme" title="Toggle Theme">
+      <i data-feather="sun"></i>
+    </button>
+    <button class="icon-btn" id="btnFont" title="Font Settings">
+      <i data-feather="type"></i>
+    </button>
+    <button class="icon-btn" id="btnMode" title="Reading Mode">
+      <i data-feather="book-open"></i>
+    </button>
+    <button class="icon-btn" id="btnSearch" title="Search">
+      <i data-feather="search"></i>
+    </button>
+    <button class="icon-btn" id="btnBookmark" title="Bookmark Page">
+      <i data-feather="bookmark"></i>
+    </button>
+    <button class="icon-btn" id="btnFullscreen" title="Fullscreen">
+      <i data-feather="maximize"></i>
+    </button>
+    <button class="icon-btn" id="btnClose" title="Close Reader">
+      <i data-feather="x"></i>
+    </button>
+  </div>
+</nav>
 
-      <button id="btnZoomOut" title="Zoom -">-</button>
-      <button id="btnZoomIn" title="Zoom +">+</button>
-      <button id="btnFit" title="Fit to width">Fit</button>
+<!-- Font Dropdown -->
+<div class="dropdown-menu" id="fontDropdown">
+  <div class="dropdown-title">Font Settings</div>
+  
+  <div class="setting-group">
+    <label class="setting-label">Font Size</label>
+    <div class="font-size-controls">
+      <button class="font-size-btn" id="decreaseFont">−</button>
+      <div class="font-size-display" id="fontSizeDisplay">12px</div>
+      <button class="font-size-btn" id="increaseFont">+</button>
     </div>
+  </div>
 
-    <div class="right">
-      <input id="searchInput" placeholder="Search (Ctrl/Cmd+F)" />
-      <button id="btnSearch">Search</button>
-      <button id="btnHighlight" title="Highlight selection">Annot</button>
-      <button id="btnBookmark" title="Bookmark page">🔖</button>
-      <button id="btnFullscreen" title="Fullscreen (F)">⛶</button>
-      <button id="btnClose" title="Close Reader">Close</button>
+  <div class="setting-group">
+    <label class="setting-label">Font Family</label>
+    <select id="fontSelect">
+      <option value="Georgia, serif">Georgia (Serif)</option>
+      <option value="'Times New Roman', serif">Times New Roman</option>
+      <option value="Arial, sans-serif">Arial (Sans-serif)</option>
+      <option value="'Courier New', monospace">Courier New</option>
+      <option value="Verdana, sans-serif">Verdana</option>
+      <option value="'Archivo', sans-serif">Gordita (Sans-serif)</option>
+    </select>
+  </div>
+</div>
+
+<!-- Mode Dropdown -->
+<div class="dropdown-menu" id="modeDropdown">
+  <div class="dropdown-title">Reading Mode</div>
+  
+  <div class="setting-group">
+    <div class="setting-control">
+      <button class="mode-toggle-btn active" data-mode="scroll">
+        <i data-feather="align-justify"></i>
+        <span>Continuous Scroll</span>
+      </button>
+      <button class="mode-toggle-btn" data-mode="paginated">
+        <i data-feather="columns"></i>
+        <span>Paginated</span>
+      </button>
     </div>
-  </nav>
+  </div>
+</div>
 
-  <aside id="tocPanel" class="hidden">
-    <h3>Table of contents</h3>
-    <ul id="tocList"></ul>
-  </aside>
+<!-- Search Dropdown -->
+<div class="dropdown-menu" id="searchDropdown">
+  <div class="dropdown-title">Search in Document</div>
+  
+  <input type="text" class="search-input" id="searchInput" placeholder="Search...">
+  
+  <div class="search-results-container" id="searchResultsContainer">
+    <div class="no-results">Enter a search term</div>
+  </div>
+</div>
 
-  <main id="viewerContainer" class="scroll-mode">
-    <div id="viewer" class="viewer"></div>
-  </main>
+<!-- TOC Sidebar -->
+<aside class="toc-sidebar" id="tocSidebar">
+  <div class="book-info" id="bookInfo">
+    <div class="book-title" id="pdfTitle">PDF Document</div>
+    <div class="book-author" id="pdfAuthor">Unknown Author</div>
+  </div>
 
-  <!-- Search results -->
-  <div id="searchResults" class="search-results hidden"></div>
+  <div class="toc-heading">Table of Contents</div>
+  <ul class="toc-list" id="tocList">
+    <li class="toc-item">Loading...</li>
+  </ul>
+</aside>
 
-  <!-- LOAD reader as module (BookReader.js will import pdf.mjs) -->
-  <script type="module" src="BookReader.js"></script>
+<!-- Main Viewer -->
+<main id="viewerContainer" class="reader-container">
+  <div class="reading-area scroll-mode" id="readingArea">
+    <div class="content-wrapper" id="viewer"></div>
+    
+    <div class="next-page-indicator" id="nextPageIndicator">
+      <button class="next-page-btn" id="scrollNextBtn">Next Page →</button>
+    </div>
+  </div>
+</main>
+
+<!-- Page indicator for bottom (optional, can be used for paginated mode) -->
+<div class="page-indicator-bottom" id="pageIndicatorBottom">
+  <span id="pageIndicator">0 / 0</span>
+</div>
+
+<script type="module" src="BookReader.js"></script>
 </body>
 </html>

@@ -5,7 +5,18 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GoodReads | Customer Subscription</title>
   <link rel="stylesheet" href="SubsAdmin-UserSubscription.css" />
-</head>
+
+  <script>
+    window.addEventListener('pageshow', function(event) {
+      const userRole = sessionStorage.getItem('user_role');
+      if (!userRole || userRole !== 'subsadmin') {
+        sessionStorage.clear();
+        alert('You do not have permission or your session has expired. Please log in.');
+        window.location.replace('StartPage.html');
+      }
+    });
+  </script>
+  </head>
 <body>
 
   <button id="menuToggle" class="menu-toggle" aria-label="Toggle menu">☰</button>
@@ -16,7 +27,7 @@
       <div class="sidebar-top">
         <div class="logo">
           <img src="logo.png" alt="GoodReads Logo" class="logo-img" />
-          <img src="logopic.png" alt="GoodReads" class="logo-pic" />
+          <img src="logopic.png" alt="GoodReads" class_=("logo-pic") />
         </div>
 
         <button id="collapseBtn" class="collapse-btn">☰</button>
@@ -88,61 +99,6 @@
     </main>
   </div>
 
-  <div id="viewModal" class="modal-overlay" aria-hidden="true">
-    <div class="modal-box view-modal-box" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
-      <div class="modal-topbar"></div>
-      <div class="modal-body">
-        <h2 id="viewTitle" class="modal-title">Customer Details</h2>
-
-<<<<<<< HEAD
-        <form id="editUserForm" class="edit-plan-form" autocomplete="off">
-          <div class="field">
-             <label class="field-label">Email</label>
-            <span id="userEmailDisplay" class="uneditable-text-display"></span>
-            <input id="userEmailHidden" name="email" type="hidden" />
-=======
-        <div class="user-details">
-          <div class="view-row">
-            <div class="view-label">Account ID:</div>
-            <div id="viewAccountId" class="view-value"></div>
->>>>>>> b145637f981ee697f94ca474e82d261f790433d6
-          </div>
-
-          <div class="view-row">
-            <div class="view-label">Email:</div>
-            <div id="viewEmail" class="view-value"></div>
-          </div>
-
-          <div class="view-row">
-            <div class="view-label">Subscription Plan:</div>
-            <div id="viewPlan" class="view-value"></div>
-          </div>
-
-          <div class="view-row">
-            <div class="view-label">Payment Method:</div>
-            <div id="viewPayment" class="view-value"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-bottombar">
-        <div class="modal-actions">
-          <button id="viewInvoiceBtn" class="btn confirm" type="button">VIEW INVOICE</button>
-          <button id="closeViewBtn" class="btn cancel" type="button">CLOSE</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-<<<<<<< HEAD
-  <div id="viewReceiptModal" class="modal-overlay">
-    <div class="modal-box profile-modal-box">
-      <div class="modal-topbar" style="background-color: #1b3c53;"></div> 
-      <div class="modal-body profile-modal-body" style="padding: 30px;">
-        <h2 style="text-align: center; font-size: 24px; font-weight: 700; color: #1b3c53; margin-bottom: 30px;">CUSTOMER PROFILE</h2>
-        <div id="receiptContent" class="profile-content-area" style="padding: 0 10px;">
-          <p style="text-align: center; padding: 40px; color: #888;">Loading profile...</p>
-=======
   <div id="editModal" class="modal-overlay" aria-hidden="true">
     <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="editTitle">
       <div class="modal-topbar"></div>
@@ -167,18 +123,6 @@
             <div class="error-message" id="editPlanError"></div>
           </div>
 
-          <div class="floating field">
-            <select id="editPayment" name="payment">
-              <option value=""></option>
-              <option value="Credit Card">Credit Card</option>
-              <option value="Gcash">GCash</option>
-              <option value="Maya">Maya</option>
-              <option value="Paypal">PayPal</option>
-            </select>
-            <label class="floating-label" for="editPayment">Payment Method</label>
-            <div class="error-message" id="editPaymentError"></div>
-          </div>
-
           <input type="hidden" id="editUserId" name="id" />
         </form>
       </div>
@@ -192,22 +136,40 @@
     </div>
   </div>
 
-  <div id="viewReceiptModal" class="modal-overlay" aria-hidden="true">
-    <div class="modal-box receipt-modal-box" role="dialog" aria-modal="true">
-      <div class="modal-topbar"></div>
-      <div class="modal-body receipt-modal-body">
-        <div id="receiptContent" class="receipt-content-area">
-          <p style="text-align: center; padding: 40px; color: #888;">Loading receipt...</p>
->>>>>>> b145637f981ee697f94ca474e82d261f790433d6
+  <div id="viewProfileModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-box profile-modal-box" role="dialog" aria-modal="true">
+      <div class="modal-topbar" style="background-color: #1b3c53;"></div>
+      <div class="modal-body profile-modal-body" style="padding: 30px;">
+        <h2 style="text-align: center; font-size: 24px; font-weight: 700; color: #1b3c53; margin-bottom: 30px;">CUSTOMER PROFILE</h2>
+        <div id="profileContent" class="profile-content-area" style="padding: 0 10px;">
+          <p style="text-align: center; padding: 40px; color: #888;">Loading profile...</p>
         </div>
       </div>
       <div class="modal-bottombar">
         <div class="modal-actions">
-          <button id="closeReceiptBtn" class="btn cancel" type="button">CLOSE</button>
+          <button id="viewReceiptBtn" class="btn confirm" type="button">VIEW RECEIPT</button>
+          <button id="closeProfileBtn" class="btn cancel" type="button">CLOSE</button>
         </div>
       </div>
     </div>
   </div>
+
+  <div id="viewPaymentReceiptModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-box receipt-modal-box" style="width: 480px;" role="dialog" aria-modal="true">
+      <div class="modal-topbar" style="background-color: #1b3c53;"></div>
+      <div class="modal-body receipt-modal-body">
+        <div id="paymentReceiptContent" class="receipt-content-area">
+          <p style="text-align: center; padding: 40px; color: #888;">Loading receipt...</p>
+        </div>
+      </div>
+      <div class="modal-bottombar">
+        <div class="modal-actions">
+          <button id="closePaymentReceiptBtn" class="btn cancel" type="button">CLOSE</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="SubsAdmin-UserSubscription.js"></script>
 </body>
 </html>

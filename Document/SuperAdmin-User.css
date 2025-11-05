@@ -10,7 +10,7 @@ body {
 /* ===== App layout ===== */
 .app { display:flex; min-height:100vh; width:100%; }
 
-/* Sidebar (kept) */
+/* Sidebar */
 .sidebar {
   width: 280px;
   background: linear-gradient(180deg,#1b3c53 0%, #6f6b9b 100%);
@@ -110,6 +110,50 @@ tbody tr td:first-child { width:120px; }
 .pill.delete { background:#2f4f5d; }
 .add-user { padding:8px 14px; border-radius:8px; background:#123b4f; color:#fff; border:none; cursor:pointer; font-weight:700; float: right; margin-top:12px; }
 
+.plan-badge {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .plan-badge.basic { background: #e7f7f9; color: #17a2b8; }
+.plan-badge.standard { background: #fff8e1; color: #e69500; }
+.plan-badge.premium { background: #e8f5e9; color: #28a745; }
+.plan-badge.expired { background: #fdecea; color: #dc3545; }
+.plan-badge.cancelled { background: #f1f3f5; color: #6c757d; }
+
+.payment-badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.payment-badge.gcash { background: #e6f7f1; color: #2d25c3; }
+.payment-badge.maya { background: #e6f0ff; color: #20993f; }
+.payment-badge.creditcard { background: #fff1e6; color: #da761e; }
+.payment-badge.paypal { background: #f3e6ff; color: #8e44ad; }
+.payment-badge.admingiven { background: #f3e6ff; color: #ba2e2e; }
+
+.role-badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.role-badge.subsadmin { background: #e6f7f1; color: #2d25c3; }
+.role-badge.useradmin { background: #e6f0ff; color: #20993f; }
+.role-badge.superadmin { background: #fff1e6; color: #da761e; }
+
+
+
+
 /* ===== Modal ===== */
 .modal-overlay { position: fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(10,14,18,0.6); z-index: 10000; padding:28px; }
 .modal-overlay.show { display:flex; }
@@ -119,28 +163,32 @@ tbody tr td:first-child { width:120px; }
 .modal-title { color:#456882; font-size:20px; margin-bottom:24px; font-weight:700; }
 .user-form .field { margin-bottom:14px; position: relative; }
 
-/* ===== Inputs & Floating Labels (new) ===== */
-/* Each form field now uses .floating with internal input/select and a .floating-label element */
+/* ===== Floating Labels for Form Inputs ===== */
 .floating {
   position: relative;
+<<<<<<< HEAD
   margin-bottom: 24px; /* Increased margin for floating label */
+=======
+  margin-bottom: 20px;
+>>>>>>> 6318d8df5c58a6f0416cf15fada815654e21f674
 }
+
 .floating input[type="text"],
 .floating input[type="email"],
 .floating input[type="password"],
 .floating select,
 .floating textarea {
   width: 100%;
-  padding: 12px 12px;
-  padding-right: 44px; /* leave space for icons like password toggle */
-  border-radius: 8px;
+  padding: 14px 12px;
+  border-radius: 6px;
   border: 1px solid #c7ced2;
-  font-size: 14px;
-  color: #556;
+  font-size: 15px;
+  color: #333;
   background: #fff;
   outline: none;
-  transition: border-color .18s;
+  transition: border-color .2s;
 }
+<<<<<<< HEAD
 .floating select { 
   appearance: none; 
   -webkit-appearance: none; 
@@ -150,17 +198,32 @@ tbody tr td:first-child { width:120px; }
   background-position: right 12px center; 
   background-size: 14px; 
 }
+=======
+
+/* Password field needs extra right padding for the toggle button */
+.floating .password-input {
+  padding-right: 44px;
+}
+
+.floating select { 
+  appearance: none; 
+  -webkit-appearance: none; 
+  -moz-appearance: none;
+}
+
+>>>>>>> 6318d8df5c58a6f0416cf15fada815654e21f674
 .floating .floating-label {
   position: absolute;
   left: 12px;
-  top: 12px;
+  top: 14px;
   pointer-events: none;
   color: #7b8a91;
   background: transparent;
-  padding: 0 6px;
-  transition: transform .18s ease, top .18s ease, font-size .18s ease, color .18s ease;
-  transform-origin: left top;
+  padding: 0 4px;
+  transition: all .2s ease;
+  font-size: 15px;
 }
+<<<<<<< HEAD
 .floating input:focus,
 .floating select:focus,
 .floating textarea:focus { border-color: #1b3c53; }
@@ -215,18 +278,24 @@ tbody tr td:first-child { width:120px; }
   display: flex;
   align-items: center;
   justify-content: flex-end;
+=======
+
+/* When input is focused or has value, float the label to the top border */
+.floating input:focus + .floating-label,
+.floating input:not(:placeholder-shown) + .floating-label,
+.floating select.has-value + .floating-label,
+.floating textarea:focus + .floating-label,
+.floating textarea:not(:placeholder-shown) + .floating-label {
+  top: -10px;
+  left: 10px;
+  font-size: 12px;
+>>>>>>> 6318d8df5c58a6f0416cf15fada815654e21f674
   color: #456882;
+  background: #fff;
   font-weight: 600;
-  border-right: 1px solid gray;
-}
-.view-row .view-value {
-  padding: 12px 14px;
-  flex: 1;
-  color: #333;
-  display:flex;
-  align-items:center;
 }
 
+<<<<<<< HEAD
 /* small helpers */
 .hidden { display:none !important; }
 
@@ -243,15 +312,159 @@ body.no-scroll { overflow: hidden; }
   background:#fff; 
   box-shadow:0 12px 32px rgba(0,0,0,0.12);
   text-align:left;
+=======
+.floating input:focus,
+.floating select:focus,
+.floating textarea:focus { 
+  border-color: #456882; 
 }
 
-.confirm-actions { 
+/* Error state */
+.user-form input.error,
+.user-form select.error { 
+  border-color: #dc3545; 
+  background-color: #fff5f5; 
+}
+
+.error-message { 
+  color: #dc3545; 
+  font-size: 12px; 
+  margin-top: 4px; 
+  display: none; 
+}
+
+.error-message.show { 
+  display: block; 
+}
+
+.modal-bottombar { 
+  height:62px; 
+  background: linear-gradient(90deg,#1b3c53 0%, #908daf 100%); 
+  display:flex; 
+  align-items:center; 
+  justify-content:flex-end; 
+  padding:0 18px; 
+}
+
+.modal-actions { 
   display:flex; 
   gap:10px; 
-  justify-content:flex-end; 
-  margin-top:12px; 
 }
 
+.btn { 
+  border:none; 
+  padding:8px 12px; 
+  border-radius:6px; 
+  font-weight:700; 
+  cursor:pointer; 
+  font-size:13px; 
+}
+
+.btn.confirm { 
+  background:#fff; 
+  color:#1b3c53; 
+}
+
+.btn.cancel { 
+  background: rgba(255,255,255,0.14); 
+  color:#fff; 
+}
+
+/* ===== Password Toggle Button ===== */
+.password-field-wrapper { 
+  position: relative; 
+>>>>>>> 6318d8df5c58a6f0416cf15fada815654e21f674
+}
+
+.password-toggle { 
+  position: absolute; 
+  right: 12px; 
+  top: 50%; 
+  transform: translateY(-50%); 
+  background: transparent; 
+  border: none; 
+  cursor: pointer; 
+  padding: 4px 6px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  color: #456882; 
+  transition: color 0.2s;
+  z-index: 10;
+}
+
+.password-toggle:hover { 
+  color: #1b3c53; 
+}
+
+.password-toggle svg { 
+  width: 20px; 
+  height: 20px; 
+}
+
+/* ===== Profile Modal Styling (Matches Image) ===== */
+.profile-modal-box {
+  width: 640px;
+  max-width: calc(100% - 48px);
+}
+
+.profile-modal-body {
+  padding: 40px 50px !important;
+  background: #f8f9fa;
+}
+
+.profile-container {
+  padding: 0 !important;
+}
+
+.profile-container .section {
+  margin-bottom: 28px;
+}
+
+.profile-container .section h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.profile-container .section p {
+  margin-bottom: 10px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #4a5568;
+}
+
+.profile-container .section p strong {
+  font-weight: 700;
+  display: inline-block;
+  min-width: 180px;
+  color: #2d3748;
+}
+
+/* ===== View Customer Details Modal (Simple View) ===== */
+.view-modal-box {
+  width: 560px;
+}
+
+.user-details { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 12px; 
+}
+
+.view-row { 
+  display:flex; 
+  align-items: stretch; 
+  border-radius:6px; 
+  overflow: hidden; 
+  border:1px solid #c7ced2; 
+  background: #fff; 
+}
+
+<<<<<<< HEAD
 /* --- ADDED: Style for the unclickable email display --- */
 .user-form .uneditable-text-display {
     display: block; 
@@ -276,4 +489,151 @@ body.no-scroll { overflow: hidden; }
 }
 .profile-content-area {
     padding: 0 10px;
+=======
+.view-row .view-label {
+  background: #f1f3f5;
+  min-width: 160px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: #456882;
+  font-weight: 600;
+  border-right: 1px solid #c7ced2;
+  font-size: 14px;
+}
+
+.view-row .view-value {
+  padding: 12px 14px;
+  flex: 1;
+  color: #333;
+  display:flex;
+  align-items:center;
+  font-size: 14px;
+}
+
+/* ===== Delete Confirmation Modal ===== */
+.delete-modal-box {
+  width: 460px;
+}
+
+.delete-message {
+  color: #4a5568;
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 8px 0;
+}
+
+/* ===== Animations ===== */
+@keyframes fadeIn { 
+  from { opacity:0; transform:translateY(-6px); } 
+  to { opacity:1; transform:none; } 
+}
+
+body.no-scroll {
+  overflow: hidden;
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 640px) {
+  .modal-box { 
+    width: 100%; 
+    margin: 8px; 
+  }
+  
+  .view-row .view-label { 
+    min-width: 120px; 
+    font-size: 13px; 
+    padding:10px; 
+  }
+  
+  .profile-modal-body {
+    padding: 24px 20px !important;
+  }
+  
+  .profile-container .section p strong {
+    min-width: 140px;
+  }
+}
+
+/* ===== Helper Classes ===== */
+.hidden { 
+  display:none !important; 
+}
+
+/* ===== NEW: Payment Receipt Modal Styling ===== */
+.receipt-modal-body {
+  padding: 20px 25px !important; 
+  background: #f8f8f8 !important;
+  font-family: "Gordita", sans-serif; /* Assuming Gordita is available */
+}
+
+#paymentReceiptContent {
+  background: white;
+  border: 2px solid black;
+  padding: 25px;
+  text-align: left;
+  font-family: inherit;
+  color: #000;
+}
+
+#paymentReceiptContent h2 {
+  text-align: center;
+  margin: 10px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #000;
+}
+
+#paymentReceiptContent .divider,
+#paymentReceiptContent .top-line,
+#paymentReceiptContent .bottom-line {
+  border: none;
+  border-top: 2px dashed black;
+  margin: 8px 0;
+}
+
+#paymentReceiptContent .section {
+  margin: 10px 0;
+  line-height: 1.6;
+}
+
+#paymentReceiptContent .section p {
+  font-size: 14px;
+  margin: 0;
+}
+
+#paymentReceiptContent .section span {
+  font-weight: 600;
+  color: #000;
+  display: inline-block;
+  min-width: 130px; /* Align key-value pairs */
+}
+
+#paymentReceiptContent .section p span:after {
+  content: " :"; /* Add colon */
+}
+
+#paymentReceiptContent .note {
+  font-size: 13px;
+  text-align: center;
+  margin: 10px 0;
+}
+
+#paymentReceiptContent .footer-note {
+  text-align: center;
+  font-size: 12px;
+  margin-top: 8px;
+  color: #333;
+}
+
+/* ===== NEW: Password Helper Text ===== */
+.password-helper-text {
+  font-size: 12px;
+  color: #5a7a92; /* Using a non-error, helpful color */
+  margin-top: 5px;
+  padding-left: 2px;
+  line-height: 1.4;
+  display: none; /* Hidden by default, JS will show it */
+>>>>>>> 6318d8df5c58a6f0416cf15fada815654e21f674
 }

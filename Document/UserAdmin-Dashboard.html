@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GoodReads | Dashboard</title>
   <link rel="stylesheet" href="UserAdmin-Dashboard.css" />
+
+  <script>
+    // This 'pageshow' event runs on initial load AND when using the 'Back' button.
+    window.addEventListener('pageshow', function(event) {
+      const userRole = sessionStorage.getItem('user_role');
+      
+      // Check if the user is not logged in or is not a useradmin
+      if (!userRole || userRole !== 'useradmin') {
+        sessionStorage.clear(); // Clear the session
+        alert('You do not have permission or your session has expired. Please log in.');
+        // Use replace() to prevent this page from being in the browser history
+        window.location.replace('StartPage.html');
+      }
+    });
+  </script>
 </head>
 <body>
 
@@ -40,8 +55,7 @@
       <div class="sidebar-bottom">
         <div class="user">
           <p class="username">User Admin1</p>
-          <a href="#" class="logout-icon" title="Logout">
-            <img src="logout.png" alt="Logout" /></a>
+          <a href="StartPage.html" class="logout-icon" title="Logout"> <img src="logout.png" alt="Logout" /></a>
         </div>
       </div>
     </aside>
@@ -83,25 +97,7 @@
           <div class="stat-value" id="premiumCount">0</div>
         </div>
 
-        <div class="stat-card">
-          <div class="stat-card-header">
-            <span class="stat-label">Expired</span>
-            <div class="stat-icon">
-              <img src="expired.png" alt="Expired Icon" style="width:28px; height:28px;" />
-            </div>
-          </div>
-          <div class="stat-value" id="expiredCount">0</div>
         </div>
-
-        <div class="stat-card">
-          <div class="stat-card-header">
-            <span class="stat-label">Cancelled</span>
-            <div class="stat-icon">x</div>
-          </div>
-          <div class="stat-value" id="cancelledCount">0</div>
-          <div class="stat-trend down">↓ 3% from last month</div>
-        </div>
-      </div>
 
       <section class="table-section" aria-labelledby="recent-heading">
         <div class="table-top">
@@ -116,7 +112,7 @@
                 <th>Email</th>
                 <th>Plan</th>
                 <th>Payment Method</th>
-                <th style="text-align:right">Actions</th>
+                <th>Start Date</th>
               </tr>
             </thead>
             <tbody>
@@ -125,105 +121,6 @@
         </div>
       </section>
     </main>
-  </div>
-
-  <div id="editModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="editTitle">
-    <div class="modal-box" role="document">
-      <div class="modal-topbar"></div>
-      <div class="modal-body">
-        <h2 id="editTitle" class="modal-title">Edit user details</h2>
-        <form id="editForm" class="modal-form user-form" autocomplete="off">
-          <div class="field">
-            <input id="editEmail" name="email" type="email" placeholder="Email" required>
-          </div>
-          <div class="field">
-            <input id="editPassword" name="password" type="password" placeholder="Password">
-          </div>
-          <div class="field">
-            <select id="editPlan" name="plan" required>
-              <option value="">Select Plan</option>
-              <option value="free">Free</option>
-              <option value="standard">Standard</option>
-              <option value="premium">Premium</option>
-              <option value="expired">Expired</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-          <div class="field">
-            <select id="editPayment" name="payment" required>
-              <option value="">Select Payment Method</option>
-              <option value="credit_card">Credit Card</option>
-              <option value="gcash">GCash</option>
-              <option value="maya">Maya</option>
-              <option value="paypal">PayPal</option>
-            </select>
-          </div>
-          <input type="hidden" id="editReceipt" name="receipt">
-        </form>
-      </div>
-      <div class="modal-bottombar">
-        <div class="modal-actions">
-          <button id="confirmEdit" class="btn confirm">CONFIRM</button>
-          <button id="cancelEdit" class="btn cancel" type="button">CANCEL</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="addModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="addTitle">
-    <div class="modal-box" role="document">
-      <div class="modal-topbar"></div>
-      <div class="modal-body">
-        <h2 id="addTitle" class="modal-title">Add a new user</h2>
-        <form id="addForm" class="modal-form user-form" autocomplete="off" novalidate>
-          <div class="field">
-            <input id="addEmail" name="email" type="email" placeholder="Email" required>
-          </div>
-          <div class="field">
-            <input id="addPassword" name="password" type="password" placeholder="Password" required>
-          </div>
-          <div class="field">
-            <select id="addPlan" name="plan" required>
-              <option value="">Select Plan</option>
-              <option value="free">Free</option>
-              <option value="standard">Standard</option>
-              <option value="premium">Premium</option>
-              <option value="expired">Expired</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-          <div class="field">
-            <select id="addPayment" name="payment" required>
-              <option value="">Select Payment Method</option>
-              <option value="credit_card">Credit Card</option>
-              <option value="gcash">GCash</option>
-              <option value="maya">Maya</option>
-              <option value="paypal">PayPal</option>
-            </select>
-          </div>
-          <input type="hidden" id="addReceipt" name="receipt">
-        </form>
-      </div>
-      <div class="modal-bottombar">
-        <div class="modal-actions">
-          <button id="confirmAdd" class="btn confirm" type="button">CONFIRM</button>
-          <button id="cancelAdd" class="btn cancel" type="button">CANCEL</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="deleteModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="deleteTitle">
-    <div class="confirm-box" role="document" aria-live="assertive">
-      <div>
-        <h3 id="deleteTitle" style="color:#1b3c53; margin-bottom:8px;">Confirm deletion</h3>
-        <p id="deleteMessage">Are you sure you want to delete this user?</p>
-        <div class="confirm-actions">
-          <button id="confirmDeleteBtn" class="btn confirm">YES, DELETE</button>
-          <button id="cancelDeleteBtn" class="btn cancel">CANCEL</button>
-        </div>
-      </div>
-    </div>
   </div>
 
   <script src="UserAdmin-Dashboard.js"></script>

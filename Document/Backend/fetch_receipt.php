@@ -1,7 +1,7 @@
 <?php
 // Backend/fetch_receipt.php
 header('Content-Type: application/json; charset=utf-8');
-require_once __DIR__ . '/config.php'; 
+require_once __DIR__ . '/config.php';
 
 $accountId = $_GET['accountId'] ?? null;
 
@@ -41,18 +41,32 @@ try {
                 'startDate' => 'N/A', // Or maybe account creation date if available
                 'expiryDate' => 'N/A',
                 'amountPaid' => '₱0.00',
-                'paymentMethod' => $user['Payment_Method'] ?? 'Free Plan', // Use payment method if set, else Free Plan
+                'paymentMethod' => $user['Payment_Method'] ?? 'Free Plan',
                 'paymentStatus' => 'N/A' // Free plans don't have a payment status in this context
             ]
         ]);
         exit;
     }
 
-    // 2. Get Plan Price from SUBSCRIPTION_PLANS table for paid plans
-    $planStmt = $pdo->prepare("SELECT Price FROM SUBSCRIPTION_PLANS WHERE PlanName = ? LIMIT 1");
-    $planStmt->execute([$user['Plan']]);
-    $planPrice = $planStmt->fetchColumn();
-    $amountPaidFormatted = '₱' . number_format((float)$planPrice, 2);
+    // --- START MODIFICATION ---
+    // 2. Determine Amount Paid for (Standard, Premium, etc.)
+
+    $paymentMethod = $user['Payment_Method'] ?? '';
+    // Check if the payment method indicates it was free
+    $isFreePayment = in_array($paymentMethod, ['Admin Given', 'Free Plan']);
+
+    if ($isFreePayment) {
+        // It's a paid plan (e.g., Premium) but was given for free by an admin
+        $amountPaidFormatted = '₱0.00';
+    } else {
+        // It's a normal paid plan. Look up the price from the database.
+        $planStmt = $pdo->prepare("SELECT Price FROM SUBSCRIPTION_PLANS WHERE PlanName = ? LIMIT 1");
+        $planStmt->execute([$user['Plan']]);
+        $planPrice = $planStmt->fetchColumn();
+        $amountPaidFormatted = '₱' . number_format((float)$planPrice, 2);
+    }
+    // --- END MODIFICATION ---
+
 
     // 3. Format Dates and Generate Receipt Details
     $receiptNo = 'RCP-' . date('Ymd', strtotime($user['SubsStarted'] ?? time())) . '-' . str_pad($accountId, 3, '0', STR_PAD_LEFT);
@@ -63,12 +77,16 @@ try {
 
     // Determine Payment Status based on Plan_Status and expiry
     $paymentStatus = 'Paid'; // Default assumption
-    if ($user['Plan_Status'] === 'Expired' || $user['Plan_Status'] === 'Cancelled' || $user['Plan_Status'] === 'Downgraded') {
+
+    if ($isFreePayment) {
+        $paymentStatus = 'N/A';
+        if ($paymentMethod === 'Admin Given') $paymentStatus = 'N/A (Admin Given)';
+    } elseif ($user['Plan_Status'] === 'Expired' || $user['Plan_Status'] === 'Cancelled' || $user['Plan_Status'] === 'Downgraded') {
         $paymentStatus = $user['Plan_Status'];
     } elseif (!empty($user['SubsEnd']) && strtotime($user['SubsEnd']) < time()) {
         $paymentStatus = 'Expired'; // Double-check if expired based on date
     }
-    
+
 
     echo json_encode([
         'success' => true,
@@ -80,12 +98,11 @@ try {
             'planDuration' => $planDuration,
             'startDate' => $startDate,
             'expiryDate' => $expiryDate,
-            'amountPaid' => $amountPaidFormatted,
+            'amountPaid' => $amountPaidFormatted, // <-- This now shows ₱0.00 for admin-given subs
             'paymentMethod' => $user['Payment_Method'] ?? 'N/A',
             'paymentStatus' => $paymentStatus
         ]
     ]);
-
 } catch (PDOException $e) {
     http_response_code(500);
     error_log('Receipt fetch error: ' . $e->getMessage());

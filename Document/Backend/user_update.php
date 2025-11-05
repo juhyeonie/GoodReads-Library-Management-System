@@ -1,8 +1,10 @@
 <?php
-// Backend/user_update.php
+// Backend/user_update.php (FIXED - Auto Payment Method Logic)
 header('Content-Type: application/json; charset=utf-8');
 
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once __DIR__ . '/config.php';
 
 $adminId = $_SESSION['user']['AccountID'] ?? 0;
@@ -13,14 +15,21 @@ $userId = $input['userId'] ?? null;
 $email = $input['email'] ?? '';
 $password = $input['password'] ?? ''; // Password can be empty if not changing
 $plan = $input['plan'] ?? '';
-// REMOVED: $payment = $input['payment'] ?? '';
 
 // --- Validation ---
 $errors = [];
-if (empty($userId)) { $errors['general'] = 'User ID missing.'; }
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors['email'] = 'Invalid email format.'; }
-if (!empty($password) && strlen($password) < 6) { $errors['password'] = 'Password must be at least 6 characters if provided.'; }
-if (empty($plan)) { $errors['plan'] = 'Plan is required.'; }
+if (empty($userId)) {
+    $errors['general'] = 'User ID missing.';
+}
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $errors['email'] = 'Invalid email format.';
+}
+if (!empty($password) && strlen($password) < 6) {
+    $errors['password'] = 'Password must be at least 6 characters if provided.';
+}
+if (empty($plan)) {
+    $errors['plan'] = 'Plan is required.';
+}
 
 // Check if the NEW email already exists FOR ANOTHER USER
 if (!empty($email) && !empty($userId)) {
@@ -36,7 +45,6 @@ if (!empty($email) && !empty($userId)) {
     }
 }
 
-
 if (!empty($errors)) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Validation failed.', 'errors' => $errors]);
@@ -45,9 +53,16 @@ if (!empty($errors)) {
 // --- End Validation ---
 
 try {
-    // REMOVED: Payment_Method from SQL
-    $sql = "UPDATE ACCOUNT SET Email = ?, Plan = ?";
-    $params = [$email, $plan];
+    // --- AUTO-SET PAYMENT METHOD BASED ON PLAN ---
+    $paymentMethod = '';
+    if ($plan === 'Basic Plan') {
+        $paymentMethod = 'Free Plan';
+    } elseif ($plan === 'Standard Plan' || $plan === 'Premium Plan') {
+        $paymentMethod = 'AdminGiven';
+    }
+
+    $sql = "UPDATE ACCOUNT SET Email = ?, Plan = ?, Payment_Method = ?";
+    $params = [$email, $plan, $paymentMethod];
 
     // Handle password update ONLY if a new password was provided
     if (!empty($password)) {
@@ -56,22 +71,28 @@ try {
         $params[] = $passwordHash;
     }
 
-    // Add subscription dates if changing TO a paid plan FROM Basic
+    // Get current plan to determine if we need to update subscription dates
     $currentPlanStmt = $pdo->prepare("SELECT Plan FROM ACCOUNT WHERE AccountID = ?");
     $currentPlanStmt->execute([$userId]);
     $currentPlan = $currentPlanStmt->fetchColumn();
 
+    // Add subscription dates if changing TO a paid plan FROM Basic
     if ($currentPlan === 'Basic Plan' && $plan !== 'Basic Plan') {
-         $sql .= ", SubsStarted = ?, SubsEnd = ?";
-         $params[] = date('Y-m-d H:i:s');
-         $params[] = date('Y-m-d H:i:s', strtotime('+30 days'));
-         $sql .= ", Plan_Status = 'Active'";
-    } elseif ($plan === 'Basic Plan') { // If changing TO Basic, clear dates
-         $sql .= ", SubsStarted = NULL, SubsEnd = NULL";
-         $sql .= ", Plan_Status = 'Active'";
+        $sql .= ", SubsStarted = ?, SubsEnd = ?, Plan_Status = ?";
+        $params[] = date('Y-m-d H:i:s');
+        $params[] = date('Y-m-d H:i:s', strtotime('+30 days'));
+        $params[] = 'Active';
+    } elseif ($plan === 'Basic Plan') {
+        // If changing TO Basic, clear dates
+        $sql .= ", SubsStarted = NULL, SubsEnd = NULL, Plan_Status = ?";
+        $params[] = 'Active';
+    } else {
+        // If staying on paid plan or changing between paid plans, keep status active
+        $sql .= ", Plan_Status = ?";
+        $params[] = 'Active';
     }
 
-    $sql .= " WHERE AccountID = ?";
+    $sql .= " WHERE AccountID = ? AND Role = 'Customer'";
     $params[] = $userId;
 
     $stmt = $pdo->prepare($sql);
@@ -79,10 +100,9 @@ try {
 
     // Log the action
     $log_stmt = $pdo->prepare("INSERT INTO ACTIVITY_LOG (AccountID, ActionType, Description) VALUES (?, 'UPDATE_USER', ?)");
-    $log_stmt->execute([$adminId, "Admin updated customer ID: " . $userId . " (Email: " . $email . ")"]);
+    $log_stmt->execute([$adminId, "Admin updated customer ID: " . $userId . " (Email: " . $email . ", Plan: " . $plan . ")"]);
 
     echo json_encode(['success' => true, 'message' => 'User updated successfully.']);
-
 } catch (PDOException $e) {
     http_response_code(500);
     error_log('User update error: ' . $e->getMessage());

@@ -5,6 +5,22 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GoodReads | Customer Management</title>
   <link rel="stylesheet" href="SuperAdmin-User.css" />
+
+  <script>
+    // This 'pageshow' event runs on initial load AND when using the 'Back' button.
+    // This handles the back-forward cache issue after logout.
+    window.addEventListener('pageshow', function(event) {
+      const userRole = sessionStorage.getItem('user_role');
+      
+      // Check if the user is not logged in or is not a superadmin
+      if (!userRole || userRole !== 'superadmin') {
+        sessionStorage.clear(); // Clear the session
+        alert('You do not have permission or your session has expired. Please log in.');
+        // Use replace() to prevent this page from being in the browser history
+        window.location.replace('StartPage.html');
+      }
+    });
+  </script>
 </head>
 <body>
 
@@ -38,8 +54,8 @@
             <span class="icon"><img src="subscription.png" alt="" /></span>
             <span class="text">Plan Management</span>
           </a>
-          <a href="SuperAdmin-ActivityLog.html" class="menu-item" data-tooltip="Customer Management">
-            <span class="icon"><img src="user.png" alt="" /></span>
+          <a href="SuperAdmin-ActivityLog.html" class="menu-item" data-tooltip="Activity Log">
+            <span class="icon"><img src="activitylog.png" alt="" /></span>
             <span class="text">Activity Log</span>
           </a>
         </nav>
@@ -96,7 +112,7 @@
               </tr>
             </thead>
             <tbody>
-              </tbody>
+            </tbody>
           </table>
         </div>
 
@@ -105,53 +121,23 @@
     </main>
   </div>
 
-  <div id="viewModal" class="modal-overlay">
-    <div class="modal-box view-modal-box">
-      <div class="modal-topbar"></div>
-      <div class="modal-body">
-        <h2 class="modal-title">Customer Details</h2>
-        <div class="user-details">
-          <div class="view-row">
-            <div class="view-label">Account ID:</div>
-            <div id="viewAccountId" class="view-value"></div>
-          </div>
-          <div class="view-row">
-            <div class="view-label">Email:</div>
-            <div id="viewEmail" class="view-value"></div>
-          </div>
-          <div class="view-row">
-            <div class="view-label">Subscription Plan:</div>
-            <div id="viewPlan" class="view-value"></div>
-          </div>
-          <div class="view-row">
-            <div class="view-label">Payment Method:</div>
-            <div id="viewPayment" class="view-value"></div>
-          </div>
-          <div class="view-row">
-            <div class="view-label">Registered Date:</div>
-            <div id="viewRegisteredDate" class="view-value"></div>
-          </div>
-        </div>
-      </div>
-      <div class="modal-bottombar">
-        <div class="modal-actions">
-          <button id="viewInvoiceBtn" class="btn confirm" type="button">VIEW INVOICE</button>
-          <button id="closeViewBtn" class="btn cancel" type="button">CLOSE</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div id="editModal" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-topbar"></div>
       <div class="modal-body">
         <h2 class="modal-title">Edit user details</h2>
         <form id="editForm" class="user-form">
+<<<<<<< HEAD
           <div class="field">
              <label class="field-label">Email</label>
             <span id="editEmailDisplay" class="uneditable-text-display"></span>
             <input id="editEmail" name="email" type="hidden" /> 
+=======
+
+          <div class="floating field">
+            <input id="editEmail" name="email" type="email" placeholder=" " required />
+            <label class="floating-label" for="editEmail">Email</label>
+>>>>>>> 6318d8df5c58a6f0416cf15fada815654e21f674
             <div class="error-message" id="editEmailError"></div>
           </div>
 
@@ -159,19 +145,16 @@
             <input id="editPassword" name="password" type="password" class="password-input" placeholder=" " />
             <label class="floating-label" for="editPassword">Password (leave blank to keep current)</label>
             <button type="button" class="password-toggle" data-target="editPassword" aria-label="Toggle password visibility">
-
-              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C5 20 1 12 1 12c1.7-3.21 4.57-5.75 8.27-6.9"></path>
-                <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
+              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
             </button>
             <div class="error-message" id="editPasswordError"></div>
+            <div class="password-helper-text" id="editPasswordHelper">
+              Must be 8+ chars, 1 uppercase, and 1 number.
+            </div>
           </div>
 
           <div class="floating field">
-            <select id="editPlan" name="plan">
+            <select id="editPlan" name="plan" required>
               <option value=""></option>
               <option value="Basic Plan">Basic Plan</option>
               <option value="Standard Plan">Standard Plan</option>
@@ -200,26 +183,25 @@
         <h2 class="modal-title">Add a new user</h2>
         <form id="addForm" class="user-form">
           <div class="floating field">
-            <input id="addEmail" name="email" type="email" placeholder=" " />
+            <input id="addEmail" name="email" type="email" placeholder=" " required />
             <label class="floating-label" for="addEmail">Email</label>
             <div class="error-message" id="addEmailError"></div>
           </div>
 
           <div class="floating field password-field-wrapper">
-            <input id="addPassword" name="password" type="password" class="password-input" placeholder=" " />
+            <input id="addPassword" name="password" type="password" class="password-input" placeholder=" " required />
             <label class="floating-label" for="addPassword">Password</label>
             <button type="button" class="password-toggle" data-target="addPassword" aria-label="Toggle password visibility">
-              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C5 20 1 12 1 12c1.7-3.21 4.57-5.75 8.27-6.9"></path>
-                <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
+              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
             </button>
             <div class="error-message" id="addPasswordError"></div>
+            <div class="password-helper-text" id="addPasswordHelper">
+              Must be 8+ chars, 1 uppercase, and 1 number.
+            </div>
           </div>
 
           <div class="floating field">
-            <select id="addPlan" name="plan">
+            <select id="addPlan" name="plan" required>
               <option value=""></option>
               <option value="Basic Plan">Basic Plan</option>
               <option value="Standard Plan">Standard Plan</option>
@@ -228,8 +210,12 @@
             <label class="floating-label" for="addPlan">Subscription Plan</label>
             <div class="error-message" id="addPlanError"></div>
           </div>
+<<<<<<< HEAD
           
           </form>
+=======
+        </form>
+>>>>>>> 6318d8df5c58a6f0416cf15fada815654e21f674
       </div>
       <div class="modal-bottombar">
         <div class="modal-actions">
@@ -258,7 +244,8 @@
 
   <div id="viewReceiptModal" class="modal-overlay">
     <div class="modal-box profile-modal-box">
-      <div class="modal-topbar" style="background-color: #1b3c53;"></div> <div class="modal-body profile-modal-body" style="padding: 30px;">
+      <div class="modal-topbar" style="background-color: #1b3c53;"></div>
+      <div class="modal-body profile-modal-body" style="padding: 30px;">
         <h2 style="text-align: center; font-size: 24px; font-weight: 700; color: #1b3c53; margin-bottom: 30px;">CUSTOMER PROFILE</h2>
         <div id="receiptContent" class="profile-content-area" style="padding: 0 10px;">
           <p style="text-align: center; padding: 40px; color: #888;">Loading profile...</p>
@@ -266,11 +253,33 @@
       </div>
       <div class="modal-bottombar">
         <div class="modal-actions">
+          <button id="viewProfileReceiptBtn" class="btn confirm" type="button">VIEW RECEIPT</button>
           <button id="closeReceiptBtn" class="btn cancel" type="button">CLOSE</button>
         </div>
       </div>
     </div>
   </div>
+<<<<<<< HEAD
+=======
+
+  <div id="viewPaymentReceiptModal" class="modal-overlay">
+    <div class="modal-box receipt-modal-box" style="width: 480px;">
+      <div class="modal-topbar" style="background-color: #1b3c53;"></div>
+      <div class="modal-body receipt-modal-body">
+        <div id="paymentReceiptContent" class="receipt-content-area">
+          <p style="text-align: center; padding: 40px; color: #888;">Loading receipt...</p>
+        </div>
+      </div>
+      <div class="modal-bottombar">
+        <div class="modal-actions">
+          <button id="closePaymentReceiptBtn" class="btn cancel" type="button">CLOSE</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+>>>>>>> 6318d8df5c58a6f0416cf15fada815654e21f674
   <script src="SuperAdmin-User.js"></script>
 </body>
 </html>

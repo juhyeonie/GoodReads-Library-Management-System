@@ -4,7 +4,23 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GoodReads | Admin Management</title>
-  <link rel="stylesheet" href="UserAdmin-Admin.css" />
+  <link rel="stylesheet" href="SuperAdmin-User.css" />
+
+  <script>
+    // This 'pageshow' event runs on initial load AND when using the 'Back' button.
+    // This handles the back-forward cache issue after logout.
+    window.addEventListener('pageshow', function(event) {
+      const userRole = sessionStorage.getItem('user_role');
+      
+      // Check if the user is not logged in or is not a superadmin
+      if (!userRole || userRole !== 'superadmin') {
+        sessionStorage.clear(); // Clear the session
+        alert('You do not have permission or your session has expired. Please log in.');
+        // Use replace() to prevent this page from being in the browser history
+        window.location.replace('StartPage.html');
+      }
+    });
+  </script>
 </head>
 <body>
 
@@ -38,8 +54,8 @@
             <span class="icon"><img src="subscription.png" alt="" /></span>
             <span class="text">Plan Management</span>
           </a>
-          <a href="SuperAdmin-ActivityLog.html" class="menu-item" data-tooltip="Customer Management">
-            <span class="icon"><img src="user.png" alt="" /></span>
+          <a href="SuperAdmin-ActivityLog.html" class="menu-item" data-tooltip="Activity Log">
+            <span class="icon"><img src="activitylog.png" alt="" /></span>
             <span class="text">Activity Log</span>
           </a>
         </nav>
@@ -115,11 +131,7 @@
             <input id="editPassword" name="password" type="password" class="password-input" placeholder=" " />
             <label class="floating-label" for="editPassword">Password (leave blank to keep current)</label>
             <button type="button" class="password-toggle" data-target="editPassword" aria-label="Toggle password visibility">
-              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C5 20 1 12 1 12c1.7-3.21 4.57-5.75 8.27-6.9"></path>
-                <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
+              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
             </button>
             <div class="error-message" id="editPasswordError"></div>
           </div>
@@ -127,8 +139,8 @@
           <div class="floating field">
             <select id="editRole" name="role">
               <option value=""></option>
-              <option value="Subscription Admin">Subscription Admin</option>
-              <option value="User Admin">User Admin</option>
+              <option value="SubsAdmin">Subscription Admin</option>
+              <option value="UserAdmin">User Admin</option>
             </select>
             <label class="floating-label" for="editRole">Admin Role</label>
             <div class="error-message" id="editRoleError"></div>
@@ -164,19 +176,15 @@
             <input id="addPassword" name="password" type="password" class="password-input" placeholder=" " />
             <label class="floating-label" for="addPassword">Password</label>
             <button type="button" class="password-toggle" data-target="addPassword" aria-label="Toggle password visibility">
-              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C5 20 1 12 1 12c1.7-3.21 4.57-5.75 8.27-6.9"></path>
-                <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
+              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
             </button>
             <div class="error-message" id="addPasswordError"></div>
           </div>
           <div class="floating field">
             <select id="addRole" name="role">
               <option value=""></option>
-              <option value="Subscription Admin">Subscription Admin</option>
-              <option value="User Admin">User Admin</option>
+              <option value="SubsAdmin">Subscription Admin</option>
+              <option value="UserAdmin">User Admin</option>
             </select>
             <label class="floating-label" for="addRole">Admin Role</label>
             <div class="error-message" id="addRoleError"></div>
