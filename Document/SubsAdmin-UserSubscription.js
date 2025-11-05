@@ -60,8 +60,11 @@ console.log('SubsAdmin-UserSubscription.js loaded');
       const editModal = document.getElementById('editModal');
       const editForm = document.getElementById('editForm');
       const editEmail = document.getElementById('editEmail');
+      // ===== ADDED =====
+      const editPassword = document.getElementById('editPassword');
+      const editPasswordHelper = document.getElementById('editPasswordHelper');
+      // ===== END ADDED =====
       const editPlan = document.getElementById('editPlan');
-      // const editPayment = document.getElementById('editPayment'); // <-- REMOVED
       const editUserId = document.getElementById('editUserId');
       const confirmEdit = document.getElementById('confirmEdit');
       const cancelEdit = document.getElementById('cancelEdit');
@@ -122,6 +125,21 @@ console.log('SubsAdmin-UserSubscription.js loaded');
               return dateString;
           }
       }
+      
+      // ===== ADDED: Password Validation Utility =====
+      function validatePassword(password) {
+        if (password.length < 8) {
+            return { valid: false, message: 'Password must be at least 8 characters.' };
+        }
+        if (!/[A-Z]/.test(password)) {
+            return { valid: false, message: 'Must contain one uppercase letter.' };
+        }
+        if (!/\d/.test(password)) {
+            return { valid: false, message: 'Must contain one number.' };
+        }
+        return { valid: true, message: '' };
+      }
+      // ===== END ADDED =====
 
       // MODIFIED: This function now handles select tags
       function initFloatingSelects(scope=document){
@@ -135,9 +153,9 @@ console.log('SubsAdmin-UserSubscription.js loaded');
         });
       }
       
-      // ADDED: This function handles text inputs (for the email field)
+      // MODIFIED: This function now handles text/email/password inputs
       function initFloatingTextInputs(scope=document) {
-        scope.querySelectorAll('input[type="email"], input[type="text"]').forEach(inp => { // Only text/email inputs
+        scope.querySelectorAll('input[type="email"], input[type="text"], input[type="password"]').forEach(inp => { 
             function update() {
                 if (!inp) return;
                 if (inp.value && inp.value !== '') inp.classList.add('has-val'); 
@@ -155,6 +173,9 @@ console.log('SubsAdmin-UserSubscription.js loaded');
               el.textContent = ''; 
               el.classList.remove('show'); 
           });
+          // ===== ADDED =====
+          if (editPasswordHelper) editPasswordHelper.style.display = 'none';
+          // ===== END ADDED =====
       }
 
       /* ---------- Data load & render ---------- */
@@ -235,12 +256,12 @@ console.log('SubsAdmin-UserSubscription.js loaded');
         
         editUserId.value = user.AccountID;
         editEmail.value = user.Email || '';
+        editPassword.value = ''; // <-- ADDED: Clear password field
         editPlan.value = user.Plan || '';
-        // editPayment.value = user.Payment_Method || ''; // <-- REMOVED
         
         // Manually trigger floating label checks
         initFloatingSelects(editForm);
-        initFloatingTextInputs(editForm); // <-- ADDED
+        initFloatingTextInputs(editForm); // <-- This now handles password
         
         showModal(editModal);
       }
@@ -249,7 +270,7 @@ console.log('SubsAdmin-UserSubscription.js loaded');
         e.preventDefault();
         const accountId = editUserId.value;
         const plan = editPlan.value;
-        // const payment = editPayment.value; // <-- REMOVED
+        const password = editPassword.value; // <-- ADDED
         const email = editEmail.value;
         
         clearErrors(editForm);
@@ -261,7 +282,19 @@ console.log('SubsAdmin-UserSubscription.js loaded');
             document.getElementById('editPlanError').classList.add('show');
             isValid = false;
         }
-        // Validation for payment removed
+        
+        // ===== ADDED: Password Validation =====
+        if (password && password.length > 0) { // Only validate if a new password is entered
+            const passValidation = validatePassword(password);
+            if (!passValidation.valid) {
+                editPassword.classList.add('error');
+                document.getElementById('editPasswordError').textContent = passValidation.message;
+                document.getElementById('editPasswordError').classList.add('show');
+                if (editPasswordHelper) editPasswordHelper.style.display = 'none'; // Hide helper on error
+                isValid = false;
+            }
+        }
+        // ===== END ADDED =====
         
         if (!isValid) return;
 
@@ -270,15 +303,28 @@ console.log('SubsAdmin-UserSubscription.js loaded');
           const resp = await fetch('Backend/subsadmin_user_update.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            // MODIFIED: Removed 'payment' from the request body
-            body: JSON.stringify({ userId: accountId, email, plan })
+            // MODIFIED: Added 'password' to the request body
+            body: JSON.stringify({ userId: accountId, email, plan, password })
           });
           const result = await resp.json();
           if(!result.success) {
             if(result.errors) {
-              let msg = 'Validation errors:\n';
-              Object.keys(result.errors).forEach(k => { msg += k+': '+result.errors[k]+'\n'; });
-              alert(msg);
+              // ===== ADDED: Handle password server errors =====
+              if (result.errors.password) {
+                  editPassword.classList.add('error');
+                  document.getElementById('editPasswordError').textContent = result.errors.password;
+                  document.getElementById('editPasswordError').classList.add('show');
+                  if (editPasswordHelper) editPasswordHelper.style.display = 'none';
+              }
+              if (result.errors.plan) {
+                  editPlan.classList.add('error');
+                  document.getElementById('editPlanError').textContent = result.errors.plan;
+                  document.getElementById('editPlanError').classList.add('show');
+              }
+              if (result.errors.general) {
+                  alert(result.errors.general);
+              }
+              // ===== END ADDED =====
             } else throw new Error(result.message || 'Update failed');
           } else {
             hideModal(editModal);
@@ -454,11 +500,65 @@ console.log('SubsAdmin-UserSubscription.js loaded');
         }
       });
 
+      // ===== ADDED: Password Toggle Logic =====
+      function getOpenEyeSVG() {
+        return `
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        `;
+      }
+
+      function getClosedEyeSVG() {
+        return `
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path>
+          <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path>
+          <line x1="1" y1="1" x2="23" y2="23"></line>
+        `;
+      }
+
+      function initPasswordToggles() {
+        document.querySelectorAll('.password-toggle').forEach(toggle => {
+            const eyeIcon = toggle.querySelector('.eye-icon');
+            if (eyeIcon && eyeIcon.innerHTML.trim() === '') {
+                eyeIcon.innerHTML = getClosedEyeSVG();
+            }
+            toggle.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                const eyeIconLocal = this.querySelector('.eye-icon');
+
+                if (!passwordInput) return;
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    if (eyeIconLocal) eyeIconLocal.innerHTML = getOpenEyeSVG();
+                } else {
+                    passwordInput.type = 'password';
+                    if (eyeIconLocal) eyeIconLocal.innerHTML = getClosedEyeSVG();
+                }
+            });
+        });
+      }
+      
+      // ===== ADDED: Password Helper Logic =====
+      function initPasswordHelpers() {
+        if (editPassword && editPasswordHelper) {
+            editPassword.addEventListener('focus', () => {
+                if (!document.getElementById('editPasswordError').classList.contains('show')) {
+                    editPasswordHelper.style.display = 'block';
+                }
+            });
+            editPassword.addEventListener('blur', () => {
+                editPasswordHelper.style.display = 'none';
+            });
+        }
+      }
+
       /* ---------- Init ---------- */
       document.addEventListener('DOMContentLoaded', () => {
         initFloatingSelects(document);
-        // We call this here too, in case of future non-modal inputs
         initFloatingTextInputs(document); 
+        initPasswordToggles(); // <-- ADDED
+        initPasswordHelpers(); // <-- ADDED
       });
 
       // initial fetch

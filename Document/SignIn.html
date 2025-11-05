@@ -5,37 +5,39 @@
   <title>GoodReads | Sign-in</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="SignIn.css">
-  <style>
-    /* Minimal inline styles for the password toggle button */
-    .password-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-    .password-wrapper input[type="password"],
-    .password-wrapper input[type="text"] {
-      flex: 1;
-      padding-right: 3.5rem; /* space for the toggle button */
-    }
-    .pw-toggle-btn {
-      position: absolute;
-      right: 0.5rem;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      padding: 0.25rem 0.4rem;
-      font-size: 0.95rem;
-      line-height: 1;
-      color: #333;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .pw-toggle-btn:focus {
-      outline: 2px solid #4d90fe;
-      border-radius: 4px;
-    }
-  </style>
+
+  <script>
+    // This 'pageshow' event runs on initial load AND when using the 'Back' button.
+    window.addEventListener('pageshow', function(event) {
+      const userRole = sessionStorage.getItem('user_role');
+
+      // If a user role EXISTS, they are already logged in.
+      // Redirect them away from the sign-in page.
+      if (userRole) {
+        console.log('User already logged in. Redirecting from sign-in page...');
+        
+        switch(userRole) {
+          case 'superadmin':
+            window.location.replace('SuperAdmin-Dashboard.html');
+            break;
+          case 'useradmin':
+            window.location.replace('UserAdmin-Dashboard.html');
+            break;
+          case 'subsadmin':
+            window.location.replace('SubsAdmin-Dashboard.html');
+            break;
+          case 'user':
+          case 'customer':
+            window.location.replace('homepage.html');
+            break;
+          default:
+            // Safe default if role is weird, but they are logged in
+            window.location.replace('homepage.html');
+        }
+      }
+      // If no userRole, do nothing and let the sign-in page load.
+    });
+  </script>
 </head>
 <body>
 
