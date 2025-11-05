@@ -41,6 +41,11 @@
       <button class="confirm-btn">Confirm</button>
     </div>
   </div>
-
+  <script src="auth.js"></script>
+  <script src="Confirmplan.js"></script>
+   <script>
+    // make sure logout links and popstate handling are set
+    if (typeof callOnProtectedPage === 'function') callOnProtectedPage();
+  </script>
 </body>
 </html>

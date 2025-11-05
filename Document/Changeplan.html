@@ -34,10 +34,14 @@
   </div>
 </section>
 
-
+<script src="auth.js"></script>
   <button class="continue-btn">Continue</button>
   <script src="Changeplan.js"></script>
 
+    <script>
+    // make sure logout links and popstate handling are set
+    if (typeof callOnProtectedPage === 'function') callOnProtectedPage();
+  </script>
 
 </body>
 </html>

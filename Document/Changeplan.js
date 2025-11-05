@@ -1,4 +1,4 @@
-// Changeplan.js — load plans + current user, render, allow change
+// Changeplan.js — load plans + current user, render, go to confirm page
 document.addEventListener('DOMContentLoaded', () => {
   const plansContainer = document.querySelector('.plans-container');
 
@@ -6,16 +6,20 @@ document.addEventListener('DOMContentLoaded', () => {
     return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[s]));
   }
 
-  // Fetch JSON with credentials
+  // fetch helper returns {res, json, text}
   async function fetchJson(url, opts = {}) {
     opts.credentials = opts.credentials || 'same-origin';
-    const res = await fetch(url, opts);
-    const text = await res.text();
-    try { return { res, json: JSON.parse(text) }; }
-    catch(e) { return { res, json: null, text }; }
+    try {
+      const res = await fetch(url, opts);
+      const text = await res.text();
+      let json = null;
+      try { json = JSON.parse(text); } catch(e){}
+      return { res, json, text };
+    } catch (err) {
+      return { res: { ok:false, status:0 }, json: null, text: null, error: err };
+    }
   }
 
-  // Load both plans and current user in parallel
   async function loadData() {
     plansContainer.innerHTML = '<p>Loading available plans…</p>';
     try {
@@ -27,13 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!plansResp.res.ok || !plansResp.json || !plansResp.json.success) {
         throw new Error(plansResp.json?.message || 'Could not load plans');
       }
-
       const plans = plansResp.json.plans || [];
 
-      // user may be unauthenticated (we still show plans and fallback to signup flow)
       let userPlan = null;
       if (userResp.res.ok && userResp.json && userResp.json.success && userResp.json.user) {
-        userPlan = (userResp.json.user.plan || '').toString().trim();
+        // backend may use different case names; try common ones
+        const u = userResp.json.user;
+        userPlan = (u.plan || u.Plan || u.PlanName || u.Plan_Name || '').toString().trim();
       }
 
       renderPlans(plans, userPlan);
@@ -50,16 +54,16 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // normalize helper for comparisons
+    const norm = s => (s||'').toString().trim().toLowerCase().replace(/\s+/g,' ');
+
     plans.forEach(plan => {
-      // plan object shape from your backend: { PlanName, Price, features: [{FeatureText}, ...] }
       const planName = plan.PlanName || plan.planName || 'Unknown Plan';
       const price = (plan.Price !== undefined && plan.Price !== null) ? `₱${parseFloat(plan.Price).toFixed(0)}` : '—';
-      const isCurrent = currentPlanName && currentPlanName.toLowerCase() === planName.toLowerCase();
+      const isCurrent = currentPlanName && norm(currentPlanName) === norm(planName);
 
-      // build features list
       const features = Array.isArray(plan.features) ? plan.features.map(f => `<li>${escapeHTML(f.FeatureText || f)}</li>`).join('') : '';
 
-      // choose classes & button label
       const planClass = `plan ${escapeHTML(planName.toLowerCase().split(' ')[0] || '')} ${isCurrent ? 'highlight' : ''}`;
       const ribbonHTML = isCurrent ? `<div class="ribbon">Current</div>` : '';
       const buttonText = isCurrent ? 'Current Plan' : 'Choose';
@@ -77,49 +81,39 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
 
       const btn = div.querySelector('.plan-btn');
-      btn?.addEventListener('click', () => onSelectPlan(planName, div));
+      if (btn) btn.addEventListener('click', () => onChoosePlan(planName));
 
       plansContainer.appendChild(div);
     });
   }
 
-  async function onSelectPlan(planName, planElement) {
+  // When user picks a plan we go to confirm page with query params
+  function onChoosePlan(planName) {
     if (!planName) return;
-    // Confirm before changing live account
-    const ok = confirm(`Change subscription to "${planName}"?`);
-    if (!ok) return;
-
-    // Optimistic UI lock
-    const btn = planElement.querySelector('.plan-btn');
-    const prevText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = 'Updating…';
-
-    try {
-      const fd = new FormData();
-      fd.append('plan', planName);
-
-      const { res, json } = await fetchJson('Backend/api/change_plan.php', { method: 'POST', body: fd });
-      if (!res.ok || !json || !json.success) {
-        const msg = json?.message || `Failed to change plan (status ${res.status})`;
-        alert(msg);
-        // fallback: store selection for signup flow (if unauthenticated)
-        localStorage.setItem('selectedPlan', planName);
-        return;
-      }
-
-      alert(json.message || `Plan changed to ${json.plan || planName}`);
-      // After success, return to settings to reflect change
-      location.href = 'Setting.html';
-    } catch (err) {
-      console.error('Change plan failed', err);
-      alert('Network error while changing plan. Please try again.');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = prevText;
-    }
+    // pass new plan via querystring; we also try to include 'current' by fetching current user again
+    // but simpler: fetch current user, then redirect with both values.
+    fetch('Backend/api/fetch_current_user.php', { credentials: 'same-origin' })
+      .then(r => r.json().catch(()=>null))
+      .then(json => {
+        let current = '';
+        if (json && json.success && json.user) {
+          const u = json.user;
+          current = u.plan || u.Plan || u.PlanName || '';
+        }
+        // encode and send user to confirm page
+        const params = new URLSearchParams();
+        params.set('new', planName);
+        if (current) params.set('current', current);
+        // go to confirm page
+        location.href = 'Confirmplan.html?' + params.toString();
+      })
+      .catch(err => {
+        // fallback: no current plan known
+        const params = new URLSearchParams();
+        params.set('new', planName);
+        location.href = 'Confirmplan.html?' + params.toString();
+      });
   }
 
-  // start
   loadData();
 });
