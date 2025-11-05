@@ -373,27 +373,83 @@ window.addEventListener("click", e => {
 });
 
 // FIX: Replaced alert() with in-page notification (using warning modal)
+// --- My Books localStorage helpers ---
+function getMyBooks() {
+  try {
+    const json = localStorage.getItem('my_books');
+    if (!json) return [];
+    const arr = JSON.parse(json);
+    return Array.isArray(arr) ? arr : [];
+  } catch (err) {
+    console.warn('Could not read my_books from localStorage', err);
+    return [];
+  }
+}
+
+function saveMyBooks(arr) {
+  try {
+    localStorage.setItem('my_books', JSON.stringify(arr));
+  } catch (err) {
+    console.error('Could not write my_books to localStorage', err);
+  }
+}
+
+function isBookInMyBooks(book) {
+  if (!book) return false;
+  const list = getMyBooks();
+  // Use title + pdfUrl as unique key (adjust if you have ISBN or id)
+  return list.some(b => b.title === book.title && (b.pdfUrl || '') === (book.pdfUrl || ''));
+}
+
+function addBookToMyBooks(book) {
+  if (!book) return false;
+  const list = getMyBooks();
+  if (isBookInMyBooks(book)) return false;
+  // store minimal required fields
+  const toStore = {
+    title: book.title || 'Untitled',
+    cover: book.cover || '',
+    genre: book.genre || '',
+    description: book.description || '',
+    pdfUrl: book.pdfUrl || ''
+  };
+  list.unshift(toStore); // add newest first
+  saveMyBooks(list);
+  return true;
+}
+
+// --- Replace the old addBookBtn listener with this updated one ---
 addBookBtn.addEventListener("click", () => {
-    console.log(`${selectedBook.title} added to My Books!`);
-    
-    // Set success message content
+  if (!selectedBook) return;
+  const added = addBookToMyBooks(selectedBook);
+
+  if (!added) {
+    // already in My Books
+    warningTitle.textContent = "Already Added";
+    warningMessage.textContent = `${selectedBook.title} is already in your My Books.`;
+    warningModal.style.display = "block";
+  } else {
+    // Successfully added
     warningTitle.textContent = "Success!";
-    warningMessage.textContent = `${selectedBook.title} has been successfully added to your My Books!`;
+    warningMessage.textContent = `${selectedBook.title} has been added to your My Books.`;
     warningModal.style.display = "block";
     
-    // Set up close actions
-    const close = () => warningModal.style.display = "none";
+    // update UI: close preview after a short delay
+    const close = () => (warningModal.style.display = "none");
     closeWarning.onclick = close;
     okBtn.onclick = close;
+    window.onclick = e => {
+      if (e.target === warningModal) close();
+    };
 
-    // Automatically close after a delay, then close preview modal
     setTimeout(() => {
-        close();
-        modal.style.display = "none";
-        selectedBook = null;
-    }, 1500); 
-    
+      close();
+      modal.style.display = "none";
+      selectedBook = null;
+    }, 1200);
+  }
 });
+
 
 
 const closeModalBtn = document.getElementById("closeModal");
