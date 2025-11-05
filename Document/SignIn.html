@@ -5,6 +5,37 @@
   <title>GoodReads | Sign-in</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="SignIn.css">
+  <style>
+    /* Minimal inline styles for the password toggle button */
+    .password-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .password-wrapper input[type="password"],
+    .password-wrapper input[type="text"] {
+      flex: 1;
+      padding-right: 3.5rem; /* space for the toggle button */
+    }
+    .pw-toggle-btn {
+      position: absolute;
+      right: 0.5rem;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0.25rem 0.4rem;
+      font-size: 0.95rem;
+      line-height: 1;
+      color: #333;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pw-toggle-btn:focus {
+      outline: 2px solid #4d90fe;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 <body>
 
@@ -33,8 +64,21 @@
           <div class="error" id="err-email" style="display:none;color:#c33;font-size:0.9rem;margin-top:0.25rem;"></div>
         </div>
 
-        <div class="input-group">
+        <!-- Password field wrapped for the toggle -->
+        <div class="input-group password-wrapper">
           <input type="password" name="password" id="password" placeholder="Password" autocomplete="new-password" required>
+          <!-- Toggle button (type="button" to avoid submitting the form) -->
+          <button
+            type="button"
+            id="togglePassword"
+            class="pw-toggle-btn"
+            aria-pressed="false"
+            aria-label="Show password"
+            title="Show password"
+          >
+            Show
+          </button>
+
           <div class="error" id="err-password" style="display:none;color:#c33;font-size:0.9rem;margin-top:0.25rem;"></div>
         </div>
 

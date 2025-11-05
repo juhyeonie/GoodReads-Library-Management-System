@@ -15,10 +15,51 @@ document.addEventListener('DOMContentLoaded', () => {
   const errPassword = document.getElementById('err-password');
   const serverMsg = document.getElementById('server-msg');
 
+  // --- Show / Hide Password button ---
+  const toggleBtn = document.getElementById('togglePassword');
+  if (toggleBtn && password) {
+    // Toggle password visibility
+    toggleBtn.addEventListener('click', () => {
+      const isHidden = password.type === 'password';
+      if (isHidden) {
+        password.type = 'text';
+        toggleBtn.textContent = 'Hide';
+        toggleBtn.setAttribute('aria-pressed', 'true');
+        toggleBtn.setAttribute('aria-label', 'Hide password');
+        toggleBtn.title = 'Hide password';
+      } else {
+        password.type = 'password';
+        toggleBtn.textContent = 'Show';
+        toggleBtn.setAttribute('aria-pressed', 'false');
+        toggleBtn.setAttribute('aria-label', 'Show password');
+        toggleBtn.title = 'Show password';
+      }
+
+      // Keep focus on the password field for better UX
+      password.focus();
+    });
+
+    // Optional: toggle on Enter/Space when button is focused (native button handles it)
+    // Optional: hide the password on blur to avoid accidental exposure
+    password.addEventListener('blur', () => {
+      // If you prefer auto-hiding the password when the user leaves the field, uncomment:
+      // password.type = 'password';
+      // toggleBtn.textContent = 'Show';
+      // toggleBtn.setAttribute('aria-pressed', 'false');
+      // toggleBtn.setAttribute('aria-label', 'Show password');
+    });
+  }
+
   // occasionally autofill sticks — clear shortly after load
   setTimeout(() => {
     if (email) email.value = '';
     if (password) password.value = '';
+    // Ensure toggle shows the correct initial label
+    if (toggleBtn) {
+      toggleBtn.textContent = 'Show';
+      toggleBtn.setAttribute('aria-pressed', 'false');
+      toggleBtn.setAttribute('aria-label', 'Show password');
+    }
   }, 50);
 
   const show = (el, msg) => { if (!el) return; el.textContent = msg; el.style.display = 'block'; };
