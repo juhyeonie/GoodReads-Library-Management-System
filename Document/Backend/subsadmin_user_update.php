@@ -23,6 +23,7 @@ $input = json_decode(file_get_contents('php://input'), true);
 $userId = $input['userId'] ?? null;
 $plan = $input['plan'] ?? '';
 $email = $input['email'] ?? ''; // Email is passed for logging
+$password = $input['password'] ?? null; // <-- ADDED
 
 // --- Validation ---
 $errors = [];
@@ -32,6 +33,20 @@ if (empty($userId)) {
 if (empty($plan) || !in_array($plan, ['Basic Plan', 'Standard Plan', 'Premium Plan'])) {
     $errors['plan'] = 'A valid plan is required.';
 }
+
+// --- ADDED: Password Validation (only if provided) ---
+if (!empty($password)) {
+    if (strlen($password) < 8) {
+        $errors['password'] = 'Password must be at least 8 characters.';
+    }
+    if (!preg_match('/[A-Z]/', $password)) {
+        $errors['password'] = 'Password must contain one uppercase letter.';
+    }
+    if (!preg_match('/[0-9]/', $password)) {
+        $errors['password'] = 'Password must contain one number.';
+    }
+}
+// --- END: Password Validation ---
 
 if (!empty($errors)) {
     http_response_code(400);
@@ -63,34 +78,51 @@ if ($plan === 'Basic Plan') {
 // --- End of Corrected Logic ---
 
 try {
-    // Update the user's account
-    $stmt = $pdo->prepare(
-        "UPDATE ACCOUNT SET 
-            Plan = ?, 
-            Payment_Method = ?, 
-            SubsStarted = ?, 
-            SubsEnd = ?, 
-            Plan_Status = ?
-         WHERE AccountID = ? AND Role = 'Customer'"
-    );
-
-    $stmt->execute([
+    // --- MODIFIED: Dynamic Query Building ---
+    $sqlParts = [
+        "Plan = ?",
+        "Payment_Method = ?",
+        "SubsStarted = ?",
+        "SubsEnd = ?",
+        "Plan_Status = ?"
+    ];
+    $params = [
         $plan,
         $paymentMethod,
         $subsStarted,
         $subsEnd,
-        $planStatus,
-        $userId
-    ]);
+        $planStatus
+    ];
+
+    $logPasswordMessage = "password not changed";
+
+    if (!empty($password)) {
+        // Hash the new password
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $sqlParts[] = "Password = ?";
+        $params[] = $hashedPassword;
+        $logPasswordMessage = "password updated";
+    }
+
+    $params[] = $userId; // Add the userId for the WHERE clause
+
+    $sql = "UPDATE ACCOUNT SET " . implode(', ', $sqlParts) . " WHERE AccountID = ? AND Role = 'Customer'";
+    // --- END: Dynamic Query Building ---
+
+
+    // Update the user's account
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params); // Execute with dynamic params
 
     $rowCount = $stmt->rowCount();
 
     if ($rowCount > 0) {
         // Log the action
         $log_stmt = $pdo->prepare("INSERT INTO ACTIVITY_LOG (AccountID, ActionType, Description) VALUES (?, 'UPDATE_CUSTOMER_PLAN', ?)");
-        $log_stmt->execute([$adminId, "SubsAdmin updated customer (ID: $userId, Email: $email) to $plan."]);
+        // MODIFIED: Updated log message
+        $log_stmt->execute([$adminId, "SubsAdmin updated customer (ID: $userId, Email: $email) to $plan ($logPasswordMessage)."]);
 
-        echo json_encode(['success' => true, 'message' => 'User plan updated successfully.']);
+        echo json_encode(['success' => true, 'message' => 'User details updated successfully.']);
     } else {
         http_response_code(404);
         echo json_encode(['success' => false, 'message' => 'Customer not found or no changes made.']);

@@ -84,18 +84,30 @@
     return String(str).replace(/[&<>"']/g, s => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s]));
   }
 
-  function formatTimestamp24Hour(timestamp) {
+  // --- MODIFIED: Changed to 12-hour AM/PM format ---
+  function formatTimestamp12Hour(timestamp) {
     try {
       const date = new Date(timestamp);
       if (isNaN(date)) return timestamp;
+      
       const y = date.getFullYear();
-      const m = String(date.getMonth()+1).padStart(2,'0');
-      const d = String(date.getDate()).padStart(2,'0');
-      const hh = String(date.getHours()).padStart(2,'0');
-      const mm = String(date.getMinutes()).padStart(2,'0');
-      const ss = String(date.getSeconds()).padStart(2,'0');
-      return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
-    } catch (e) { return timestamp; }
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      
+      let hours = date.getHours();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      
+      hours = hours % 12;
+      hours = hours ? hours : 12; // The hour '0' should be '12'
+      
+      const hh = String(hours).padStart(2, '0');
+      const mm = String(date.getMinutes()).padStart(2, '0');
+      const ss = String(date.getSeconds()).padStart(2, '0');
+      
+      return `${y}-${m}-${d} ${hh}:${mm}:${ss} ${ampm}`;
+    } catch (e) {
+      return timestamp;
+    }
   }
 
   function renderTable() {
@@ -123,7 +135,7 @@
     tbody.innerHTML = pageData.map(log => {
       return `
         <tr>
-          <td class="activity-timestamp">${escapeHtml(formatTimestamp24Hour(log.Timestamp || log.timestamp || log.time))}</td>
+          <td class="activity-timestamp">${escapeHtml(formatTimestamp12Hour(log.Timestamp || log.timestamp || log.time))}</td>
 <td class="activity-admin">
   ${escapeHtml(log.AdminName || log.admin || 'System')}
   ${log.Role || log.role ? `<span class="admin-badge ${escapeHtml((log.Role || log.role).toLowerCase())}">${escapeHtml(log.Role || log.role)}</span>` : ''}
@@ -168,7 +180,8 @@
       // --- MODIFIED: Standardized property access ---
       const adminName = (log.AdminName || log.admin || '').toString();
       const desc = (log.Description || log.description || '').toString();
-      const ts = formatTimestamp24Hour(log.Timestamp || log.timestamp || log.time).toLowerCase();
+      // --- MODIFIED: Using 12-hour function ---
+      const ts = formatTimestamp12Hour(log.Timestamp || log.timestamp || log.time).toLowerCase();
       
       // --- MODIFIED: Uses correct admin role name (e.g., 'SubsAdmin') ---
       const matchesAdmin = (adminFilter === 'all') || (adminName === adminFilter);
