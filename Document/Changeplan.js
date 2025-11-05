@@ -1,114 +1,125 @@
-// StartPage.js (Updated for Dynamic Plan Loading)
-
+// Changeplan.js — load plans + current user, render, allow change
 document.addEventListener('DOMContentLoaded', () => {
-    
-    const plansContainer = document.querySelector('.plans-container');
+  const plansContainer = document.querySelector('.plans-container');
 
-    // Helper to escape HTML for security
-    function escapeHTML(str) {
-      if (str == null) return '';
-      return String(str).replace(/[&<>"']/g, s => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-      }[s]));
+  function escapeHTML(str = '') {
+    return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[s]));
+  }
+
+  // Fetch JSON with credentials
+  async function fetchJson(url, opts = {}) {
+    opts.credentials = opts.credentials || 'same-origin';
+    const res = await fetch(url, opts);
+    const text = await res.text();
+    try { return { res, json: JSON.parse(text) }; }
+    catch(e) { return { res, json: null, text }; }
+  }
+
+  // Load both plans and current user in parallel
+  async function loadData() {
+    plansContainer.innerHTML = '<p>Loading available plans…</p>';
+    try {
+      const [plansResp, userResp] = await Promise.all([
+        fetchJson('Backend/plan_fetch.php'),
+        fetchJson('Backend/api/fetch_current_user.php')
+      ]);
+
+      if (!plansResp.res.ok || !plansResp.json || !plansResp.json.success) {
+        throw new Error(plansResp.json?.message || 'Could not load plans');
+      }
+
+      const plans = plansResp.json.plans || [];
+
+      // user may be unauthenticated (we still show plans and fallback to signup flow)
+      let userPlan = null;
+      if (userResp.res.ok && userResp.json && userResp.json.success && userResp.json.user) {
+        userPlan = (userResp.json.user.plan || '').toString().trim();
+      }
+
+      renderPlans(plans, userPlan);
+    } catch (err) {
+      console.error('Plan loading error', err);
+      plansContainer.innerHTML = '<p class="error-message">Could not load subscription plans. Please try again later.</p>';
     }
+  }
 
-    /**
-     * Function to handle plan selection and redirection
-     */
- async function handlePlanSelection(planName) {
-  if (!planName) return;
-  // if user is logged in, POST to API to change immediately
-  try {
-    const fd = new FormData();
-    fd.append('plan', planName);
-    const res = await fetch('Backend/api/change_plan.php', { method: 'POST', body: fd, credentials: 'same-origin' });
-    const json = await res.json();
-    if (!res.ok || !json.success) {
-      // fallback: store and continue sign-up
-      localStorage.setItem("selectedPlan", planName);
-      window.location.href = "Step2.html";
+  function renderPlans(plans = [], currentPlanName = '') {
+    plansContainer.innerHTML = '';
+    if (!plans.length) {
+      plansContainer.innerHTML = '<p>No plans available.</p>';
       return;
     }
-    alert('Plan changed to: ' + json.plan);
-    // redirect back to settings with updated info
-    window.location.href = 'Setting.html';
-  } catch (err) {
-    console.error(err);
-    // fallback to sign-up flow
-    localStorage.setItem("selectedPlan", planName);
-    window.location.href = "Step2.html";
+
+    plans.forEach(plan => {
+      // plan object shape from your backend: { PlanName, Price, features: [{FeatureText}, ...] }
+      const planName = plan.PlanName || plan.planName || 'Unknown Plan';
+      const price = (plan.Price !== undefined && plan.Price !== null) ? `₱${parseFloat(plan.Price).toFixed(0)}` : '—';
+      const isCurrent = currentPlanName && currentPlanName.toLowerCase() === planName.toLowerCase();
+
+      // build features list
+      const features = Array.isArray(plan.features) ? plan.features.map(f => `<li>${escapeHTML(f.FeatureText || f)}</li>`).join('') : '';
+
+      // choose classes & button label
+      const planClass = `plan ${escapeHTML(planName.toLowerCase().split(' ')[0] || '')} ${isCurrent ? 'highlight' : ''}`;
+      const ribbonHTML = isCurrent ? `<div class="ribbon">Current</div>` : '';
+      const buttonText = isCurrent ? 'Current Plan' : 'Choose';
+
+      const div = document.createElement('div');
+      div.className = planClass;
+      div.innerHTML = `
+        ${ribbonHTML}
+        <h3>${escapeHTML(planName)}</h3>
+        <p class="price">${escapeHTML(price)} <small style="font-weight:400; color:#666">/ month</small></p>
+        <ul class="features">${features}</ul>
+        <div style="display:flex; gap:10px; justify-content:center;">
+          <button class="plan-btn" data-plan="${escapeHTML(planName)}" ${isCurrent ? 'disabled' : ''}>${escapeHTML(buttonText)}</button>
+        </div>
+      `;
+
+      const btn = div.querySelector('.plan-btn');
+      btn?.addEventListener('click', () => onSelectPlan(planName, div));
+
+      plansContainer.appendChild(div);
+    });
   }
-}
 
+  async function onSelectPlan(planName, planElement) {
+    if (!planName) return;
+    // Confirm before changing live account
+    const ok = confirm(`Change subscription to "${planName}"?`);
+    if (!ok) return;
 
-    /**
-     * 1. Dynamic Plan Loader (Fetches data from plan_fetch.php)
-     */
-    async function loadAndRenderPlans() {
-        try {
-            const response = await fetch('Backend/plan_fetch.php');
-            const data = await response.json();
+    // Optimistic UI lock
+    const btn = planElement.querySelector('.plan-btn');
+    const prevText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Updating…';
 
-            if (!data.success) {
-                throw new Error(data.message || 'Failed to load plans.');
-            }
+    try {
+      const fd = new FormData();
+      fd.append('plan', planName);
 
-            renderPlans(data.plans);
+      const { res, json } = await fetchJson('Backend/api/change_plan.php', { method: 'POST', body: fd });
+      if (!res.ok || !json || !json.success) {
+        const msg = json?.message || `Failed to change plan (status ${res.status})`;
+        alert(msg);
+        // fallback: store selection for signup flow (if unauthenticated)
+        localStorage.setItem('selectedPlan', planName);
+        return;
+      }
 
-        } catch (err) {
-            console.error('Plan loading error:', err);
-            if (plansContainer) {
-                 plansContainer.innerHTML = '<p class="error-message">Could not load subscription plans. Please try again later.</p>';
-            }
-        }
+      alert(json.message || `Plan changed to ${json.plan || planName}`);
+      // After success, return to settings to reflect change
+      location.href = 'Setting.html';
+    } catch (err) {
+      console.error('Change plan failed', err);
+      alert('Network error while changing plan. Please try again.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = prevText;
     }
-    
-    /**
-     * 2. Rendering Function
-     */
-    function renderPlans(plans) {
-        if (!plansContainer) return;
+  }
 
-        // Clear loading message
-        plansContainer.innerHTML = ''; 
-
-        plans.forEach(plan => {
-            const dataPlanName = escapeHTML(plan.PlanName); 
-            // Normalize for CSS classes: "Basic Plan" -> "basic"
-            const planKey = plan.PlanName.toLowerCase().split(' ')[0]; 
-
-            const priceText = `₱${parseFloat(plan.Price).toFixed(0)} / month`;
-            
-            let featuresHTML = '';
-            // Render features dynamically
-            plan.features.forEach(feature => {
-                featuresHTML += `<li>${escapeHTML(feature.FeatureText)}</li>`;
-            });
-
-            
-
-            const planEl = document.createElement('div');
-            planEl.className = planClass;
-            
-            planEl.innerHTML = `
-                ${ribbonHTML}
-                <h3>${dataPlanName}</h3>
-                <p class="price">${escapeHTML(priceText)}</p>
-                <ul class="features">
-                    ${featuresHTML}
-                </ul>
-                <button class="plan-btn" data-plan="${dataPlanName}">${buttonText}</button>
-            `;
-            
-            // Attach the plan selection logic directly
-            planEl.querySelector('.plan-btn').addEventListener('click', () => {
-                handlePlanSelection(dataPlanName);
-            });
-
-            plansContainer.appendChild(planEl);
-        });
-    }
-
-    // Start the dynamic loading process when the page loads
-    loadAndRenderPlans();
+  // start
+  loadData();
 });
