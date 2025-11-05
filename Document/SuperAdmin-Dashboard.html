@@ -164,7 +164,6 @@
     </main>
   </div>
 
-  <!-- Modal (single shared modal) -->
   <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
     <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div class="modal-topbar"></div>
@@ -175,7 +174,6 @@
       </div>
 
       <div class="modal-body" id="modalBody">
-        <!-- placeholder while data loads -->
         <div style="padding: 28px; text-align:center; color:#888;">
           <div style="font-size:40px; margin-bottom:8px;">📋</div>
           <div style="font-weight:700;">Select a card to view details</div>
@@ -187,5 +185,23 @@
 
   <script src="SuperAdmin-Dashboard.js"></script>
 
-</body>
+  <script>
+    (function() {
+      try {
+        // Find the username element in the sidebar
+        const usernameElement = document.querySelector('.sidebar-bottom .user .username');
+        
+        // Get the email from session storage
+        const userEmail = sessionStorage.getItem('user_email');
+        
+        if (usernameElement && userEmail) {
+          // Set the element's text to the stored email
+          usernameElement.textContent = userEmail;
+        }
+      } catch (e) {
+        console.error('Error setting username from email:', e);
+      }
+    })();
+  </script>
+  </body>
 </html>

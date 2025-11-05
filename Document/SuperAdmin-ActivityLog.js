@@ -84,7 +84,6 @@
     return String(str).replace(/[&<>"']/g, s => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s]));
   }
 
-  // --- MODIFIED: Changed to 12-hour AM/PM format ---
   function formatTimestamp12Hour(timestamp) {
     try {
       const date = new Date(timestamp);
@@ -132,15 +131,16 @@
       return;
     }
 
+    // This render function now correctly displays AdminName (as Email)
+    // and the Role (as the badge) thanks to the PHP update.
     tbody.innerHTML = pageData.map(log => {
       return `
         <tr>
           <td class="activity-timestamp">${escapeHtml(formatTimestamp12Hour(log.Timestamp || log.timestamp || log.time))}</td>
-<td class="activity-admin">
-  ${escapeHtml(log.AdminName || log.admin || 'System')}
-  ${log.Role || log.role ? `<span class="admin-badge ${escapeHtml((log.Role || log.role).toLowerCase())}">${escapeHtml(log.Role || log.role)}</span>` : ''}
-</td>
-
+          <td class="activity-admin">
+            ${escapeHtml(log.AdminName || log.admin || 'System')}
+            ${log.Role || log.role ? `<span class="admin-badge ${escapeHtml((log.Role || log.role).toLowerCase())}">${escapeHtml(log.Role || log.role)}</span>` : ''}
+          </td>
           <td>${escapeHtml(log.Description || log.description || '')}</td>
         </tr>`;
     }).join('');
@@ -171,25 +171,27 @@
     document.getElementById('weekLogs').textContent = weekCount;
   }
 
+  // ===== THIS FUNCTION IS UPDATED =====
   function applyFilters() {
-    // --- MODIFIED: Corrected selector ---
     const adminFilter = (document.getElementById('filterSelect')?.value || 'all');
     const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
 
     filteredLogs = allLogs.filter(log => {
-      // --- MODIFIED: Standardized property access ---
-      const adminName = (log.AdminName || log.admin || '').toString();
+      // Get all the data from the log object
+      const adminName = (log.AdminName || log.admin || 'System').toString(); // This is now the Email
+      const role = (log.Role || log.role || 'System').toString();         // This is the Role
       const desc = (log.Description || log.description || '').toString();
-      // --- MODIFIED: Using 12-hour function ---
       const ts = formatTimestamp12Hour(log.Timestamp || log.timestamp || log.time).toLowerCase();
       
-      // --- MODIFIED: Uses correct admin role name (e.g., 'SubsAdmin') ---
-      const matchesAdmin = (adminFilter === 'all') || (adminName === adminFilter);
+      // FIXED: The dropdown filter now correctly checks the 'role'
+      const matchesAdmin = (adminFilter === 'all') || (role === adminFilter);
       
+      // FIXED: The search bar now checks email, role, description, and timestamp
       const matchesSearch = !searchTerm ||
-        adminName.toLowerCase().includes(searchTerm) ||
-        desc.toLowerCase().includes(searchTerm) ||
-        ts.includes(searchTerm);
+        adminName.toLowerCase().includes(searchTerm) || // Search Email
+        role.toLowerCase().includes(searchTerm) ||      // Search Role
+        desc.toLowerCase().includes(searchTerm) ||      // Search Description
+        ts.includes(searchTerm);                        // Search Timestamp
 
       return matchesAdmin && matchesSearch;
     });
@@ -197,6 +199,7 @@
     currentPage = 1;
     renderTable();
   }
+  // ===== END OF UPDATED FUNCTION =====
 
 
   async function loadActivityLogs() {
@@ -205,10 +208,9 @@
       const json = await resp.json();
       if (!resp.ok || !json.success) throw new Error(json.message || 'Failed to fetch');
       allLogs = json.logs || [];
-      // --- MODIFIED: Apply filters right after loading ---
+      
       applyFilters(); 
       updateStats();
-      // renderTable(); // This is now called inside applyFilters()
     } catch (err) {
       console.error('Failed to load activity logs', err);
       document.getElementById('activityTableBody').innerHTML = `
@@ -222,10 +224,8 @@
   }
 
   /* Event wiring */
-  // --- MODIFIED: Corrected selector and event ---
   document.getElementById('filterSelect')?.addEventListener('change', applyFilters);
   
-  // --- MODIFIED: Added search button listener ---
   const searchBtn = document.querySelector('.search-btn');
   if (searchBtn) {
     searchBtn.addEventListener('click', (e)=>{ e.preventDefault(); applyFilters(); });
@@ -233,14 +233,12 @@
 
   document.getElementById('searchInput')?.addEventListener('keydown', (ev)=>{ if(ev.key==='Enter'){ ev.preventDefault(); applyFilters(); } });
   
-  // --- MODIFIED: Changed input to trigger applyFilters ---
   let searchTimeout;
   document.getElementById('searchInput')?.addEventListener('input', ()=>{ 
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(applyFilters, 300); // Debounce search
   });
 
-  // (refreshBtn is not in the HTML, but this won't break anything)
   document.getElementById('refreshBtn')?.addEventListener('click', (e)=>{ e.preventDefault(); loadActivityLogs(); }); 
 
   document.getElementById('prevBtn')?.addEventListener('click', ()=>{ if(currentPage>1){ currentPage--; renderTable(); }});

@@ -172,7 +172,7 @@
   <div id="addModal" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-topbar"></div>
-      <div class="modal-body">
+      <div class_=("modal-body")>
         <h2 class="modal-title">Add a new user</h2>
         <form id="addForm" class="user-form">
           <div class="floating field">
@@ -222,7 +222,7 @@
         <p id="deleteMessage" class="delete-message">Are you sure you want to delete this user?</p>
       </div>
       <div class="modal-bottombar">
-        <div class="modal-actions">
+        <div classs="modal-actions">
           <button id="confirmDeleteBtn" class="btn confirm" type="button">YES</button>
           <button id="cancelDeleteBtn" class="btn cancel" type="button">NO</button>
         </div>
@@ -266,5 +266,24 @@
 
 
   <script src="SuperAdmin-User.js"></script>
-</body>
-</html> 
+  
+  <script>
+    (function() {
+      try {
+        // Find the username element in the sidebar
+        const usernameElement = document.querySelector('.sidebar-bottom .user .username');
+        
+        // Get the email from session storage
+        const userEmail = sessionStorage.getItem('user_email');
+        
+        if (usernameElement && userEmail) {
+          // Set the element's text to the stored email
+          usernameElement.textContent = userEmail;
+        }
+      } catch (e) {
+        console.error('Error setting username from email:', e);
+      }
+    })();
+  </script>
+  </body>
+</html>

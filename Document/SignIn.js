@@ -154,6 +154,11 @@ document.addEventListener('DOMContentLoaded', () => {
         sessionStorage.setItem('user_plan', storageKey);        // e.g., 'basic', 'standard', 'premium'
         sessionStorage.setItem('is_logged_in', 'true');         // flag other pages check
         sessionStorage.setItem('user_role', role || 'user');    // role for routing
+        
+        // ===== MODIFICATION: Added user email =====
+        sessionStorage.setItem('user_email', user.Email || ''); // Store the user's email
+        // ===== END MODIFICATION =====
+
 
         // Clear previous expiration flags
         sessionStorage.removeItem('is_plan_expired');
