@@ -15,18 +15,31 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Function to handle plan selection and redirection
      */
-    function handlePlanSelection(planName) {
-        if (!planName) {
-            console.error("Plan name missing.");
-            return;
-        }
-        
-        // Store the selected plan (e.g., "Basic Plan", "Standard Plan") in localStorage for Step 2.
-        localStorage.setItem("selectedPlan", planName);
-        
-        // Redirect to the sign-up flow
-        window.location.href = "Step2.html";
+ async function handlePlanSelection(planName) {
+  if (!planName) return;
+  // if user is logged in, POST to API to change immediately
+  try {
+    const fd = new FormData();
+    fd.append('plan', planName);
+    const res = await fetch('Backend/api/change_plan.php', { method: 'POST', body: fd, credentials: 'same-origin' });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      // fallback: store and continue sign-up
+      localStorage.setItem("selectedPlan", planName);
+      window.location.href = "Step2.html";
+      return;
     }
+    alert('Plan changed to: ' + json.plan);
+    // redirect back to settings with updated info
+    window.location.href = 'Setting.html';
+  } catch (err) {
+    console.error(err);
+    // fallback to sign-up flow
+    localStorage.setItem("selectedPlan", planName);
+    window.location.href = "Step2.html";
+  }
+}
+
 
     /**
      * 1. Dynamic Plan Loader (Fetches data from plan_fetch.php)
