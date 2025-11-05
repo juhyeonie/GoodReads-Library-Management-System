@@ -1,5 +1,4 @@
-// homepage.js
-// ====== Book Data (Data source remains local for now) ======
+if (typeof requireAuth === 'function') requireAuth();
 const books = [
   {
     title: "The Lightning Thief",
